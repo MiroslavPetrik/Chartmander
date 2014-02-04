@@ -67,3 +67,4 @@ kramdown:
 redcloth:
   hard_breaks: true
   
+project_name: Chartmander
