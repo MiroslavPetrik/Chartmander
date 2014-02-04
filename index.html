@@ -1,13 +1,188 @@
 ---
 layout: default
-title: Your New Jekyll Site
+title: Chartmander - HTML5 canvas charts
 ---
-
-<div id="home">
-  <h1>Blog Posts</h1>
-  <ul class="posts">
-    {% for post in site.posts %}
-      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
-    {% endfor %}
-  </ul>
+<div class="jumbotron chartmander">
+	<h1>Chartmander</h1>
+	<p>Attractive HTML5 charts great for your new webapp or design mockup</p>
+	<button class="btn btn-default btn-block">Explore</button>
+	<canvas id="chartmander-intro" class="chart" width="1200" height="400"></canvas>
 </div>
+
+<div class="row">
+	<div class="col-lg-10 col-lg-offset-1">
+			<h2 class="page-header">Bar Chart <small>great for category data</small><i class="ion-stats-bars pull-right"></i></h2>
+		<div class="row">
+			<div class="col-lg-6">
+				<canvas id="bar1" class="chart" width="500" height="300"></canvas>
+				<h3 class="page-header">Finished</h3>
+				<ul class="list-group">
+					<li class="list-group-item"><i class="ion-checkmark"></i> Vykreslovanie viacero kategorii naraz</li>
+					<li class="list-group-item"><i class="ion-checkmark"></i> Prepocitavanie osi Y</li>
+					<li class="list-group-item"><i class="ion-checkmark"></i> Filtrovanie osi X</li>
+					<li class="list-group-item"><i class="ion-checkmark"></i> Animovanie grafu</li>
+				</ul>
+			</div>
+			<div class="col-lg-6">
+				<canvas id="bar2" class="chart" width="500" height="300"></canvas>
+				<h3 class="page-header">TODO</h3>
+				<ul class="list-group">
+					<li class="list-group-item"><i class="ion-document"></i> Stacked bars</li>
+					<li class="list-group-item"><i class="ion-document"></i> Hover state</li>
+					<li class="list-group-item"><i class="ion-document"></i> Tooltipy</li>
+					<li class="list-group-item"><i class="ion-document"></i> Nadpis, nazvy osi</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-lg-10 col-lg-offset-1">
+		<h2 class="page-header"><i class="ion-ios7-pie-outline pull-right"></i>Pie Chart <small>great for ratio and quantity data</small></h2>
+		<div class="row">
+			<div class="col-lg-4">
+				<canvas id="pie1" class="chart" width="300" height="300"></canvas>
+			</div>
+			<div class="col-lg-4">
+				<canvas id="pie2" class="chart" width="300" height="300"></canvas>
+			</div>
+			<div class="col-lg-4">
+				<canvas id="pie3" class="chart" width="300" height="300"></canvas>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-lg-6">
+				<h3 class="page-header">Finished</h3>
+				<ul class="list-group">
+					<li class="list-group-item"><i class="ion-checkmark"></i> Normal/Donut verzia grafu</li>
+					<li class="list-group-item"><i class="ion-checkmark"></i> Animovanie grafu</li>
+				</ul>
+			</div>
+			<div class="col-lg-6">
+				<h3 class="page-header">TODO</h3>
+				<ul class="list-group">
+					<li class="list-group-item"><i class="ion-document"></i> Hover state s labelami</li>
+					<li class="list-group-item"><i class="ion-document"></i> Tooltip v strede (+ najvacsia hodnota)</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-10 col-lg-offset-1">
+		<h2 class="page-header"><i class="ion-person pull-right"></i>About author <small>see github</small></h2>
+		<div class="row">
+			<div class="col-lg-8">
+			<a href="https://github.com/11th">Miroslav Petrik</a>
+			<p>Student at <a href="http://www.spseke.sk">SPSE Kosice</a> Slovakia</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	function barFactory (datasets, categories, bothDirections) {
+		var data = []
+			, direction = false
+			;
+		for (var i = 0; i < datasets.length; i++) {
+			if(bothDirections)
+				direction = i % 2 == 0 ? false : true
+			data.push({
+				title: datasets[i],
+				values: stream(categories, direction)
+			})
+		};
+
+		return data;
+	}
+
+	function pieFactory (title, segments) {
+		return [{
+			title: title,
+			values: stream(segments)
+		}];
+	}
+
+	function lineFactory (title, points) {
+		return [{
+			title: title,
+			values: sine(points)
+		}]
+	}
+
+	function stream (cats, dir) {
+
+		var result = []
+			, direction = 1
+
+		if (dir)
+			direction = -1
+
+		for (var i = 0; i < cats.length; i++) {
+			result.push({
+				label: cats[i],
+				value: parseInt(Math.random() * 450 * direction)
+			})
+		};
+
+		return result;
+	}
+
+	function sine (points) {
+		var result = []
+			, incrementAngle = (Math.PI*2)/points
+		for (var i = 0; i < Math.PI*2; i += incrementAngle) {
+			result.push({
+				label: i,
+				value: Math.sin(i)
+			})
+		};
+		return result
+	}
+
+	var barData = barFactory(["Petrol", "Oil"], ["January", "February", "March", "April", "May", "Jun"]);
+	
+	// First Intro Chart	
+	var introChart = new Chartmander("chartmander-intro").Line(barData);
+	introChart.easingFunction("easeOutQuint").pointRadius(10).fontColor("#40405c").font("14px Arial");
+	introChart.grid.lineColor("#3a3a52").verticalLines(false)
+
+	// Bar Charts
+	var barData2 = barFactory(["Category 1", "Category 2", "Category 3"], ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"], true);
+	var bar = new Chartmander("bar1").Bar(barData);
+	var bar2 = new Chartmander("bar2").Bar(barData2);
+
+	bar2.datasetSpacing(1);
+
+	// Pie Charts
+	var pieData = pieFactory("Girls vs. Boys", ["Chlapci", "Dievcata", "Aliens"]);
+
+	var pieData2 = pieFactory("Ram Usage", ["Used", "Alocated", "Free"]);
+
+	var pieData3 = pieFactory("Fullfilment level", ["Intresting", "Not so much"]);
+
+	var pie = new Chartmander("pie1").Pie(pieData);
+	pie.innerRadius(0).easingFunction("linear");
+
+	var pie2 = new Chartmander("pie2").Pie(pieData2);
+	pie2.easingFunction("easeOutCubic").colors(["#2f8693", "#76bfc4", "#e9ecea"])
+
+	var pie3 = new Chartmander("pie3").Pie(pieData3);
+	pie3.easingFunction("easeInElastic").colors(["orangered", "#eee"])
+
+	// var sineData = lineFactory("f: y = sine(x)", 100);
+	// var sine = new Chartmander("sine").Line(sineData);
+
+</script>
+
+
+<!-- <div id="home">
+	<h1>Blog Posts</h1>
+	<ul class="posts">
+		{% for post in site.posts %}
+			<li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
+		{% endfor %}
+	</ul>
+</div> -->

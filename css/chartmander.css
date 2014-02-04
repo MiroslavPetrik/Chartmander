@@ -1,0 +1,33 @@
+.jumbotron.chartmander {
+  height: 100vh;
+  background: #020111;
+  position: relative;
+  text-align: center; }
+  .jumbotron.chartmander h1 {
+    color: silver; }
+  .jumbotron.chartmander p {
+    color: #555; }
+  .jumbotron.chartmander .btn {
+    max-width: 200px;
+    margin: 0 auto;
+    text-transform: uppercase;
+    background: transparent;
+    border: 2px solid #555;
+    color: white;
+    background: orangered;
+    border-color: orangered; }
+    .jumbotron.chartmander .btn:hover {
+      color: white;
+      background: orangered;
+      border-color: orangered; }
+
+#chartmander-intro {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto; }
+
+.list-group-item i {
+  font-size: 18px;
+  margin-right: 10px; }
