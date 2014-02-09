@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     RedCloth (4.2.9)
+    RedCloth (4.2.9-x86-mingw32)
     animation (0.1.alpha.3)
       compass (>= 0.12.0)
       sass (>= 3.2.0.alpha.95)
@@ -21,6 +22,7 @@ GEM
     directory_watcher (1.4.1)
     fast-stemmer (1.0.2)
     ffi (1.9.3)
+    ffi (1.9.3-x86-mingw32)
     fssm (0.2.10)
     github-pages (8)
       RedCloth (= 4.2.9)
@@ -68,9 +70,11 @@ GEM
       listen (~> 1.1.0)
     syntax (1.2.0)
     yajl-ruby (1.1.0)
+    yajl-ruby (1.1.0-x86-mingw32)
 
 PLATFORMS
   ruby
+  x86-mingw32
 
 DEPENDENCIES
   animation
