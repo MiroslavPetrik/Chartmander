@@ -1,3 +1,6 @@
+// Chartmander v0.1
+// https://github.com/11th/Chartmander
+// Copyright (c) 2014 Miroslav Petrik, MIT License
 
 var Chartmander = function (canvasID) {
 
@@ -251,7 +254,6 @@ var Chartmander = function (canvasID) {
     else 
       return chart.getGridProperties()["bottom"] - chart.yAxis.config.zeroLevel;
   }
-
   return chart;
 }
 
@@ -280,7 +282,7 @@ Chartmander.prototype.Bar = function (data) {
   cfg.groupOffset = 0;
 
   // Construct
-  chart.datasets = getDatasetFrom(data, cfg.type);
+  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
   chart.xAxis = getAxesFrom(chart.datasets)[0];
   chart.yAxis = getAxesFrom(chart.datasets)[1];
   chart.grid = new Grid();
@@ -288,7 +290,6 @@ Chartmander.prototype.Bar = function (data) {
   // Recalc
   chart.grid.calculateProperties(cfg.margin, cfg);
   chart.xAxis.recalc(chart);
-  // cfg.labelSpace = chart.grid.config.properties.width/chart.xAxis.labels.length;
   chart.yAxis.recalc(chart);
 
   this.recalcBars = function () {
@@ -304,8 +305,6 @@ Chartmander.prototype.Bar = function (data) {
 
     if( (SETS * cfg.barWidth + (SETS-1)*cfg.datasetSpacing) > chart.xAxis.labelSpace )
       cfg.barWidth = Math.floor( (chart.xAxis.labelSpace - ((SETS-1)*cfg.datasetSpacing)) / SETS );
-
-    console.log(cfg.barWidth)
 
     cfg.groupWidth = cfg.barWidth*SETS + cfg.datasetSpacing*(SETS-1);
     cfg.groupOffset = (chart.xAxis.labelSpace - cfg.groupWidth)/2;
@@ -330,11 +329,13 @@ Chartmander.prototype.Bar = function (data) {
 
     ctx.save();
     forEach(chart.datasets, function (set) {
-      ctx.fillStyle = cfg.colors[counter.dataset];
+      ctx.fillStyle = set.style.normal.color;
+      ctx.lineWidth = set.style.normal.stroke;
+      ctx.strokeStyle = set.style.normal.strokeColor;
       set.each(function (bar) {
         bar.updateNow(_perc_);
         bar.updateNowBase(_perc_);
-        bar.drawInto(chart);
+        bar.drawInto(chart, set.style);
       })
       counter.dataset++;
     })
@@ -417,13 +418,13 @@ Chartmander.prototype.Line = function (data) {
   // Line Chart Defaults
   cfg.type = "line";
   cfg.margin = { top: 30, right: 50, bottom: 50, left: 50 };
-  cfg.pointRadius = 6;
+  cfg.pointRadius = 5;
   cfg.lineWidth = 2;
-  cfg.pointHoverRadius = 30;
+  cfg.pointHoverRadius = 20;
   cfg.mergeHover = false;
 
   // Construct
-  chart.datasets = getDatasetFrom(data, "line");
+  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
   chart.xAxis = getAxesFrom(chart.datasets)[0];
   chart.yAxis = getAxesFrom(chart.datasets)[1];
   chart.grid = new Grid();
@@ -465,15 +466,15 @@ Chartmander.prototype.Line = function (data) {
     ctx.save();
 
     forEach(chart.datasets, function (set) {
-      ctx.strokeStyle = cfg.colors[counter.dataset];
-      ctx.fillStyle = cfg.colors[counter.dataset];
+      ctx.strokeStyle = set.style.color;
+      ctx.fillStyle = set.style.color;
 
       if (type === "line") ctx.beginPath();
       
       counter.element = 1;
       set.each(function (point) {
         point.updateNow(_perc_);
-        point.drawInto(chart, type);
+        point.drawInto(chart, set.style, type);
         counter.element++;
       });
 
@@ -519,7 +520,6 @@ var xAxis = function (labels) {
     }
 
     this.labelSpace = chart.getGridProperties().width/this.labels.length;
-    console.log( this.labelSpace, this.labels.length )
     return this;
   }
 
@@ -892,11 +892,42 @@ var Grid = function () {
   }
 }
 
-var Dataset = function (set, type) {
+var Dataset = function (set, color, type) {
 
   this.title = set.title;
   this.elements = getElements(type);
   this.type = type;
+  this.style = {
+    color: color
+  };
+
+
+  // Different config for chart type
+  if (type == "bar") {
+    this.style.normal = {
+      color: tinycolor.lighten(this.style.color, 10).toHex(),
+      stroke: 1,
+      strokeColor: tinycolor.darken(this.style.color, 30).toHex()
+    };
+    this.style.onHover = {
+      color: tinycolor.lighten(this.style.color, 5).toHex(),
+      stroke: 1,
+      strokeColor: tinycolor.darken(this.style.color, 30).toHex()
+    };
+  }
+  else if (type == "line") {
+    this.style.normal = {
+      color: "#FFFFFF",
+      stroke: 1,
+      strokeColor: tinycolor.darken(this.style.color, 20).toHex()
+    };
+    this.style.onHover = {
+      color: tinycolor.lighten(this.style.color).toHex(),
+      stroke: 1,
+      strokeColor: tinycolor.darken(this.style.color, 20).toHex()
+    };
+  }
+  console.log(this.style)
 
   this.each = function (action) {
     forEach(this.elements, action);
@@ -1104,16 +1135,6 @@ var Element = function (data, title) {
     isAnimated: false,
     animationCompleted: 0, // normal => 0, hover => 1
     permissionToDie: false,
-    normal: {
-      color: "white",
-      borderWidth: 4,
-      borderColor: "red" // Inherit == color of dataset
-    },
-    onHover: {
-      color: "red",
-      borderWidth: 30,
-      borderColor: "rgba(255,255,255,.8)"
-    },
     // Positions
     now: {
       x: 0,
@@ -1225,16 +1246,27 @@ Element.prototype.Bar = function () {
   this.state.to.base = 0;
   this.state.now.base = 0;
 
-  this.drawInto = function (chart) {
+  this.drawInto = function (chart, style) {
     var ctx = chart.ctx
       , cfg = chart.config
       , hover = this.isHovered(chart)
       ;
 
     this.isAnimated(true);
-    if (hover)
-      ctx.fillStyle = "blue";
+    if (hover) {
+      ctx.save();
+      ctx.fillStyle = style.onHover.color;
+      ctx.strokeStyle = style.onHover.strokeColor;
+    }
     ctx.fillRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
+    if (style.normal.stroke > 0)
+      ctx.strokeRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
+
+    if (hover) {
+      if (style.onHover.stroke > 0)
+        ctx.strokeRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
+      ctx.restore();
+    }
   }
 
   this.isHovered = function (chart) {
@@ -1328,7 +1360,7 @@ Element.prototype.Segment = function () {
 
 Element.prototype.Point = function () {
 
-  this.drawInto = function (chart, type) {
+  this.drawInto = function (chart, style, type) {
 
     var ctx = chart.ctx
       , cfg = chart.config
@@ -1348,23 +1380,23 @@ Element.prototype.Point = function () {
         this.animOut();
 
       ctx.beginPath();
-      ctx.fillStyle = this.color();
+      ctx.fillStyle = style.normal.color;
       ctx.arc(this.getX(), this.getY(), cfg.pointRadius*(1-this.getState()), 0, Math.PI*2, false);
       ctx.fill();
-      if (this.stroke()) {
-        ctx.lineWidth = this.stroke()*(1-this.getState());
-        ctx.strokeStyle = this.strokeColor();
+      if (style.normal.stroke) {
+        ctx.lineWidth = style.normal.stroke*(1-this.getState());
+        ctx.strokeStyle = style.normal.strokeColor;
         ctx.stroke();
       }
       if (hover) {
         ctx.save();
         ctx.beginPath();
-        ctx.fillStyle = this.getHovered("color");
+        ctx.fillStyle = style.onHover.color;
         ctx.arc(this.getX(), this.getY(), cfg.pointRadius*this.getState(), 0, Math.PI*2, false);
         ctx.fill();
-        if (this.getHovered("border") > 0) {
-          ctx.lineWidth = this.getHovered("border")*this.getState();
-          ctx.strokeStyle = this.getHovered("borderColor");
+        if (style.onHover.stroke > 0) {
+          ctx.lineWidth = style.onHover.stroke*this.getState();
+          ctx.strokeStyle = style.onHover.strokeColor;
           ctx.stroke();
         }
         ctx.restore();
@@ -1391,20 +1423,20 @@ Element.prototype.Point = function () {
       return Math.abs(mouse.x - this.getX()) < radius && Math.abs(mouse.y - this.getY()) < radius
   }
 
-  this.color = function (_) {
-    if(!arguments.length) return this.state.normal.color;
-    this.state.normal.color = _;
-  }
+  // this.color = function (_) {
+  //   if(!arguments.length) return this.state.normal.color;
+  //   this.state.normal.color = _;
+  // }
 
-  this.stroke = function (_) {
-    if(!arguments.length) return this.state.normal.borderWidth;
-    this.state.normal.borderWidth = _;
-  }
+  // this.stroke = function (_) {
+  //   if(!arguments.length) return this.state.normal.borderWidth;
+  //   this.state.normal.borderWidth = _;
+  // }
 
-  this.strokeColor = function (_) {
-    if (!arguments.length) return this.state.normal.borderColor;
-    this.state.normal.borderColor = _;
-  }
+  // this.strokeColor = function (_) {
+  //   if (!arguments.length) return this.state.normal.borderColor;
+  //   this.state.normal.borderColor = _;
+  // }
 
   this.getHovered = function(prop) {
     var style = this.state.onHover;
@@ -1590,12 +1622,29 @@ function forEach (items, action) {
   };
 }
 
-function getDatasetFrom (data, type) {
-  var result = [];
+function getDatasetFrom (data, type, colors) {
+  var index = 0
+    , color
+    , datasets = []
+    ;
   forEach(data, function(set) {
-    result.push(new Dataset(set, type));
+    // pick a color
+    if (colors[index] != undefined) {
+      color = colors[index];
+    }
+    else {
+      var offset=1, indexCopy = index;
+      while(indexCopy/colors.length >= 1){
+        offset++;
+        indexCopy -= colors.length;
+      }
+      color: tinycolor.darken(colors[indexCopy], amount = 10*offset);
+    }
+    console.log(colors)
+    datasets.push(new Dataset(set, color, type));
+    index++;
   });
-  return result;
+  return datasets;
 }
 
 function getAxesFrom (datasets) {
