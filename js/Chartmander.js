@@ -86,6 +86,8 @@ var Chartmander = function (canvasID) {
         chart.grid.drawInto(chart, _perc_);
 
       if (cfg.type === "line") {
+        if (cfg.drawUnder)
+          chart.drawDataAs("under", _perc_);
         chart.drawDataAs("line", _perc_);
         chart.grid.drawCrosshairInto(chart);
         chart.drawDataAs("point", _perc_);
@@ -418,8 +420,10 @@ Chartmander.prototype.Line = function (data) {
   // Line Chart Defaults
   cfg.type = "line";
   cfg.margin = { top: 30, right: 50, bottom: 50, left: 50 };
+  cfg.drawUnder = true;
   cfg.pointRadius = 5;
   cfg.lineWidth = 2;
+  cfg.drawUnderOpacity = .15
   cfg.pointHoverRadius = 20;
   cfg.mergeHover = false;
 
@@ -455,37 +459,42 @@ Chartmander.prototype.Line = function (data) {
 
   this.drawDataAs = function (type, _perc_) {
 
-    var counter = {
-        dataset: 0,
-        element: 1
-      }
-      , setsCount = chart.datasets.length
-      ;
-
     ctx.lineWidth = cfg.lineWidth;
     ctx.save();
-
     forEach(chart.datasets, function (set) {
       ctx.strokeStyle = set.style.color;
       ctx.fillStyle = set.style.color;
 
-      if (type === "line") ctx.beginPath();
-      
-      counter.element = 1;
+      if (type == "line" || type == "under")
+        ctx.beginPath();
+
+      if (type == "under") {
+        // ctx.fillStyle = tinycolor.lighten(set.style.color, 10).toHex();
+        ctx.moveTo(set.element(0).getX(), chart.getBase());
+        ctx.lineTo(set.element(0).getX(), set.element(0).getY());
+      }
+
       set.each(function (point) {
-        point.updateNow(_perc_);
+        // Update only on first drawing
+        if (type == "under" || (type == "line" && !cfg.drawUnder) ) point.updateNow(_perc_);
         point.drawInto(chart, set.style, type);
-        counter.element++;
       });
 
-      if (type === "line") ctx.stroke();
+      if (type == "line") 
+        ctx.stroke();
 
-      counter.dataset++;
-    })
+      if (type == "under") {
+        ctx.lineTo(set.element("last").getX(), chart.getBase());
+        ctx.save();
+        ctx.globalAlpha = cfg.drawUnderOpacity;
+        ctx.fill();
+        ctx.restore();
+      }
+    });
 
     ctx.restore();
   }
-   
+
   // User methods
 
   chart.recalcPoints();
@@ -510,7 +519,6 @@ var xAxis = function (labels) {
     if (data != undefined) {
       var newLabels = [];
       forEach(data, function (set) {
-        console.log(data)
         forEach(set.values, function (element) {
           if (indexOf.call(newLabels, element.label) == -1)
             newLabels.push(element.label);
@@ -901,7 +909,6 @@ var Dataset = function (set, color, type) {
     color: color
   };
 
-
   // Different config for chart type
   if (type == "bar") {
     this.style.normal = {
@@ -927,7 +934,6 @@ var Dataset = function (set, color, type) {
       strokeColor: tinycolor.darken(this.style.color, 20).toHex()
     };
   }
-  console.log(this.style)
 
   this.each = function (action) {
     forEach(this.elements, action);
@@ -979,6 +985,13 @@ var Dataset = function (set, color, type) {
         this.elements[oldElements-j].die();
       }
     }
+  }
+
+  this.element = function (index) {
+    if (index == "last")
+      return this.elements[this.elements.length-1];
+    else
+      return this.elements[index]
   }
 
   function getElements (type) {
@@ -1370,10 +1383,10 @@ Element.prototype.Point = function () {
 
     this.isAnimated(true);
 
-    if (type === "line") {
+    if (type == "line" || type == "under") {
       ctx.lineTo(this.getX(), this.getY());
     }
-    else if (type === "point") {
+    else if (type == "point") {
       if (hover)
         this.animIn();
       else
@@ -1640,7 +1653,6 @@ function getDatasetFrom (data, type, colors) {
       }
       color: tinycolor.darken(colors[indexCopy], amount = 10*offset);
     }
-    console.log(colors)
     datasets.push(new Dataset(set, color, type));
     index++;
   });
