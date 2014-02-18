@@ -1,15 +1,13 @@
-.jumbotron.chartmander {
-	height: 100vh;
-	background: #020111;
+.chartmander {
+	background: #FFFFFF;
 	position: relative;
 	text-align: center;
 
 	h1 {
-		color: silver;
-	}
-
-	p {
-		color: #555;
+		@include font(3.6);
+		font-weight: 300;
+		@include rem(margin-top, 6);
+		@include rem(margin-bottom, 6);
 	}
 
 	.btn {
@@ -19,23 +17,38 @@
 		background: transparent;
 		border: 2px solid #555;
 		color: white;
-		background: orangered;
-		border-color: orangered;
-
-		&:hover {
-			color: white;
-			background: orangered;
-			border-color: orangered;
-		}
 	}
 }
 
-#chartmander-intro {
+.nav {
 	position: absolute;
-	bottom: 0;
+	@include rem(top, 1);
 	left: 0;
 	right: 0;
+	width: 100%;
+	@include rem(max-width, 100);
 	margin: 0 auto;
+	@include rem(padding, 0, 1);
+	a {
+		@include rem(margin-top, 1.1);
+	}
+	.link-down {
+		color: $violet;
+	}
+}
+
+#stripe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	// @include filter-gradient($blue, $violet, horizontal);
+	@include background(linear-gradient(left,  $blue, $violet));
+	height: 3px;
+}
+
+#chartmander-intro {
+
 }
 
 .list-group-item {

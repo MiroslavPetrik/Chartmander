@@ -3,9 +3,15 @@ layout: default
 title: Chartmander - HTML5 canvas charts
 ---
 <div class="jumbotron chartmander">
-	<h1>Chartmander</h1>
-	<p>Attractive HTML5 charts great for your new webapp or design mockup</p>
-	<button class="btn btn-default btn-block">Explore</button>
+	<div id="stripe"></div>
+	<div class="nav">
+		<a href="https://github.com/11th/Chartmander" class="pull-right link-down">Download</a>
+		<a href="/docs" class="pull-left link-docs">Docs</a>
+		<h4>chartmander.js</h4>
+		<hr>
+	</div>
+	<h1>Attractive charts for your new webapp or design mockup</h1>
+	<!-- <button class="btn btn-default btn-block">Explore</button> -->
 	<canvas id="chartmander-intro" class="chart" width="1200" height="400"></canvas>
 </div>
 
@@ -15,23 +21,9 @@ title: Chartmander - HTML5 canvas charts
 		<div class="row">
 			<div class="col-lg-6">
 				<canvas id="bar1" class="chart" width="500" height="300"></canvas>
-				<h3 class="page-header">Finished</h3>
-				<ul class="list-group">
-					<li class="list-group-item"><i class="ion-checkmark"></i> Vykreslovanie viacero kategorii naraz</li>
-					<li class="list-group-item"><i class="ion-checkmark"></i> Prepocitavanie osi Y</li>
-					<li class="list-group-item"><i class="ion-checkmark"></i> Filtrovanie osi X</li>
-					<li class="list-group-item"><i class="ion-checkmark"></i> Animovanie grafu</li>
-				</ul>
 			</div>
 			<div class="col-lg-6">
 				<canvas id="bar2" class="chart" width="500" height="300"></canvas>
-				<h3 class="page-header">TODO</h3>
-				<ul class="list-group">
-					<li class="list-group-item"><i class="ion-document"></i> Stacked bars</li>
-					<li class="list-group-item"><i class="ion-document"></i> Hover state</li>
-					<li class="list-group-item"><i class="ion-document"></i> Tooltipy</li>
-					<li class="list-group-item"><i class="ion-document"></i> Nadpis, nazvy osi</li>
-				</ul>
 			</div>
 		</div>
 	</div>
@@ -48,22 +40,6 @@ title: Chartmander - HTML5 canvas charts
 			</div>
 			<div class="col-lg-4">
 				<canvas id="pie3" class="chart" width="300" height="300"></canvas>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-lg-6">
-				<h3 class="page-header">Finished</h3>
-				<ul class="list-group">
-					<li class="list-group-item"><i class="ion-checkmark"></i> Normal/Donut verzia grafu</li>
-					<li class="list-group-item"><i class="ion-checkmark"></i> Animovanie grafu</li>
-				</ul>
-			</div>
-			<div class="col-lg-6">
-				<h3 class="page-header">TODO</h3>
-				<ul class="list-group">
-					<li class="list-group-item"><i class="ion-document"></i> Hover state s labelami</li>
-					<li class="list-group-item"><i class="ion-document"></i> Tooltip v strede (+ najvacsia hodnota)</li>
-				</ul>
 			</div>
 		</div>
 	</div>
@@ -146,8 +122,8 @@ title: Chartmander - HTML5 canvas charts
 	
 	// First Intro Chart	
 	var introChart = new Chartmander("chartmander-intro").Line(barData);
-	introChart.easingFunction("easeOutQuint").pointRadius(10).fontColor("#40405c").font("14px Arial");
-	introChart.grid.lineColor("#3a3a52").verticalLines(false)
+	introChart.easingFunction("easeOutQuint").pointRadius(10).fontColor("#b3c8dd").font("14px Arial");
+	introChart.grid.lineColor("#eaf1f7").verticalLines(false)
 
 	// Bar Charts
 	var barData2 = barFactory(["Category 1", "Category 2", "Category 3"], ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"], true);

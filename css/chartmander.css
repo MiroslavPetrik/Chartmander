@@ -1,33 +1,77 @@
-.jumbotron.chartmander {
-  height: 100vh;
-  background: #020111;
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700);
+/* line 1, ../_sass/_home.scss */
+.chartmander {
+  background: #FFFFFF;
   position: relative;
-  text-align: center; }
-  .jumbotron.chartmander h1 {
-    color: silver; }
-  .jumbotron.chartmander p {
-    color: #555; }
-  .jumbotron.chartmander .btn {
-    max-width: 200px;
-    margin: 0 auto;
-    text-transform: uppercase;
-    background: transparent;
-    border: 2px solid #555;
-    color: white;
-    background: orangered;
-    border-color: orangered; }
-    .jumbotron.chartmander .btn:hover {
-      color: white;
-      background: orangered;
-      border-color: orangered; }
+  text-align: center;
+}
+/* line 6, ../_sass/_home.scss */
+.chartmander h1 {
+  font-size: 36px;
+  line-height: 54px;
+  font-size: 3.6rem;
+  line-height: 5.4rem;
+  font-weight: 300;
+  margin-top: 60px;
+  margin-top: 6rem;
+  margin-bottom: 60px;
+  margin-bottom: 6rem;
+}
+/* line 13, ../_sass/_home.scss */
+.chartmander .btn {
+  max-width: 200px;
+  margin: 0 auto;
+  text-transform: uppercase;
+  background: transparent;
+  border: 2px solid #555;
+  color: white;
+}
 
-#chartmander-intro {
+/* line 23, ../_sass/_home.scss */
+.nav {
   position: absolute;
-  bottom: 0;
+  top: 10px;
+  top: 1rem;
   left: 0;
   right: 0;
-  margin: 0 auto; }
+  width: 100%;
+  max-width: 1000px;
+  max-width: 100rem;
+  margin: 0 auto;
+  padding: 0px 10px;
+  padding: 0rem 1rem;
+}
+/* line 32, ../_sass/_home.scss */
+.nav a {
+  margin-top: 11px;
+  margin-top: 1.1rem;
+}
+/* line 35, ../_sass/_home.scss */
+.nav .link-down {
+  color: #6e58ac;
+}
 
+/* line 40, ../_sass/_home.scss */
+#stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: -moz-linear-gradient(left, #2e92ff, #6e58ac);
+  background: -o-linear-gradient(left, #2e92ff, #6e58ac);
+  background: -webkit-linear-gradient(left, #2e92ff, #6e58ac);
+  background: linear-gradient(to right, #2e92ff, #6e58ac);
+  height: 3px;
+}
+
+/* line 55, ../_sass/_home.scss */
 .list-group-item i {
   font-size: 18px;
-  margin-right: 10px; }
+  margin-right: 10px;
+}
+
+/* line 1, ../_sass/_common.scss */
+body {
+  font-family: 'Roboto', sans-serif;
+  color: #3d464d;
+}
