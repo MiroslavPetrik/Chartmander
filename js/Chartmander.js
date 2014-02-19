@@ -13,7 +13,7 @@ var Chartmander = function (canvasID) {
   this.config = {
     width: this.ctx.canvas.width,
     height: this.ctx.canvas.height,
-    colors: ["#EC6650", "#86D5F1", "#FAC84B"],
+    colors: ["#1E90FF", "#6633CC", "#ADFF2F"],
     font: "13px Arial, sans-serif",
     fontColor: "#555",
     animate: true,
@@ -186,35 +186,6 @@ var Chartmander = function (canvasID) {
       chart.draw(true);
   }
 
-  this.easingFunction = function (_) {
-    this.config.easing = _;
-    return chart;
-  }
-
-  this.pointRadius = function (_) {
-    this.config.pointRadius = _;
-    return chart;
-  }
-
-  this.fontColor = function (_) {
-    this.config.fontColor = _;
-    return chart;
-  }
-
-  this.font = function (_) {
-    this.config.font = _;
-    return chart;
-  }
-
-  this.crossColor = function (_) {
-    this.crosshair.color = _;
-    return chart;
-  }
-
-  this.colors = function (_) {
-    this.config.colors = _;
-    return chart;
-  }
 
   this.lastHoveredAnimated = function () {
     var last = chart.hoveredItems[chart.hoveredItems.length-1]
@@ -256,6 +227,48 @@ var Chartmander = function (canvasID) {
     else 
       return chart.getGridProperties()["bottom"] - chart.yAxis.config.zeroLevel;
   }
+
+  // User methods
+  this.showXAxis = function (_) {
+    this.config.xAxisVisible = _;
+    return chart;
+  }
+
+  this.showYAxis = function (_) {
+    this.config.yAxisVisible = _;
+    return chart;
+  }
+
+  this.easingFunction = function (_) {
+    this.config.easing = _;
+    return chart;
+  }
+
+  this.pointRadius = function (_) {
+    this.config.pointRadius = _;
+    return chart;
+  }
+
+  this.fontColor = function (_) {
+    this.config.fontColor = _;
+    return chart;
+  }
+
+  this.font = function (_) {
+    this.config.font = _;
+    return chart;
+  }
+
+  this.crossColor = function (_) {
+    this.crosshair.color = _;
+    return chart;
+  }
+
+  this.colors = function (_) {
+    this.config.colors = _;
+    return chart;
+  }
+
   return chart;
 }
 
@@ -277,6 +290,11 @@ Chartmander.prototype.Bar = function (data) {
   cfg.stacked = false;
   cfg.maxBarWidth = 30;
   cfg.datasetSpacing = 0;
+
+  // Axis defaults
+  cfg.xAxisVisible = true;
+  cfg.yAxisVisible = true;
+
 
   // Chart state variables
   cfg.barWidth = cfg.maxBarWidth;
@@ -425,7 +443,11 @@ Chartmander.prototype.Line = function (data) {
   cfg.lineWidth = 2;
   cfg.drawUnderOpacity = .15
   cfg.pointHoverRadius = 20;
-  cfg.mergeHover = false;
+  cfg.mergeHover = true;
+
+  // Axis defaults
+  cfg.xAxisVisible = true;
+  cfg.yAxisVisible = true;
 
   // Construct
   chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
@@ -495,6 +517,15 @@ Chartmander.prototype.Line = function (data) {
     ctx.restore();
   }
 
+  this.hoveredCloser = function (newDistance) {
+    var oldHovered = this.hoveredItems[0];
+
+    if (oldHovered === undefined)
+      return true;
+
+    return newDistance < oldHovered.distance;
+  }
+
   // User methods
 
   chart.recalcPoints();
@@ -542,17 +573,19 @@ var xAxis = function (labels) {
       , counter = 0
       ;
 
-    ctx.save();
-    ctx.fillStyle = cfg.fontColor;
-    ctx.font = cfg.font;
-    this.each(function (label) {
-      var labelWidth = ctx.measureText(label).width
-        , start = axis.labelSpace/2 + (grid.left + axis.labelSpace*counter) - labelWidth / 2
-        ;
-      ctx.fillText(label, start, grid.bottom + 25);
-      counter++;
-    });
-    ctx.restore();
+    if (cfg.xAxisVisible) {
+      ctx.save();
+      ctx.fillStyle = cfg.fontColor;
+      ctx.font = cfg.font;
+      this.each(function (label) {
+        var labelWidth = ctx.measureText(label).width
+          , start = axis.labelSpace/2 + (grid.left + axis.labelSpace*counter) - labelWidth / 2
+          ;
+        ctx.fillText(label, start, grid.bottom + 25);
+        counter++;
+      });
+      ctx.restore();
+    }
   }
 }
 
@@ -736,42 +769,44 @@ var yAxis = function (labels) {
       , grid = chart.grid.config.properties
       ;
 
-    ctx.save();
-    ctx.textAlign = "right";
-    ctx.fillStyle = cfg.fontColor;
-    ctx.font = cfg.font;
-    ctx.save();
-    ctx.globalAlpha = axis.config.opacity;
-    forEach(this.config.labels, function (label) {
-      label.updateNow(_perc_);
-      ctx.fillText(label.label.toString(), grid.left - 10, label.getY());
-    });
-    ctx.restore();
-    if (axis.newConfig.labels.length > 0) {
+    if (cfg.yAxisVisible) {
       ctx.save();
-      ctx.globalAlpha = axis.newConfig.opacity;
-      forEach(this.newConfig.labels, function (label) {
+      ctx.textAlign = "right";
+      ctx.fillStyle = cfg.fontColor;
+      ctx.font = cfg.font;
+      ctx.save();
+      ctx.globalAlpha = axis.config.opacity;
+      forEach(this.config.labels, function (label) {
         label.updateNow(_perc_);
         ctx.fillText(label.label.toString(), grid.left - 10, label.getY());
       });
       ctx.restore();
+      if (axis.newConfig.labels.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = axis.newConfig.opacity;
+        forEach(this.newConfig.labels, function (label) {
+          label.updateNow(_perc_);
+          ctx.fillText(label.label.toString(), grid.left - 10, label.getY());
+        });
+        ctx.restore();
 
-      axis.fadeIn("new");
-      axis.fadeOut("current");
-      if (axis.newConfig.opacity == 1) {
-        // axis.config=axis.newConfig;
-        axis.config.labels = axis.newConfig.labels;
-        axis.config.opacity = axis.newConfig.opacity;
+        axis.fadeIn("new");
+        axis.fadeOut("current");
+        if (axis.newConfig.opacity == 1) {
+          // axis.config=axis.newConfig;
+          axis.config.labels = axis.newConfig.labels;
+          axis.config.opacity = axis.newConfig.opacity;
 
-        // Reset values for next update
-        axis.newConfig.labels = [];
-        axis.newConfig.opacity = 0;
+          // Reset values for next update
+          axis.newConfig.labels = [];
+          axis.newConfig.opacity = 0;
+        }
       }
+      else {
+        axis.fadeIn("current");
+      }
+      ctx.restore();
     }
-    else {
-      axis.fadeIn("current");
-    }
-    ctx.restore();
   }
   return this;
 }
@@ -894,6 +929,12 @@ var Grid = function () {
     this.config.lineColor = _;
     return this;
   }
+
+  this.horizontalLines = function (_) {
+    this.config.horizontalLines = _;
+    return this;
+  }
+
   this.verticalLines = function (_) {
     this.config.verticalLines = _;
     return this;
@@ -1378,7 +1419,8 @@ Element.prototype.Point = function () {
     var ctx = chart.ctx
       , cfg = chart.config
       , grid = chart.grid.config.properties
-      , hover = this.isHovered(cfg.mouse, cfg.pointHoverRadius, cfg.mergeHover) && cfg.hovered
+      , hover = this.isHovered(cfg.mouse, cfg.pointHoverRadius, cfg.mergeHover)
+      , uniqueHover = false
       ;
 
     this.isAnimated(true);
@@ -1387,21 +1429,41 @@ Element.prototype.Point = function () {
       ctx.lineTo(this.getX(), this.getY());
     }
     else if (type == "point") {
-      if (hover)
-        this.animIn();
-      else
-        this.animOut();
-
+      // Draw circle in normal state
       ctx.beginPath();
       ctx.fillStyle = style.normal.color;
       ctx.arc(this.getX(), this.getY(), cfg.pointRadius*(1-this.getState()), 0, Math.PI*2, false);
       ctx.fill();
+
+      // Stroke circle
       if (style.normal.stroke) {
         ctx.lineWidth = style.normal.stroke*(1-this.getState());
         ctx.strokeStyle = style.normal.strokeColor;
         ctx.stroke();
       }
-      if (hover) {
+      // 
+      if (hover.was) {
+        // Unique hover in every set
+        if ( this.isCloserThan(hover.distance, chart.hoveredItems[0]) ) {
+          uniqueHover = true;
+          chart.hoveredItems.pop();
+          chart.hoveredItems.push({
+            set: this.set,
+            setID: 1, // TODO parent
+            y: this.value,
+            x: this.label,
+            hoverDistance: hover.distance,
+            position: {
+              x: this.getX(),
+              y: this.getY()
+            },
+            point: this
+          });
+        }
+      }
+
+      if ( uniqueHover ) {
+        this.animIn();
         ctx.save();
         ctx.beginPath();
         ctx.fillStyle = style.onHover.color;
@@ -1413,52 +1475,30 @@ Element.prototype.Point = function () {
           ctx.stroke();
         }
         ctx.restore();
-
-        chart.hoveredItems.push({
-          set: this.set,
-          setID: 1, // TODO parent
-          y: this.value,
-          x: this.label,
-          position: {
-            x: this.getX(),
-            y: this.getY()
-          },
-          point: this
-        })
+      } else {
+        this.animOut();
       }
     }
   }
 
-  this.isHovered = function (mouse, radius, mergeHover) {
-    if (mergeHover)
-      return Math.abs(mouse.x - this.getX()) < radius
-    else
-      return Math.abs(mouse.x - this.getX()) < radius && Math.abs(mouse.y - this.getY()) < radius
+  this.isHovered = function (mouse, hoverRadius, mergeHover) {
+    var distance = Math.abs(mouse.x - this.getX());
+
+    if (!mergeHover) {
+      distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(mouse.y - this.getY(), 2));
+    }
+
+    return {
+      "was": distance < hoverRadius,
+      "distance": distance
+    };
   }
 
-  // this.color = function (_) {
-  //   if(!arguments.length) return this.state.normal.color;
-  //   this.state.normal.color = _;
-  // }
+  this.isCloserThan = function (thisDistance, hoveredPoint) {
+    if (hoveredPoint === undefined)
+      return true;
 
-  // this.stroke = function (_) {
-  //   if(!arguments.length) return this.state.normal.borderWidth;
-  //   this.state.normal.borderWidth = _;
-  // }
-
-  // this.strokeColor = function (_) {
-  //   if (!arguments.length) return this.state.normal.borderColor;
-  //   this.state.normal.borderColor = _;
-  // }
-
-  this.getHovered = function(prop) {
-    var style = this.state.onHover;
-    switch (prop) {
-      case "color": return style.color;
-      case "border": return style.borderWidth;
-      case "borderColor": return style.borderColor;
-      default: return;
-    }
+    return thisDistance < hoveredPoint.distance;
   }
 
   return this;
@@ -1640,10 +1680,11 @@ function getDatasetFrom (data, type, colors) {
     , color
     , datasets = []
     ;
+    
   forEach(data, function(set) {
     // pick a color
     if (colors[index] != undefined) {
-      color = colors[index];
+      color = tinycolor(colors[index]).toRgbString();
     }
     else {
       var offset=1, indexCopy = index;
@@ -1651,7 +1692,7 @@ function getDatasetFrom (data, type, colors) {
         offset++;
         indexCopy -= colors.length;
       }
-      color: tinycolor.darken(colors[indexCopy], amount = 10*offset);
+      color = tinycolor.darken(colors[indexCopy], 5*offset).toRgbString();
     }
     datasets.push(new Dataset(set, color, type));
     index++;
