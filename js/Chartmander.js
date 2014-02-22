@@ -393,22 +393,28 @@ Chartmander.prototype.Pie = function (data) {
   cfg.rotateAnimation = true;
 
   // Construct
-  chart.dataset = new Dataset(data[0], "pie");
+  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
+  console.log(chart.datasets)
 
   this.drawSegments = function (_perc_) {
-    var segmentsTotal = chart.dataset.size()
+    var segmentsTotal = 0
       , scale = cfg.scaleAnimation ? _perc_ : 1
       , rotate = cfg.rotateAnimation ? _perc_ : 1
       , startAngle = -Math.PI/2
       , segmentAngle
-      , counter = 0
       ;
 
-    chart.dataset.each(function (segment) {
-      segmentAngle = segment.getAngle(segmentsTotal)*rotate;
-      ctx.fillStyle = cfg.colors[counter]
-      segment.drawInto(chart, rotate, scale, startAngle, segmentAngle);
-      counter++;
+    forEach(chart.datasets, function (segment) {
+      segmentsTotal += segment.size();
+    });
+
+    console.log(segmentsTotal)
+
+    forEach(chart.datasets, function (segment) {
+      var slice = segment.elements[0];
+      segmentAngle = slice.getAngle(segmentsTotal)*rotate;
+      ctx.fillStyle = segment.style.color;
+      slice.drawInto(chart, rotate, scale, startAngle, segmentAngle);
       startAngle += segmentAngle;
     });
   }
