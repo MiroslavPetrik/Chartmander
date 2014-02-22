@@ -22,7 +22,8 @@ var Chartmander = function (canvasID) {
     animationCompleted: 0,
     easing: "easeOutCubic",
     onAnimationCompleted: null,
-    mouse: {}
+    mouse: {},
+    hoverNotFinished: false
   };
 
   this.datasets = [];
@@ -31,13 +32,11 @@ var Chartmander = function (canvasID) {
     y: null,
     visible: true,
     sticky: true,
-    color: "orangered",
+    color: "#555",
     lineWidth: 1
   };
-  this.tooltip = new Tooltip([{
-    set: "blank",
-    y: "0"
-  }]);
+  this.tooltip = new Tooltip();
+  this.logs = [];
 
   this.canvas.addEventListener("mouseenter", handleEnter, false);
   this.canvas.addEventListener("mousemove", handleHover, false);
@@ -55,6 +54,10 @@ var Chartmander = function (canvasID) {
     this.ctx.clearRect(0, 0, this.config.width, this.config.height);
   };
 
+  this.log = function (item) {
+    this.logs.push(item);
+  }
+
   this.draw = function (finished) {
     var ctx = chart.ctx
       , cfg = chart.config
@@ -68,15 +71,18 @@ var Chartmander = function (canvasID) {
     cfg.animationCompleted = cfg.animate ? 0 : 1
 
     function loop () {
-      if (finished)
-        cfg.animationCompleted = 1;
-      else if (cfg.animationCompleted < 1)
-        // catch overflow
-        cfg.animationCompleted += animationStep;
 
-      chart.clear();
-      chart.hoveredItems = [];
+      if (finished) {
+        cfg.animationCompleted = 1;
+      } else if (cfg.animationCompleted < 1) {
+        cfg.animationCompleted += animationStep;
+      }
+
       _perc_ = easingFunction(cfg.animationCompleted);
+      cfg.hoverNotFinished = false;
+      chart.clear();
+      chart.tooltip.removeItems();
+      chart.logs = [];
 
       if (chart.xAxis)
         chart.xAxis.drawInto(chart);
@@ -86,24 +92,32 @@ var Chartmander = function (canvasID) {
         chart.grid.drawInto(chart, _perc_);
 
       if (cfg.type === "line") {
-        if (cfg.drawUnder)
+        chart.itemsInHoverRange = [];
+        if (cfg.drawUnder) {
           chart.drawDataAs("under", _perc_);
+        }
         chart.drawDataAs("line", _perc_);
         chart.grid.drawCrosshairInto(chart);
         chart.drawDataAs("point", _perc_);
-      }
-      else if (cfg.type === "bar") {
+      } else if (cfg.type === "bar") {
         chart.drawBars(_perc_);
-      }
-      else if (cfg.type === "pie") {
+      } else if (cfg.type === "pie") {
         chart.drawSegments(_perc_);
       }
 
-      if (tip)
+      if (tip) {
+        tip.recalc(chart.ctx);
         tip.drawInto(chart);
-      
+      }
+
+      var logID = 0;
+      forEach(chart.logs, function (log) {
+        ctx.fillText(log.toString(), chart.getGridProperties().width + chart.getGridProperties().left + 20, 20 + 20*logID);
+        logID++;
+      });
+
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
-      if (cfg.animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || chart.lastHoveredAnimated() ) {
+      if (cfg.animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || cfg.hoverNotFinished ) {
         requestAnimationFrame(loop);
       }
       else {
@@ -171,7 +185,7 @@ var Chartmander = function (canvasID) {
     }
     // Allow repaint on hover only if chart and tooltip are done with self-repaint
     // AND if also hovered item is not repainting 
-    if (chart.config.animationCompleted >= 1 && !chart.tooltip.isAnimated() && !chart.lastHoveredAnimated() ){
+    if (chart.config.animationCompleted >= 1 && !chart.tooltip.isAnimated() && !chart.config.hoverNotFinished ){
       chart.draw(true)
     }
   }
@@ -182,20 +196,9 @@ var Chartmander = function (canvasID) {
 
   function handleLeave () {
     chart.config.hovered = false;
+    // chart.tooltip.removeItems();
     if (chart.config.animationCompleted >= 1)
       chart.draw(true);
-  }
-
-
-  this.lastHoveredAnimated = function () {
-    var last = chart.hoveredItems[chart.hoveredItems.length-1]
-      , echo = false
-      ;
-
-    if (last !== undefined) {
-      echo = last.point.isAnimated;
-    }
-    return echo;
   }
 
   this.getWidth = function () {
@@ -437,7 +440,7 @@ Chartmander.prototype.Line = function (data) {
 
   // Line Chart Defaults
   cfg.type = "line";
-  cfg.margin = { top: 30, right: 50, bottom: 50, left: 50 };
+  cfg.margin = { top: 30, right: 200, bottom: 50, left: 50 };
   cfg.drawUnder = true;
   cfg.pointRadius = 5;
   cfg.lineWidth = 2;
@@ -454,6 +457,7 @@ Chartmander.prototype.Line = function (data) {
   chart.xAxis = getAxesFrom(chart.datasets)[0];
   chart.yAxis = getAxesFrom(chart.datasets)[1];
   chart.grid = new Grid();
+  chart.itemsInHoverRange = [];
 
   // Recalculation based on provided data
   chart.grid.calculateProperties(cfg.margin, cfg);
@@ -471,7 +475,6 @@ Chartmander.prototype.Line = function (data) {
       counter = 1;
       set.each(function (point) {
         x = Math.ceil(grid.left + counter*chart.xAxis.labelSpace - chart.xAxis.labelSpace/2);
-        // y = -point.value/chart.yAxis.VPP;
         point.resetPosition(chart);
         point.moveTo(x, false);
         counter++;
@@ -480,10 +483,13 @@ Chartmander.prototype.Line = function (data) {
   }
 
   this.drawDataAs = function (type, _perc_) {
-
-    ctx.lineWidth = cfg.lineWidth;
     ctx.save();
     forEach(chart.datasets, function (set) {
+      var hoveredInThisSet = []
+        , closestHovered
+        , style = set.style
+        ;
+
       ctx.strokeStyle = set.style.color;
       ctx.fillStyle = set.style.color;
 
@@ -491,7 +497,6 @@ Chartmander.prototype.Line = function (data) {
         ctx.beginPath();
 
       if (type == "under") {
-        // ctx.fillStyle = tinycolor.lighten(set.style.color, 10).toHex();
         ctx.moveTo(set.element(0).getX(), chart.getBase());
         ctx.lineTo(set.element(0).getX(), set.element(0).getY());
       }
@@ -499,10 +504,47 @@ Chartmander.prototype.Line = function (data) {
       set.each(function (point) {
         // Update only on first drawing
         if (type == "under" || (type == "line" && !cfg.drawUnder) ) point.updateNow(_perc_);
-        point.drawInto(chart, set.style, type);
+        point.drawInto(chart, set, type);
+        // chart.itemsInHoverRange
       });
 
-      if (type == "line") 
+      // Get items only from current set
+      forEach(chart.itemsInHoverRange, function (item) {
+        if (item.set == set.title) {
+          hoveredInThisSet.push(item);
+        }
+      });
+
+      // Find closest hovered
+      for (var i = 0, len = hoveredInThisSet.length; i < len; i++) {
+        if (i == 0) {
+          closestHovered = hoveredInThisSet[i];
+          continue;
+        }
+        if (hoveredInThisSet[i].hoverDistance < closestHovered.hoverDistance) {
+          closestHovered = hoveredInThisSet[i];
+        }
+      }
+
+      // Control Hovered
+      for (var i = 0, len = hoveredInThisSet.length; i < len; i++) {
+        if (hoveredInThisSet[i] === closestHovered) {
+          set.elements[closestHovered.index].animIn();
+          chart.tooltip.addItem({
+              set: set.title,
+              label: set.elements[closestHovered.index].label,
+              value: set.elements[closestHovered.index].value,
+              color: style.normal.color
+            })
+          if (set.elements[closestHovered.index].isAnimated()){
+            cfg.hoverNotFinished = true;
+          }
+        } else {
+          set.elements[hoveredInThisSet[i].index].animOut();
+        }
+      }
+
+      if (type == "line")
         ctx.stroke();
 
       if (type == "under") {
@@ -513,17 +555,7 @@ Chartmander.prototype.Line = function (data) {
         ctx.restore();
       }
     });
-
     ctx.restore();
-  }
-
-  this.hoveredCloser = function (newDistance) {
-    var oldHovered = this.hoveredItems[0];
-
-    if (oldHovered === undefined)
-      return true;
-
-    return newDistance < oldHovered.distance;
   }
 
   // User methods
@@ -553,7 +585,7 @@ var xAxis = function (labels) {
         forEach(set.values, function (element) {
           if (indexOf.call(newLabels, element.label) == -1)
             newLabels.push(element.label);
-        })
+        });
       });
       this.labels = newLabels;
     }
@@ -813,6 +845,7 @@ var yAxis = function (labels) {
 
 var Grid = function () {
 
+  var grid = this;
   // Grid defaults
   this.config = {
     visible : true,
@@ -851,7 +884,7 @@ var Grid = function () {
           ctx.beginPath();
           if (line.label == 0) {
             ctx.save();
-            ctx.strokeStyle = "#999";
+            ctx.strokeStyle = "#999"; // TODO Axis Width and Color
           }
           ctx.moveTo(grid.properties.left, line.getY());
           ctx.lineTo(grid.properties.right, line.getY());
@@ -867,7 +900,7 @@ var Grid = function () {
           ctx.beginPath();
           if (line.label == 0) {
             ctx.save();
-            ctx.strokeStyle = "#999";
+            ctx.strokeStyle = "#999"; // TODO Axis Width and Color
           }
           ctx.moveTo(grid.properties.left, line.getY());
           ctx.lineTo(grid.properties.right, line.getY());
@@ -905,7 +938,7 @@ var Grid = function () {
 
       if (chart.grid.hasInRangeX(chart.config.mouse)) {
         crosshair.x = chart.getMouse("x");
-        if (crosshair.sticky && chart.hoveredItems.length > 0) {
+        if (crosshair.sticky && chart.itemsInHoverRange.length > 0) {
           var availablePoints = [];
 
           forEach(chart.hoveredItems, function (point) {
@@ -918,8 +951,8 @@ var Grid = function () {
         return;
 
       chart.ctx.beginPath();
-      chart.ctx.moveTo(crosshair.x, this.config.properties.top);
-      chart.ctx.lineTo(crosshair.x, this.config.properties.bottom);
+      chart.ctx.moveTo(crosshair.x, grid.config.properties.top);
+      chart.ctx.lineTo(crosshair.x, grid.config.properties.bottom);
       chart.ctx.stroke();
       chart.ctx.restore();
     }
@@ -1063,13 +1096,28 @@ var Tooltip = function (items) {
 
   var tip = this;
 
-  this.items = items;
+  this.items = [];
 
   // Tooltip defaults
   this.config = {
     gravity: "left",
     margin: 20,
-    steps: 100
+    padding: 10,
+    steps: 100,
+    backgroundColor: "rgba(46, 59, 66, .8)",
+    width: 100,
+    height: 60,
+    header: {
+      fontSize: 15,
+      lineHeight: 1.5,
+      fontColor: "#EEEEEE"
+    },
+    set: {
+      fontSize: 12,
+      lineHeight: 1.5,
+      iconSize: 10,
+      fontColor: "#FFFFFF"
+    }
   };
   this.state = {
     isAnimated: false,
@@ -1093,54 +1141,73 @@ var Tooltip = function (items) {
   }
 
   this.getXLabel = function () {
-    return tip.items ? tip.items[0].x : "undefined";
+    return tip.items ? tip.items[0].label : "undefined";
   }
 
   this.drawInto = function (chart) {
     var ctx = chart.ctx
       , tip = chart.tooltip
-      , mouse = chart.config.mouse
-      , cross = chart.crosshair
-      // , leftOffset = mouse.x
-      , topOffset = mouse.y
-      , leftOffset = cross.x
-      , labelCounter = 1 // Categories in tooltip
+      , cfg = tip.config
+      , topOffset = chart.config.mouse.y
+      , leftOffset = chart.crosshair.x + cfg.margin
+      , lineHeight = cfg.set.fontSize*cfg.set.lineHeight
       ;
 
-    // Set drawing position
-    if (tip.gravity() === "left")
-      leftOffset += tip.config.margin;
-
-    // Check for new tooltip data
-    if (tip.hoveredItems() !== chart.hoveredItems && chart.hoveredItems.length > 0)
-      tip.hoveredItems(chart.hoveredItems)
-
     tip.isAnimated(true);
-
-    if (chart.hoveredItems.length > 0)
+    
+    if (!tip.isEmpty()) {
       tip.fadeIn();
-    else
+
+      ctx.save();
+      ctx.globalAlpha = tip.getState();
+      ctx.fillStyle = tip.backgroundColor();
+      ctx.fillRect(leftOffset, topOffset, cfg.width + cfg.padding*2, cfg.height + cfg.padding*2);
+      ctx.fillStyle = cfg.set.fontColor;
+      ctx.textBaseline = "top"
+      forEach(tip.items, function (item) {
+        ctx.fillText(item.set + " " + item.value, leftOffset + cfg.padding, topOffset + cfg.padding);
+        topOffset += lineHeight;
+      });
+      ctx.restore();
+    } else {
       tip.fadeOut();
-
-    ctx.save();
-    ctx.globalAlpha = tip.getState();
-    ctx.fillStyle = "#555";
-    ctx.fillRect(leftOffset, topOffset, 100, 60);
-    ctx.fillStyle = "#FFF";
-    // TODO padding ...
-    ctx.fillText(tip.getXLabel(), leftOffset + 10, topOffset+labelCounter*20)
-    labelCounter++;
-    forEach(tip.getStrings(), function (string) {
-      ctx.fillText(string, leftOffset + 10, mouse.y+labelCounter*20);
-      labelCounter++;
-    })
-    ctx.restore();
+    }
   }
 
-  this.hoveredItems = function (_) {
-    if(!arguments.length) return tip.items;
-    tip.items = _;
+  this.addItem = function (item) {
+    tip.items.push(item);
   }
+
+  this.isEmpty = function () {
+    for(var key in this.items) {
+      if(this.items.hasOwnProperty(key))
+        return false;
+    }
+    return true;
+  }
+
+  this.removeItems = function () {
+    this.items = [];
+  }
+
+  this.recalc = function (ctx) {
+    var maxWidth = 0
+      , lineWidth = 0
+      , height = 0
+      , lineHeight = this.config.set.fontSize*this.config.set.lineHeight
+      ;
+
+    forEach(this.items, function (item) {
+      lineWidth = ctx.measureText(item.set).width + ctx.measureText(item.value).width;
+      if (lineWidth > maxWidth)
+        maxWidth = lineWidth;
+      height += lineHeight;
+    });
+    
+    this.config.width = maxWidth;
+    this.config.height = height;
+  }
+
 
   this.fadeOut = function () {
       tip.state.animationCompleted -= .05;
@@ -1170,6 +1237,12 @@ var Tooltip = function (items) {
   }
 
   // User methods
+  this.backgroundColor = function (_) {
+    if (!arguments.length) return tip.config.backgroundColor;
+    tip.config.backgroundColor = _;
+    return this;
+  }
+
   this.gravity = function (_) {
     if (!arguments.length) return tip.config.gravity;
     tip.gravity = _;
@@ -1185,7 +1258,6 @@ var Element = function (data, title) {
   this.label = data.label;
   this.value = data.value;
   this.state = {
-    hovered: false,
     isAnimated: false,
     animationCompleted: 0, // normal => 0, hover => 1
     permissionToDie: false,
@@ -1223,6 +1295,7 @@ var Element = function (data, title) {
   }
 
   this.animIn = function () {
+    this.isAnimated(true);
     this.state.animationCompleted += .07;
     if (this.getState() >= 1) {
       this.isAnimated(false);
@@ -1231,6 +1304,7 @@ var Element = function (data, title) {
   }
 
   this.animOut = function () {
+    this.isAnimated(true);
     this.state.animationCompleted -= .07;
     if (this.getState() <= 0) {
       this.isAnimated(false);
@@ -1295,7 +1369,6 @@ var Element = function (data, title) {
 
 Element.prototype.Bar = function () {
 
-  // Bar moves in value and in base too...
   this.state.from.base = 0;
   this.state.to.base = 0;
   this.state.now.base = 0;
@@ -1414,56 +1487,34 @@ Element.prototype.Segment = function () {
 
 Element.prototype.Point = function () {
 
-  this.drawInto = function (chart, style, type) {
+  this.drawInto = function (chart, set, type) {
 
     var ctx = chart.ctx
       , cfg = chart.config
-      , grid = chart.grid.config.properties
-      , hover = this.isHovered(cfg.mouse, cfg.pointHoverRadius, cfg.mergeHover)
-      , uniqueHover = false
+      , style = set.style
       ;
 
-    this.isAnimated(true);
+    if (cfg.hovered) {
+      var hover = this.isHovered(cfg.mouse, cfg.pointHoverRadius, cfg.mergeHover);
+    }
 
     if (type == "line" || type == "under") {
       ctx.lineTo(this.getX(), this.getY());
-    }
-    else if (type == "point") {
+    } else if (type == "point") {
       // Draw circle in normal state
       ctx.beginPath();
       ctx.fillStyle = style.normal.color;
       ctx.arc(this.getX(), this.getY(), cfg.pointRadius*(1-this.getState()), 0, Math.PI*2, false);
       ctx.fill();
-
       // Stroke circle
       if (style.normal.stroke) {
         ctx.lineWidth = style.normal.stroke*(1-this.getState());
         ctx.strokeStyle = style.normal.strokeColor;
         ctx.stroke();
       }
-      // 
-      if (hover.was) {
-        // Unique hover in every set
-        if ( this.isCloserThan(hover.distance, chart.hoveredItems[0]) ) {
-          uniqueHover = true;
-          chart.hoveredItems.pop();
-          chart.hoveredItems.push({
-            set: this.set,
-            setID: 1, // TODO parent
-            y: this.value,
-            x: this.label,
-            hoverDistance: hover.distance,
-            position: {
-              x: this.getX(),
-              y: this.getY()
-            },
-            point: this
-          });
-        }
-      }
 
-      if ( uniqueHover ) {
-        this.animIn();
+      if (this.getState() > 0) {
+        cfg.hoverNotFinished = true;
         ctx.save();
         ctx.beginPath();
         ctx.fillStyle = style.onHover.color;
@@ -1475,9 +1526,21 @@ Element.prototype.Point = function () {
           ctx.stroke();
         }
         ctx.restore();
-      } else {
-        this.animOut();
       }
+      //
+      if (cfg.hovered) {
+        if (hover.was) {
+          chart.itemsInHoverRange.push({
+            "set": set.title,
+            "index": indexOf.call(set.elements, this),
+            "hoverDistance": hover.distance
+          });
+          return;
+        }
+      }
+      this.animOut();
+    } else {
+      throw new Error("Unknown drawing method for line chart.");
     }
   }
 
@@ -1492,13 +1555,6 @@ Element.prototype.Point = function () {
       "was": distance < hoverRadius,
       "distance": distance
     };
-  }
-
-  this.isCloserThan = function (thisDistance, hoveredPoint) {
-    if (hoveredPoint === undefined)
-      return true;
-
-    return thisDistance < hoveredPoint.distance;
   }
 
   return this;
