@@ -167,12 +167,12 @@ var Chartmander = function (canvasID) {
       i++;
     });
 
-    if (chart.config.type == "bar") {
-      chart.recalcBars();
-    }
-    else  if (chart.config.type == "line") {
-      chart.recalcPoints();
-    }
+    // if (chart.config.type == "bar") {
+    //   chart.recalcBars();
+    // }
+    // else  if (chart.config.type == "line") {
+    //   chart.recalcPoints();
+    // }
 
     chart.animationCompleted = 0;
     chart.draw();
@@ -337,7 +337,7 @@ Chartmander.prototype.Bar = function (data) {
       set.each(function (bar) {
         x = grid.left + cfg.groupOffset + counter.dataset*cfg.barWidth + counter.element*chart.xAxis.labelSpace + counter.dataset*cfg.datasetSpacing;
         y = -bar.value/chart.yAxis.VPP();
-        bar.moveTo(x, y).saveBase(chart.getBase()).moveBase(chart.getBase());
+        bar.savePosition(grid.width/2, 0).moveTo(x, y).saveBase(chart.getBase()).moveBase(chart.getBase());
         counter.element++;
       })
       counter.dataset++;
@@ -356,9 +356,9 @@ Chartmander.prototype.Bar = function (data) {
       ctx.lineWidth = set.style.normal.stroke;
       ctx.strokeStyle = set.style.normal.strokeColor;
       set.each(function (bar) {
-        bar.updateNow(_perc_);
-        bar.updateNowBase(_perc_);
-        bar.drawInto(chart, set.style);
+        bar.updatePosition(_perc_);
+        bar.updatePositionBase(_perc_);
+        bar.drawInto(chart, set);
       })
       counter.dataset++;
     })
@@ -503,7 +503,7 @@ Chartmander.prototype.Line = function (data) {
 
       set.each(function (point) {
         // Update only on first drawing
-        if (type == "under" || (type == "line" && !cfg.drawUnder) ) point.updateNow(_perc_);
+        if (type == "under" || (type == "line" && !cfg.drawUnder) ) point.updatePosition(_perc_);
         point.drawInto(chart, set, type);
         // chart.itemsInHoverRange
       });
@@ -809,7 +809,7 @@ var yAxis = function (labels) {
       ctx.save();
       ctx.globalAlpha = axis.config.opacity;
       forEach(this.config.labels, function (label) {
-        label.updateNow(_perc_);
+        label.updatePosition(_perc_);
         ctx.fillText(label.label.toString(), grid.left - 10, label.getY());
       });
       ctx.restore();
@@ -817,7 +817,7 @@ var yAxis = function (labels) {
         ctx.save();
         ctx.globalAlpha = axis.newConfig.opacity;
         forEach(this.newConfig.labels, function (label) {
-          label.updateNow(_perc_);
+          label.updatePosition(_perc_);
           ctx.fillText(label.label.toString(), grid.left - 10, label.getY());
         });
         ctx.restore();
@@ -1035,7 +1035,7 @@ var Dataset = function (set, color, type) {
     for (var i=0, len=newElements.length; i != len; i++) {
       // Update existing
       if (oldElements[i] instanceof Element) {
-        this.elements[i].updateTo(newElements[i].label, newElements[i].value);
+        this.elements[i].updateValue(newElements[i].label, newElements[i].value);
       }
       // Create
       else {
@@ -1152,6 +1152,10 @@ var Tooltip = function (items) {
       , leftOffset = chart.crosshair.x + cfg.margin
       , lineHeight = cfg.set.fontSize*cfg.set.lineHeight
       ;
+
+
+    if (chart.config.type == "bar")
+      leftOffset = chart.config.mouse.x
 
     tip.isAnimated(true);
     
@@ -1276,7 +1280,7 @@ var Element = function (data, title) {
     }
   }
 
-  this.updateTo = function (label, value) {
+  this.updateValue = function (label, value) {
     this.label = label;
     this.value = value;
   }
@@ -1312,7 +1316,7 @@ var Element = function (data, title) {
     }
   }
 
-  this.updateNow = function (_perc_) {
+  this.updatePosition = function (_perc_) {
     var deltaX = this.state.from.x - this.state.to.x
       , deltaY = this.state.from.y - this.state.to.y
       ;
@@ -1320,14 +1324,14 @@ var Element = function (data, title) {
     this.state.now.y = this.state.from.y - deltaY*_perc_;
   }
 
-  this.save = function () {
-    this.state.from.x = this.getX();
-    this.state.from.y = this.getY();
-    return this;
-  }
-  this.savePosition = function () {
-    this.state.from.x = this.state.now.x;
-    this.state.from.y = this.state.now.y;
+  this.savePosition = function (x, y) {
+    if (!arguments.length) {
+      this.state.from.x = this.state.now.x;
+      this.state.from.y = this.state.now.y;
+    } else {
+      this.state.from.x = x;
+      this.state.from.y = y;
+    }
     return this;
   }
 
@@ -1373,18 +1377,25 @@ Element.prototype.Bar = function () {
   this.state.to.base = 0;
   this.state.now.base = 0;
 
-  this.drawInto = function (chart, style) {
+  this.drawInto = function (chart, set) {
     var ctx = chart.ctx
       , cfg = chart.config
+      , style = set.style
       , hover = this.isHovered(chart)
       ;
 
-    this.isAnimated(true);
     if (hover) {
       ctx.save();
       ctx.fillStyle = style.onHover.color;
       ctx.strokeStyle = style.onHover.strokeColor;
+      chart.tooltip.addItem({
+        "set": set.title,
+        "label": this.label,
+        "value": this.value,
+        "color": style.normal.color
+      });
     }
+
     ctx.fillRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
     if (style.normal.stroke > 0)
       ctx.strokeRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
@@ -1411,7 +1422,7 @@ Element.prototype.Bar = function () {
     return hovered;
   }
 
-  this.updateNowBase = function (_perc_) {
+  this.updatePositionBase = function (_perc_) {
     var baseDelta = this.state.from.base - this.state.to.base
       ;
     this.state.now.base = this.state.from.base - baseDelta*_perc_;
