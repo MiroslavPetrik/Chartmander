@@ -13,7 +13,7 @@ var Chartmander = function (canvasID) {
   this.config = {
     width: this.ctx.canvas.width,
     height: this.ctx.canvas.height,
-    colors: ["#1E90FF", "#6633CC", "#ADFF2F"],
+    colors: ["#1E90FF", "#6633CC", "#D00564"],
     font: "13px Arial, sans-serif",
     fontColor: "#555",
     animate: true,
