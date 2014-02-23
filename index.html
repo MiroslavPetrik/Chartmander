@@ -59,48 +59,33 @@ title: Chartmander - HTML5 canvas charts
   </div>
 </div>
 <script>
-  function barFactory (datasets, categories, bothDirections) {
+  function dataFactory (datasets, categories, range) {
     var data = []
       , direction = false
       ;
     for (var i = 0; i < datasets.length; i++) {
-      if(bothDirections)
-        direction = i % 2 == 0 ? false : true
+      // direction = i % 2 == 0 ? false : true
       data.push({
         title: datasets[i],
-        values: stream(categories, direction)
+        values: stream(categories, direction, range)
       })
     };
 
     return data;
   }
 
-  function pieFactory (title, segments) {
-    return [{
-      title: title,
-      values: stream(segments)
-    }];
-  }
-
-  function lineFactory (title, points) {
-    return [{
-      title: title,
-      values: sine(points)
-    }]
-  }
-
-  function stream (cats, dir) {
+  function stream (cats, dir, range) {
 
     var result = []
       , direction = 1
+      ;
 
-    if (dir)
-      direction = -1
+    if (dir) direction = -1;
 
     for (var i = 0; i < cats.length; i++) {
       result.push({
         label: cats[i],
-        value: parseInt(Math.random() * 450 * direction)
+        value: parseInt( Math.random() * range * direction)
       })
     };
 
@@ -110,16 +95,48 @@ title: Chartmander - HTML5 canvas charts
   function sine (points) {
     var result = []
       , incrementAngle = (Math.PI*2)/points
+      ;
     for (var i = 0; i < Math.PI*2; i += incrementAngle) {
       result.push({
         label: i,
-        value: Math.sin(i)
+        value: parseFloat(Math.sin(i).toFixed(5))
       })
     };
-    return result
+    return result;
   }
 
-  var barData = barFactory(["Petrol", "Oil"], ["January", "February", "March", "April", "May", "June"]);
+  function cosine (points) {
+    var result = []
+      , incrementAngle = (Math.PI*2)/points
+      ;
+    for (var i = 0; i < Math.PI*2; i += incrementAngle) {
+      result.push({
+        label: i,
+        value: parseFloat(Math.cos(i).toFixed(5))
+      })
+    };
+    return result;
+  }
+
+  function yearByMonths (yearCount) {
+    var dates = []
+      , month = 1
+      , startYear = 2014 - yearCount
+      ;
+    
+    for (var i = 0; i < yearCount; i++) {
+      month = 0;
+      while (month < 12) {
+        dates.push(new Date(startYear+i, month).getTime());
+        month++;
+      }
+    }
+    return dates;
+  }
+  
+  var dates = yearByMonths(2);
+
+  var barData = dataFactory(["Petrol", "Oil"], dates, 100);
   
   // First Intro Chart  
   var introChart = new Chartmander("chartmander-intro").Line(barData);
@@ -127,30 +144,20 @@ title: Chartmander - HTML5 canvas charts
   introChart.grid.lineColor("#eaf1f7").verticalLines(false)
 
   // Bar Charts
-  var barData2 = barFactory(["Category 1", "Category 2", "Category 3"], ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"], true);
+  var barData2 = dataFactory(["Category 1", "Category 2", "Category 3"], dates, 450);
   var bar = new Chartmander("bar1").Bar(barData);
   var bar2 = new Chartmander("bar2").Bar(barData2);
 
   bar2.datasetSpacing(1);
 
-  // Pie Charts
-  var pieData = pieFactory("Girls vs. Boys", ["Chlapci", "Dievcata", "Aliens"]);
-
-  var pieData2 = pieFactory("Ram Usage", ["Used", "Alocated", "Free"]);
-
-  var pieData3 = pieFactory("Fullfilment level", ["Intresting", "Not so much"]);
-
-  var pie = new Chartmander("pie1").Pie(pieData);
+  var pie = new Chartmander("pie1").Pie(dataFactory(["Eat","Sleep","Rave","Repeat"], ["watatatta"], 50));
   pie.innerRadius(0).easingFunction("linear");
 
-  var pie2 = new Chartmander("pie2").Pie(pieData2);
+  var pie2 = new Chartmander("pie2").Pie(dataFactory(["Eat","Sleep"], ["wat"], 50));
   pie2.easingFunction("easeOutCubic").colors(["#2f8693", "#76bfc4", "#e9ecea"])
 
-  var pie3 = new Chartmander("pie3").Pie(pieData3);
+  var pie3 = new Chartmander("pie3").Pie(dataFactory(["Eat","Sleep","Rave"], ["wat"], 50));
   pie3.easingFunction("easeInElastic").colors(["orangered", "#eee"])
-
-  // var sineData = lineFactory("f: y = sine(x)", 100);
-  // var sine = new Chartmander("sine").Line(sineData);
 
 </script>
 
