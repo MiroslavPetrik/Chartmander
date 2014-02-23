@@ -36,7 +36,6 @@ var Chartmander = function (canvasID) {
     lineWidth: 1
   };
   this.tooltip = new Tooltip();
-  this.logs = [];
 
   this.canvas.addEventListener("mouseenter", handleEnter, false);
   this.canvas.addEventListener("mousemove", handleHover, false);
@@ -54,10 +53,6 @@ var Chartmander = function (canvasID) {
     this.ctx.clearRect(0, 0, this.config.width, this.config.height);
   };
 
-  this.log = function (item) {
-    this.logs.push(item);
-  }
-
   this.draw = function (finished) {
     var ctx = chart.ctx
       , cfg = chart.config
@@ -67,6 +62,10 @@ var Chartmander = function (canvasID) {
       , animationStep = 1/cfg.animationStep
       , _perc_
       ;
+
+    if (chart.grid) {
+      var grid = chart.getGridProperties();
+    }
 
     cfg.animationCompleted = cfg.animate ? 0 : 1
 
@@ -81,8 +80,14 @@ var Chartmander = function (canvasID) {
       _perc_ = easingFunction(cfg.animationCompleted);
       cfg.hoverNotFinished = false;
       chart.clear();
-      chart.tooltip.removeItems();
+      tip.removeItems();
       chart.logs = [];
+
+      // Paint grid area
+      // ctx.save();
+      // ctx.fillStyle = "rgba(0,0,0,.1)";
+      // ctx.fillRect(grid.left, grid.top, grid.width, grid.height);
+      // ctx.restore();
 
       if (chart.xAxis)
         chart.xAxis.drawInto(chart);
@@ -106,15 +111,11 @@ var Chartmander = function (canvasID) {
       }
 
       if (tip) {
-        tip.recalc(chart.ctx);
+        if (tip.hasItems()) {
+          tip.recalc(chart.ctx);
+        }
         tip.drawInto(chart);
       }
-
-      var logID = 0;
-      forEach(chart.logs, function (log) {
-        ctx.fillText(log.toString(), chart.getGridProperties().width + chart.getGridProperties().left + 20, 20 + 20*logID);
-        logID++;
-      });
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
       if (cfg.animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || cfg.hoverNotFinished ) {
@@ -130,53 +131,6 @@ var Chartmander = function (canvasID) {
     // First paint
     requestAnimationFrame(loop);
   }
-
-  this.update = function (data) {
-    var i = 0
-      , newValues = []
-      ;
-
-    // Find min and max values in provided data
-    forEach(data, function (set) {
-      newValues = newValues.concat(set.values.map(function(element){
-        return element.value;
-      }));
-    })
-
-    chart.yAxis.dataMin = Math.min.apply(null, newValues);
-    chart.yAxis.dataMax = Math.max.apply(null, newValues);
-    chart.yAxis.recalc(chart);
-    chart.xAxis.recalc(chart, data);
-
-    // Provide new data to sets
-    forEach(this.datasets, function (set) {
-      if (data[i] === undefined)
-        throw new Error("Missing dataset. Dataset count on update must match.")
-
-      set.merge(data[i]);
-
-      // Move element
-      set.each(function (element) {
-        // Rectangle need height not coordinates
-        if (set.type == "bar") {
-          element.savePosition().moveTo(false, - element.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
-        }
-        else if (set.type == "line")
-          element.savePosition().moveTo(false, chart.getBase()- element.value/chart.yAxis.VPP());
-      });
-      i++;
-    });
-
-    // if (chart.config.type == "bar") {
-    //   chart.recalcBars();
-    // }
-    // else  if (chart.config.type == "line") {
-    //   chart.recalcPoints();
-    // }
-
-    chart.animationCompleted = 0;
-    chart.draw();
-  } 
 
   function handleHover (e) {
     chart.config.mouse = {
@@ -229,6 +183,14 @@ var Chartmander = function (canvasID) {
       return "TODO";
     else 
       return chart.getGridProperties()["bottom"] - chart.yAxis.config.zeroLevel;
+  }
+
+  this.getElementCount = function () {
+    var total = 0;
+    forEach(this.datasets, function (set) {
+      total += set.getElementCount();
+    })
+    return total;
   }
 
   // User methods
@@ -289,7 +251,7 @@ Chartmander.prototype.Bar = function (data) {
 
   // Bar Chart Default
   cfg.type = "bar";
-  cfg.margin = { top: 50, right: 50, bottom: 50, left: 50 };
+  cfg.margin = { top: 50, right: 80, bottom: 50, left: 80 };
   cfg.stacked = false;
   cfg.maxBarWidth = 30;
   cfg.datasetSpacing = 0;
@@ -306,9 +268,21 @@ Chartmander.prototype.Bar = function (data) {
 
   // Construct
   chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
-  chart.xAxis = getAxesFrom(chart.datasets)[0];
+  // chart.xAxis = getAxesFrom(chart.datasets)[0];
+  chart.xAxis = new xAxis();
   chart.yAxis = getAxesFrom(chart.datasets)[1];
   chart.grid = new Grid();
+
+  var xValues = getArrayBy(data, "label")
+  // , yValues = getArrayBy(data, "value")
+  , xRange = getRange(xValues)
+  // , yRange = getRange(yValues)
+  ;
+
+  chart.xAxis.dataMin = xRange.min;
+  chart.xAxis.dataMax = xRange.max;
+  // chart.xAxis.recalc(chart);
+
 
   // Recalc
   chart.grid.calculateProperties(cfg.margin, cfg);
@@ -316,31 +290,27 @@ Chartmander.prototype.Bar = function (data) {
   chart.yAxis.recalc(chart);
 
   this.recalcBars = function () {
-    var counter = {
-        dataset: 0,
-        element: 0
-      }
-      , SETS = chart.getSetsCount()
+    var counter = 0
       , grid = chart.getGridProperties()
+      , streams = chart.datasets.length
+      , leftFix
       , x
       , y
       ;
 
-    if( (SETS * cfg.barWidth + (SETS-1)*cfg.datasetSpacing) > chart.xAxis.labelSpace )
-      cfg.barWidth = Math.floor( (chart.xAxis.labelSpace - ((SETS-1)*cfg.datasetSpacing)) / SETS );
+    cfg.barWidth = Math.floor( chart.getGridProperties().width/chart.getElementCount() );
+    leftFix = (cfg.barWidth*streams)/2
 
-    cfg.groupWidth = cfg.barWidth*SETS + cfg.datasetSpacing*(SETS-1);
-    cfg.groupOffset = (chart.xAxis.labelSpace - cfg.groupWidth)/2;
+    // faux
+    chart.yAxis.config.margin = leftFix + 10;
 
     forEach(chart.datasets, function (set) {
-      counter.element = 0;
       set.each(function (bar) {
-        x = grid.left + cfg.groupOffset + counter.dataset*cfg.barWidth + counter.element*chart.xAxis.labelSpace + counter.dataset*cfg.datasetSpacing;
+        x = grid.left - leftFix + (bar.label-chart.xAxis.dataMin)/chart.xAxis.TPP() + counter*cfg.barWidth;
         y = -bar.value/chart.yAxis.VPP();
         bar.savePosition(grid.width/2, 0).moveTo(x, y).saveBase(chart.getBase()).moveBase(chart.getBase());
-        counter.element++;
       })
-      counter.dataset++;
+      counter++;
     });
   }
 
@@ -363,6 +333,40 @@ Chartmander.prototype.Bar = function (data) {
       counter.dataset++;
     })
     ctx.restore();
+  }
+
+  this.update = function (data) {
+    var i = 0
+      , xValues = getArrayBy(data, "label")
+      , yValues = getArrayBy(data, "value")
+      , xRange = getRange(xValues)
+      , yRange = getRange(yValues)
+      ;
+
+    // Recalc Axes
+    chart.yAxis.dataMin = yRange.min;
+    chart.yAxis.dataMax = yRange.max;
+    chart.yAxis.recalc(chart);
+
+    chart.xAxis.dataMin = xRange.min;
+    chart.xAxis.dataMax = xRange.max;
+    chart.xAxis.recalc(chart);
+
+    // Recalc sets
+    forEach(this.datasets, function (set) {
+      if (data[i] === undefined)
+        throw new Error("Missing dataset. Dataset count on update must match.")
+
+      set.merge(data[i]);
+
+      set.each(function (element) {
+        element.savePosition().moveTo(false, - element.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
+      });
+      i++;
+    });
+
+    chart.animationCompleted = 0;
+    chart.draw();
   }
 
   // User methods
@@ -393,8 +397,8 @@ Chartmander.prototype.Pie = function (data) {
   cfg.rotateAnimation = true;
 
   // Construct
+  chart.tooltip = new Tooltip();
   chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
-  console.log(chart.datasets)
 
   this.drawSegments = function (_perc_) {
     var segmentsTotal = 0
@@ -414,7 +418,7 @@ Chartmander.prototype.Pie = function (data) {
       var slice = segment.elements[0];
       segmentAngle = slice.getAngle(segmentsTotal)*rotate;
       ctx.fillStyle = segment.style.color;
-      slice.drawInto(chart, rotate, scale, startAngle, segmentAngle);
+      slice.drawInto(chart, segment, rotate, scale, startAngle, segmentAngle);
       startAngle += segmentAngle;
     });
   }
@@ -446,7 +450,7 @@ Chartmander.prototype.Line = function (data) {
 
   // Line Chart Defaults
   cfg.type = "line";
-  cfg.margin = { top: 30, right: 200, bottom: 50, left: 50 };
+  cfg.margin = { top: 30, right: 50, bottom: 50, left: 50 };
   cfg.drawUnder = true;
   cfg.pointRadius = 5;
   cfg.lineWidth = 2;
@@ -460,10 +464,20 @@ Chartmander.prototype.Line = function (data) {
 
   // Construct
   chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
-  chart.xAxis = getAxesFrom(chart.datasets)[0];
+  // chart.xAxis = getAxesFrom(chart.datasets)[0];
+  chart.xAxis = new xAxis();
   chart.yAxis = getAxesFrom(chart.datasets)[1];
   chart.grid = new Grid();
   chart.itemsInHoverRange = [];
+
+  var xValues = getArrayBy(data, "label")
+  // , yValues = getArrayBy(data, "value")
+  , xRange = getRange(xValues)
+  // , yRange = getRange(yValues)
+  ;
+
+  chart.xAxis.dataMin = xRange.min;
+  chart.xAxis.dataMax = xRange.max;
 
   // Recalculation based on provided data
   chart.grid.calculateProperties(cfg.margin, cfg);
@@ -472,18 +486,15 @@ Chartmander.prototype.Line = function (data) {
 
   this.recalcPoints = function () {
     var grid = chart.getGridProperties()
-      , counter
       , x
       , y
       ;
 
     forEach(chart.datasets, function (set) {
-      counter = 1;
       set.each(function (point) {
-        x = Math.ceil(grid.left + counter*chart.xAxis.labelSpace - chart.xAxis.labelSpace/2);
-        point.resetPosition(chart);
-        point.moveTo(x, false);
-        counter++;
+        x = Math.ceil(grid.left + (point.label-chart.xAxis.dataMin)/chart.xAxis.TPP());
+        y = chart.getBase()- point.value/chart.yAxis.VPP();
+        point.savePosition(grid.width/2, chart.getBase()).moveTo(x, y);
       })
     });
   }
@@ -564,6 +575,38 @@ Chartmander.prototype.Line = function (data) {
     ctx.restore();
   }
 
+  this.update = function (data) {
+    var i = 0
+      , xValues = getArrayBy(data, "label")
+      , yValues = getArrayBy(data, "value")
+      , xRange = getRange(xValues)
+      , yRange = getRange(yValues)
+      ;
+
+    // Recalc Axes
+    chart.yAxis.dataMin = yRange.min;
+    chart.yAxis.dataMax = yRange.max;
+    chart.yAxis.recalc(chart);
+
+    chart.xAxis.dataMin = xRange.min;
+    chart.xAxis.dataMax = xRange.max;
+    chart.xAxis.recalc(chart);
+
+    // Recalc sets
+    forEach(this.datasets, function (set) {
+      if (data[i] === undefined)
+        throw new Error("Missing dataset. Dataset count on update must match.")
+      set.merge(data[i]);
+      set.each(function (element) {
+        element.savePosition().moveTo(false, chart.getBase()- element.value/chart.yAxis.VPP());
+      });
+      i++;
+    });
+
+    chart.animationCompleted = 0;
+    chart.draw();
+  }
+
   // User methods
 
   chart.recalcPoints();
@@ -577,38 +620,69 @@ Chartmander.prototype.Line = function (data) {
 // Components
 ///////////////////////
 
-var xAxis = function (labels) {
+var xAxis = function () {
   var axis = this;
-  this.labels = labels;
+
+  this.labels = [];
   this.labelSpace = 0;
+  this.dataMin = 0;
+  this.dataMax = 0;
 
-  this.recalc = function (chart, data) {
-
-    // FAUX
-    if (data != undefined) {
-      var newLabels = [];
-      forEach(data, function (set) {
-        forEach(set.values, function (element) {
-          if (indexOf.call(newLabels, element.label) == -1)
-            newLabels.push(element.label);
-        });
-      });
-      this.labels = newLabels;
-    }
-
-    this.labelSpace = chart.getGridProperties().width/this.labels.length;
-    return this;
+  this.config = {
+    "dateFormat": "MM/YYYY",
+    "TPP": 0 // Time Per Pixel
   }
 
-  this.each = function (action) {
-    forEach(this.labels, action);
+  this.recalc = function (chart, type) {
+
+    var range = this.dataMax - this.dataMin
+      // , steps = [1, 7, 30, 365]
+      , steps = [
+        {
+          "days": 1,
+          "label": "days"
+        },
+        {
+          "days": 7,
+          "label": "weeks"
+        },
+        {
+          "days": 30,
+          "label": "months"
+        },
+        {
+          "days": 365,
+          "label": "years"
+        }
+      ]
+      , dayMSec = 60*60*24*1000
+      , daysInRange = range/dayMSec
+      , startDate = moment(this.dataMin)
+      , stepIndex = steps.length
+      , labelCount = 0
+      ;
+
+    this.TPP(range/chart.getGridProperties().width);
+    this.labels = [];
+
+    while (labelCount < 1) {
+      stepIndex--;
+      labelCount = daysInRange/steps[stepIndex].days;
+    }
+    labelsCount = Math.round(labelCount);
+
+    for (var i = 0; i < labelCount; i++) {
+      var label = moment(startDate).add(steps[stepIndex].label, i);
+      this.labels.push(label.valueOf());
+    }
+
+    return this;
   }
 
   this.drawInto = function (chart) {
     var ctx = chart.ctx
       , cfg = chart.config
-      , grid = chart.getGridProperties()
-      , counter = 0
+      , topOffset = chart.getGridProperties().bottom + 25
       ;
 
     if (cfg.xAxisVisible) {
@@ -617,13 +691,29 @@ var xAxis = function (labels) {
       ctx.font = cfg.font;
       this.each(function (label) {
         var labelWidth = ctx.measureText(label).width
-          , start = axis.labelSpace/2 + (grid.left + axis.labelSpace*counter) - labelWidth / 2
+          , leftOffset = chart.getGridProperties().left + (label-chart.xAxis.dataMin)/chart.xAxis.TPP();
           ;
-        ctx.fillText(label, start, grid.bottom + 25);
-        counter++;
+        ctx.fillText(moment(label).format(axis.dateFormat()), leftOffset, topOffset);
       });
       ctx.restore();
     }
+  }
+
+  this.each = function (action) {
+    forEach(this.labels, action);
+  }
+
+  this.TPP = function (_) {
+    if (!arguments.length) return this.config.TPP;
+    this.config.TPP = _;
+    return this;
+  }
+
+  // User methods
+  this.dateFormat = function (_) {
+    if (!arguments.length) return this.config.dateFormat;
+    this.config.dateFormat = _;
+    return this;
   }
 }
 
@@ -634,9 +724,10 @@ var yAxis = function (labels) {
   this.dataMin = labels[0];
   this.dataMax = labels[1];
   this.config = {
+    margin: 10,
     labels: [],
     zeroLevel: 0,
-    VPP: 0,
+    VPP: 0, // Value Per Pixel
     opacity: 0
   };
   this.newConfig = {
@@ -648,8 +739,8 @@ var yAxis = function (labels) {
 
   this.recalc = function (chart) {
 
-    var range = this.dataMax - this.dataMin
-      , height = chart.grid.config.properties.height
+    var range = this.dataMax - (this.dataMin > 0 ? 0 : this.dataMin)
+      , height = chart.getGridProperties().height
       , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
       , labelValueSteps = [1, 2, 5]
       , stepBase = range.toExponential().split("e")
@@ -686,6 +777,8 @@ var yAxis = function (labels) {
       axis.newConfig.VPP = range/height;
       axis.newConfig.zeroLevel = height - this.dataMax/axis.newConfig.VPP;
       axis.newConfig.labels = labels;
+
+      console.log(axis.config.zeroLevel)
 
       forEach(axis.config.labels, function (label) {
         // Move to updated position
@@ -816,7 +909,7 @@ var yAxis = function (labels) {
       ctx.globalAlpha = axis.config.opacity;
       forEach(this.config.labels, function (label) {
         label.updatePosition(_perc_);
-        ctx.fillText(label.label.toString(), grid.left - 10, label.getY());
+        ctx.fillText(label.label.toString(), grid.left - axis.config.margin, label.getY());
       });
       ctx.restore();
       if (axis.newConfig.labels.length > 0) {
@@ -824,7 +917,7 @@ var yAxis = function (labels) {
         ctx.globalAlpha = axis.newConfig.opacity;
         forEach(this.newConfig.labels, function (label) {
           label.updatePosition(_perc_);
-          ctx.fillText(label.label.toString(), grid.left - 10, label.getY());
+          ctx.fillText(label.label.toString(), grid.left - axis.config.margin, label.getY());
         });
         ctx.restore();
 
@@ -990,7 +1083,7 @@ var Dataset = function (set, color, type) {
   };
 
   // Different config for chart type
-  if (type == "bar") {
+  if (type == "bar" || type == "pie") {
     this.style.normal = {
       color: tinycolor.lighten(this.style.color, 10).toHex(),
       stroke: 1,
@@ -1021,10 +1114,14 @@ var Dataset = function (set, color, type) {
 
   this.size = function () {
     var total = 0;
-    this.each(function(element){
+    this.each(function (element) {
       total += element.value;
     })
     return total;
+  }
+
+  this.getElementCount = function () {
+    return this.elements.length;
   }
 
   this.merge = function (newData) {
@@ -1106,13 +1203,12 @@ var Tooltip = function (items) {
 
   // Tooltip defaults
   this.config = {
-    gravity: "left",
     margin: 20,
     padding: 10,
-    steps: 100,
     backgroundColor: "rgba(46, 59, 66, .8)",
     width: 100,
     height: 60,
+    dateFormat: "MMMM Do YYYY",
     header: {
       fontSize: 15,
       lineHeight: 1.5,
@@ -1138,18 +1234,6 @@ var Tooltip = function (items) {
     }
   };
 
-  this.getStrings = function () {
-    var strings = []
-    forEach(tip.items, function (item) {
-      strings.push(item.set + " " + item.y);
-    })
-    return strings;
-  }
-
-  this.getXLabel = function () {
-    return tip.items ? tip.items[0].label : "undefined";
-  }
-
   this.drawInto = function (chart) {
     var ctx = chart.ctx
       , tip = chart.tooltip
@@ -1159,23 +1243,28 @@ var Tooltip = function (items) {
       , lineHeight = cfg.set.fontSize*cfg.set.lineHeight
       ;
 
-
     if (chart.config.type == "bar")
       leftOffset = chart.config.mouse.x
 
-    tip.isAnimated(true);
-    
-    if (!tip.isEmpty()) {
+    if (tip.hasItems()) {
       tip.fadeIn();
 
       ctx.save();
+      // Draw Tooltip body
       ctx.globalAlpha = tip.getState();
       ctx.fillStyle = tip.backgroundColor();
       ctx.fillRect(leftOffset, topOffset, cfg.width + cfg.padding*2, cfg.height + cfg.padding*2);
+
+      // Draw Tooltip items
       ctx.fillStyle = cfg.set.fontColor;
-      ctx.textBaseline = "top"
+      leftOffset += cfg.padding;
+      topOffset += cfg.padding;
+      ctx.textBaseline = "top";
+      // Tooltip header
+      ctx.fillText(moment(tip.items[0].label).format(tip.dateFormat()), leftOffset, topOffset);
+      topOffset += lineHeight;
       forEach(tip.items, function (item) {
-        ctx.fillText(item.set + " " + item.value, leftOffset + cfg.padding, topOffset + cfg.padding);
+        ctx.fillText(item.set + " " + item.value, leftOffset, topOffset);
         topOffset += lineHeight;
       });
       ctx.restore();
@@ -1188,12 +1277,8 @@ var Tooltip = function (items) {
     tip.items.push(item);
   }
 
-  this.isEmpty = function () {
-    for(var key in this.items) {
-      if(this.items.hasOwnProperty(key))
-        return false;
-    }
-    return true;
+  this.hasItems = function () {
+    return this.items.length > 0;
   }
 
   this.removeItems = function () {
@@ -1206,6 +1291,9 @@ var Tooltip = function (items) {
       , height = 0
       , lineHeight = this.config.set.fontSize*this.config.set.lineHeight
       ;
+
+    height += this.config.header.fontSize*this.config.header.lineHeight;
+    maxWidth = ctx.measureText(moment(this.items[0].label).format(this.dateFormat())).width
 
     forEach(this.items, function (item) {
       lineWidth = ctx.measureText(item.set).width + ctx.measureText(item.value).width;
@@ -1253,10 +1341,11 @@ var Tooltip = function (items) {
     return this;
   }
 
-  this.gravity = function (_) {
-    if (!arguments.length) return tip.config.gravity;
-    tip.gravity = _;
+  this.dateFormat = function (_) {
+    if (!arguments.length) return tip.config.dateFormat;
+    tip.config.dateFormat = _;
     return this;
+
   }
 
   return this;
@@ -1457,7 +1546,7 @@ Element.prototype.Bar = function () {
 
 Element.prototype.Segment = function () {
 
-  this.drawInto = function (chart, rotate, scale, startAngle, segmentAngle ) {
+  this.drawInto = function (chart, set, rotate, scale, startAngle, segmentAngle ) {
     var ctx = chart.ctx
       , cfg = chart.config
       , x = chart.getWidth()/2
@@ -1466,8 +1555,15 @@ Element.prototype.Segment = function () {
       ;
 
       ctx.beginPath();
-      if (hover)
-        ctx.fillStyle = "red";
+      if (hover) {
+        ctx.fillStyle = set.style.onHover.color;
+        chart.tooltip.addItem({
+          "set": set.title,
+          "label": this.label,
+          "value": this.value,
+          "color": set.style.normal.color
+        });
+      }
       ctx.arc(x, y, scale * cfg.radius, startAngle, startAngle + segmentAngle, false);
       ctx.arc(x, y, scale * cfg.innerRadius, startAngle + segmentAngle, startAngle, true);
       ctx.closePath();
@@ -1771,6 +1867,24 @@ function getDatasetFrom (data, type, colors) {
     index++;
   });
   return datasets;
+}
+
+
+function getArrayBy (data, property) {
+  var result = [];
+  forEach(data, function (set) {
+    result = result.concat(set.values.map(function (element) {
+      return element[property];
+    }));
+  });
+  return result;
+}
+
+function getRange (values) {
+  return {
+    "min": Math.min.apply(null, values),
+    "max": Math.max.apply(null, values)
+  }
 }
 
 function getAxesFrom (datasets) {
