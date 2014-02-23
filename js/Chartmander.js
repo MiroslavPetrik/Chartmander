@@ -412,8 +412,6 @@ Chartmander.prototype.Pie = function (data) {
       segmentsTotal += segment.size();
     });
 
-    console.log(segmentsTotal)
-
     forEach(chart.datasets, function (segment) {
       var slice = segment.elements[0];
       segmentAngle = slice.getAngle(segmentsTotal)*rotate;
@@ -777,8 +775,6 @@ var yAxis = function (labels) {
       axis.newConfig.VPP = range/height;
       axis.newConfig.zeroLevel = height - this.dataMax/axis.newConfig.VPP;
       axis.newConfig.labels = labels;
-
-      console.log(axis.config.zeroLevel)
 
       forEach(axis.config.labels, function (label) {
         // Move to updated position
@@ -1158,6 +1154,7 @@ var Dataset = function (set, color, type) {
     // Flush old 
     if (oldElements.length > newElements.length) {
       for (var j=oldElements-newElements; j!=0; j--) {
+        // supr FAUX
         console.log("Delete");
         this.elements[oldElements-j].die();
       }
@@ -1587,7 +1584,7 @@ Element.prototype.Segment = function () {
       hoverAngle = Math.atan2(y, x);
       if (hoverAngle < 0)
         hoverAngle += Math.PI*2;
-      console.log(startAngle.toFixed(2), endAngle.toFixed(2), hoverAngle.toFixed(2))
+      // console.log(startAngle.toFixed(2), endAngle.toFixed(2), hoverAngle.toFixed(2))
       if (hoverAngle >= startAngle && hoverAngle <= endAngle)
         hovered = true;
     }
