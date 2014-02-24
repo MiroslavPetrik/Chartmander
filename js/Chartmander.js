@@ -230,7 +230,12 @@ var Chartmander = function (canvasID) {
   }
 
   this.colors = function (_) {
-    this.config.colors = _;
+    var i = 0;
+    forEach(_, function (color) {
+      this.datasets[i].style = color;
+      this.datasets[i].repaint();
+      i++;
+    });
     return chart;
   }
 
@@ -373,6 +378,140 @@ Chartmander.prototype.Bar = function (data) {
   this.datasetSpacing = function (_) {
     this.config.datasetSpacing = _;
     return chart;
+  }
+
+  chart.recalcBars();
+  // Ignite
+  chart.draw();
+  return chart;
+}
+
+Chartmander.prototype.CategoryBar = function (data) {
+
+  var chart = this
+    , ctx = chart.ctx
+    , cfg = chart.config
+    ;
+
+  // Bar Chart Default
+  cfg.type = "bar";
+  cfg.margin = { top: 50, right: 80, bottom: 50, left: 80 };
+  cfg.stacked = false;
+  cfg.maxBarWidth = 30;
+  cfg.datasetSpacing = 0;
+
+  // Axis defaults
+  cfg.xAxisVisible = true;
+  cfg.yAxisVisible = true;
+
+  // Chart state variables
+  cfg.barWidth = cfg.maxBarWidth;
+  cfg.groupWidth = 0;
+  cfg.groupOffset = 0;
+
+  // Construct
+  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
+  chart.xAxis = new xAxisCategory(getArrayBy(data, "label", true));
+  chart.yAxis = getAxesFrom(chart.datasets)[1];
+  chart.grid = new Grid();
+
+  // Recalc
+  chart.grid.calculateProperties(cfg.margin, cfg);
+  chart.xAxis.recalc(chart);
+  chart.yAxis.recalc(chart);
+
+  this.recalcBars = function () {
+    var counter = {
+        dataset: 0,
+        element: 0
+      }
+      , streams = chart.getSetsCount()
+      , grid = chart.getGridProperties()
+      , x
+      , y
+      ;
+
+    if( (streams * cfg.barWidth + (streams-1)*cfg.datasetSpacing) > chart.xAxis.labelSpace )
+      cfg.barWidth = Math.floor( (chart.xAxis.labelSpace - ((streams-1)*cfg.datasetSpacing)) / streams );
+
+    cfg.groupWidth = cfg.barWidth*streams + cfg.datasetSpacing*(streams-1);
+    cfg.groupOffset = (chart.xAxis.labelSpace - cfg.groupWidth)/2;
+
+    forEach(chart.datasets, function (set) {
+      counter.element = 0;
+      set.each(function (bar) {
+        x = grid.left + cfg.groupOffset + counter.dataset*cfg.barWidth + counter.element*chart.xAxis.labelSpace + counter.dataset*cfg.datasetSpacing;
+        y = -bar.value/chart.yAxis.VPP();
+        bar.savePosition(grid.width/2, 0).moveTo(x, y).saveBase(chart.getBase()).moveBase(chart.getBase());
+        counter.element++;
+      })
+      counter.dataset++;
+    });
+  }
+
+  this.drawBars = function (_perc_) {
+    var counter = {
+        dataset: 0
+      }
+      ;
+
+    ctx.save();
+    forEach(chart.datasets, function (set) {
+      ctx.fillStyle = set.style.normal.color;
+      ctx.lineWidth = set.style.normal.stroke;
+      ctx.strokeStyle = set.style.normal.strokeColor;
+      set.each(function (bar) {
+        bar.updatePosition(_perc_);
+        bar.updatePositionBase(_perc_);
+        bar.drawInto(chart, set);
+      })
+      counter.dataset++;
+    })
+    ctx.restore();
+  }
+
+  this.update = function (data) {
+    var i = 0
+      , yValues = getArrayBy(data, "value")
+      , yRange = getRange(yValues)
+      ;
+
+    // Recalc Axes
+    chart.yAxis.dataMin = yRange.min;
+    chart.yAxis.dataMax = yRange.max;
+    chart.yAxis.recalc(chart);
+
+    chart.xAxis = new xAxisCategory(getArrayBy(data, "label", true));
+    chart.xAxis.recalc(chart);
+
+    // Recalc sets
+    forEach(this.datasets, function (set) {
+      if (data[i] === undefined)
+        throw new Error("Missing dataset. Dataset count on update must match.")
+
+      set.merge(data[i]);
+
+      set.each(function (element) {
+        element.savePosition().moveTo(false, - element.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
+      });
+      i++;
+    });
+
+    chart.animationCompleted = 0;
+    chart.draw();
+  }
+
+  this.stacked = function (_) {
+    if (!arguments.length) return this.stacked;
+    this.stacked = _;
+    return this;
+  }
+
+  // User methods
+  this.datasetSpacing = function (_) {
+    if (!arguments.length) return this.config.datasetSpacing;
+    this.config.datasetSpacing = _;
+    return this;
   }
 
   chart.recalcBars();
@@ -688,8 +827,7 @@ var xAxis = function () {
       ctx.fillStyle = cfg.fontColor;
       ctx.font = cfg.font;
       this.each(function (label) {
-        var labelWidth = ctx.measureText(label).width
-          , leftOffset = chart.getGridProperties().left + (label-chart.xAxis.dataMin)/chart.xAxis.TPP();
+        var leftOffset = chart.getGridProperties().left + (label-chart.xAxis.dataMin)/chart.xAxis.TPP();
           ;
         ctx.fillText(moment(label).format(axis.dateFormat()), leftOffset, topOffset);
       });
@@ -712,6 +850,45 @@ var xAxis = function () {
     if (!arguments.length) return this.config.dateFormat;
     this.config.dateFormat = _;
     return this;
+  }
+}
+
+var xAxisCategory = function (labels) {
+  var axis = this;
+
+  this.labels = labels;
+  this.labelSpace = 0;
+
+  this.config = {
+  }
+
+  this.recalc = function (chart) {
+    this.labelSpace = chart.getGridProperties().width/this.labels.length;
+    return this;
+  }
+
+  this.drawInto = function (chart) {
+    var ctx = chart.ctx
+      , cfg = chart.config
+      , topOffset = chart.getGridProperties().bottom + 25
+      , counter = 0
+      ;
+
+    if (cfg.xAxisVisible) {
+      ctx.save();
+      ctx.fillStyle = cfg.fontColor;
+      ctx.font = cfg.font;
+      this.each(function (label) {
+        var leftOffset = chart.getGridProperties().left + counter*axis.labelSpace + axis.labelSpace/2 - ctx.measureText(label).width/2;
+        ctx.fillText(label, leftOffset, topOffset);
+        counter++;
+      });
+      ctx.restore();
+    }
+  }
+
+  this.each = function (action) {
+    forEach(this.labels, action);
   }
 }
 
@@ -1078,32 +1255,6 @@ var Dataset = function (set, color, type) {
     color: color
   };
 
-  // Different config for chart type
-  if (type == "bar" || type == "pie") {
-    this.style.normal = {
-      color: tinycolor.lighten(this.style.color, 10).toHex(),
-      stroke: 1,
-      strokeColor: tinycolor.darken(this.style.color, 30).toHex()
-    };
-    this.style.onHover = {
-      color: tinycolor.lighten(this.style.color, 5).toHex(),
-      stroke: 1,
-      strokeColor: tinycolor.darken(this.style.color, 30).toHex()
-    };
-  }
-  else if (type == "line") {
-    this.style.normal = {
-      color: "#FFFFFF",
-      stroke: 1,
-      strokeColor: tinycolor.darken(this.style.color, 20).toHex()
-    };
-    this.style.onHover = {
-      color: tinycolor.lighten(this.style.color).toHex(),
-      stroke: 1,
-      strokeColor: tinycolor.darken(this.style.color, 20).toHex()
-    };
-  }
-
   this.each = function (action) {
     forEach(this.elements, action);
   }
@@ -1118,6 +1269,33 @@ var Dataset = function (set, color, type) {
 
   this.getElementCount = function () {
     return this.elements.length;
+  }
+
+  this.repaint = function () {
+    if (this.type == "bar" || this.type == "pie") {
+      this.style.normal = {
+        color: tinycolor.lighten(this.style.color, 10).toHex(),
+        stroke: 1,
+        strokeColor: tinycolor.darken(this.style.color, 30).toHex()
+      };
+      this.style.onHover = {
+        color: tinycolor.lighten(this.style.color, 5).toHex(),
+        stroke: 1,
+        strokeColor: tinycolor.darken(this.style.color, 30).toHex()
+      };
+    }
+    else if (this.type == "line") {
+      this.style.normal = {
+        color: "#FFFFFF",
+        stroke: 1,
+        strokeColor: tinycolor.darken(this.style.color, 20).toHex()
+      };
+      this.style.onHover = {
+        color: tinycolor.lighten(this.style.color).toHex(),
+        stroke: 1,
+        strokeColor: tinycolor.darken(this.style.color, 20).toHex()
+      };
+    }
   }
 
   this.merge = function (newData) {
@@ -1188,6 +1366,9 @@ var Dataset = function (set, color, type) {
     }
     return result;
   }
+
+
+  this.repaint();
 
   return this;
 }
@@ -1867,12 +2048,16 @@ function getDatasetFrom (data, type, colors) {
 }
 
 
-function getArrayBy (data, property) {
-  var result = [];
+function getArrayBy (data, property, exclusiveEntry) {
+  var result = []
+    , streamID = 0;
+
   forEach(data, function (set) {
+    if (exclusiveEntry && streamID == 1) return result;
     result = result.concat(set.values.map(function (element) {
       return element[property];
     }));
+    streamID++;
   });
   return result;
 }
