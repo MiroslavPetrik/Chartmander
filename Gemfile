@@ -1,7 +1,3 @@
 source 'https://rubygems.org'
-gem 'github-pages'
-gem 'jekyll-asset-pipeline'
-gem 'compass'
-gem 'animation'
 gem 'jekyll'
-gem 'breakpoint'
+gem 'github-pages'

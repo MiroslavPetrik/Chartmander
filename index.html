@@ -3,13 +3,7 @@ layout: default
 title: Chartmander - HTML5 canvas charts
 ---
 <div class="jumbotron chartmander">
-  <div id="stripe"></div>
-  <div class="nav">
-    <a href="https://github.com/11th/Chartmander" class="pull-right link-down">Download</a>
-    <a href="/docs" class="pull-left link-docs">Docs</a>
-    <h4>chartmander.js</h4>
-    <hr>
-  </div>
+  {% include nav.html %}
   <h1>Attractive charts for your new webapp or design mockup</h1>
   <!-- <button class="btn btn-default btn-block">Explore</button> -->
   <canvas id="chartmander-intro" class="chart" width="1200" height="400"></canvas>
@@ -134,13 +128,20 @@ title: Chartmander - HTML5 canvas charts
     return dates;
   }
   
-  var dates = yearByMonths(2);
+  var dates = yearByMonths(1);
 
-  var barData = dataFactory(["Petrol", "Oil"], dates, 100);
+  var barData = dataFactory(["Petrol"], dates, 100);
   
   // First Intro Chart  
   var introChart = new Chartmander("chartmander-intro").Line(barData);
-  introChart.easingFunction("easeOutQuint").pointRadius(10).fontColor("#b3c8dd").font("14px Arial");
+  introChart
+  .colors(["#fff"])
+  .easingFunction("easeOutQuint")
+  .pointRadius(10)
+  .fontColor("#b3c8dd")
+  .font("14px Arial")
+  ;
+
   introChart.grid.lineColor("#eaf1f7").verticalLines(false)
 
   // Bar Charts

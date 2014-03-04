@@ -117,6 +117,28 @@ var Chartmander = function (canvasID) {
         tip.drawInto(chart);
       }
 
+      if (cfg.title) {
+        ctx.save();
+        ctx.font = "18px Arial";
+        ctx.fillText(cfg.title, chart.getGridProperties().left, chart.getGridProperties().top/2);
+        ctx.restore();
+      }
+
+      if (cfg.legend) {
+        ctx.save();
+        // ctx.font = "18px Arial";
+        var legendWidth = 100, counter = 0;
+        forEach(chart.datasets, function (set) {
+          var left = chart.getGridProperties().width-200+counter*legendWidth
+          ctx.fillStyle = set.style.color;
+          ctx.fillRect(left-15, chart.getGridProperties().top/2-5, 10, 10);
+          ctx.fillStyle = "#000";
+          ctx.fillText(set.title, left, chart.getGridProperties().top/2);
+          counter++;
+        });
+        ctx.restore();
+      }
+
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
       if (cfg.animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || cfg.hoverNotFinished ) {
         requestAnimationFrame(loop);
@@ -194,6 +216,12 @@ var Chartmander = function (canvasID) {
   }
 
   // User methods
+  this.title = function (_) {
+    if(!arguments.length) return this.config.title;
+    this.config.title = _;
+    return this;
+  }
+
   this.showXAxis = function (_) {
     this.config.xAxisVisible = _;
     return chart;
@@ -232,8 +260,8 @@ var Chartmander = function (canvasID) {
   this.colors = function (_) {
     var i = 0;
     forEach(_, function (color) {
-      this.datasets[i].style = color;
-      this.datasets[i].repaint();
+      chart.datasets[i].style.color = color;
+      chart.datasets[i].repaint();
       i++;
     });
     return chart;
@@ -362,7 +390,7 @@ Chartmander.prototype.Bar = function (data) {
       if (data[i] === undefined)
         throw new Error("Missing dataset. Dataset count on update must match.")
 
-      set.merge(data[i]);
+      set.merge(data[i], chart);
 
       set.each(function (element) {
         element.savePosition().moveTo(false, - element.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
@@ -395,10 +423,12 @@ Chartmander.prototype.CategoryBar = function (data) {
 
   // Bar Chart Default
   cfg.type = "bar";
-  cfg.margin = { top: 50, right: 80, bottom: 50, left: 80 };
+  cfg.margin = { top: 70, right: 50, bottom: 50, left: 70 };
   cfg.stacked = false;
   cfg.maxBarWidth = 30;
   cfg.datasetSpacing = 0;
+  cfg.displayValue = true;
+  cfg.legend = true;
 
   // Axis defaults
   cfg.xAxisVisible = true;
@@ -489,10 +519,10 @@ Chartmander.prototype.CategoryBar = function (data) {
       if (data[i] === undefined)
         throw new Error("Missing dataset. Dataset count on update must match.")
 
-      set.merge(data[i]);
+      set.merge(data[i], chart);
 
-      set.each(function (element) {
-        element.savePosition().moveTo(false, - element.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
+      set.each(function (bar) {
+        bar.savePosition().moveTo(false, - bar.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
       });
       i++;
     });
@@ -733,9 +763,12 @@ Chartmander.prototype.Line = function (data) {
     forEach(this.datasets, function (set) {
       if (data[i] === undefined)
         throw new Error("Missing dataset. Dataset count on update must match.")
-      set.merge(data[i]);
-      set.each(function (element) {
-        element.savePosition().moveTo(false, chart.getBase()- element.value/chart.yAxis.VPP());
+      set.merge(data[i], chart);
+      set.each(function (point) {
+        var x = chart.getGridProperties().left + (point.label - chart.xAxis.dataMin)/chart.xAxis.TPP()
+          , y = chart.getBase() - point.value/chart.yAxis.VPP();
+
+        point.moveTo(x, y);
       });
       i++;
     });
@@ -899,7 +932,10 @@ var yAxis = function (labels) {
   this.dataMin = labels[0];
   this.dataMax = labels[1];
   this.config = {
+    unit: "",
+    abbr: true,
     margin: 10,
+
     labels: [],
     zeroLevel: 0,
     VPP: 0, // Value Per Pixel
@@ -912,6 +948,7 @@ var yAxis = function (labels) {
     opacity: 0
   };
 
+
   this.recalc = function (chart) {
 
     var range = this.dataMax - (this.dataMin > 0 ? 0 : this.dataMin)
@@ -923,7 +960,7 @@ var yAxis = function (labels) {
       ;
 
     stepBase = closestElement(stepBase[0], labelValueSteps);
-    var labels = getLabels( getAxeSetup(stepBase, stepExponent) );
+    var labels = getLabels(getAxeSetup(stepBase, stepExponent));
 
     // First time 
     if (axis.config.labels.length == 0) {
@@ -980,7 +1017,8 @@ var yAxis = function (labels) {
 
       labels.push(new Element(labelData, "yAxis").Label());
 
-      while(Math.abs(currLabel - axis.dataMin) > step){
+      while ( -(axis.dataMin - currLabel) > step) {
+        console.log(currLabel, step, axis.dataMin)
         currLabel = currLabel - step;
         labelData = {
           label: currLabel,
@@ -991,7 +1029,7 @@ var yAxis = function (labels) {
 
       currLabel = 0;
 
-      while( (axis.dataMax - currLabel) > step){
+      while ( (axis.dataMax - currLabel) > step) {
         currLabel = currLabel + step;
         labelData = {
           label: currLabel,
@@ -1081,16 +1119,18 @@ var yAxis = function (labels) {
       ctx.save();
       ctx.globalAlpha = axis.config.opacity;
       forEach(this.config.labels, function (label) {
+        var labelValue = axis.config.abbr ? (label.label/1000).toString() : label.label.toString();
         label.updatePosition(_perc_);
-        ctx.fillText(label.label.toString(), grid.left - axis.config.margin, label.getY());
+        ctx.fillText(labelValue + " " + axis.unit(), grid.left - axis.config.margin, label.getY());
       });
       ctx.restore();
       if (axis.newConfig.labels.length > 0) {
         ctx.save();
         ctx.globalAlpha = axis.newConfig.opacity;
         forEach(this.newConfig.labels, function (label) {
+          var labelValue = axis.config.abbr ? (label.label/1000).toString() : label.label.toString();
           label.updatePosition(_perc_);
-          ctx.fillText(label.label.toString(), grid.left - axis.config.margin, label.getY());
+          ctx.fillText(labelValue + " " + axis.unit(), grid.left - axis.config.margin, label.getY());
         });
         ctx.restore();
 
@@ -1112,6 +1152,13 @@ var yAxis = function (labels) {
       ctx.restore();
     }
   }
+
+  this.unit = function (_) {
+    if(!arguments.length) return this.config.unit;
+    this.config.unit = _;
+    return this;
+  }
+
   return this;
 }
 
@@ -1298,7 +1345,7 @@ var Dataset = function (set, color, type) {
     }
   }
 
-  this.merge = function (newData) {
+  this.merge = function (newData, chart) {
     var newElements = newData.values
       , oldElements = this.elements
       ;
@@ -1312,7 +1359,7 @@ var Dataset = function (set, color, type) {
     for (var i=0, len=newElements.length; i != len; i++) {
       // Update existing
       if (oldElements[i] instanceof Element) {
-        this.elements[i].updateValue(newElements[i].label, newElements[i].value);
+        this.elements[i].updateValue(newElements[i].label, newElements[i].value).savePosition();
       }
       // Create
       else {
@@ -1325,8 +1372,7 @@ var Dataset = function (set, color, type) {
         // Each segment in pieChart is dataset with only one element therefore next lines will never get executec
         // else if (this.type == "pie")
         //   element = element.Segment();
-        element.
-        this.elements.push(element);
+        this.elements.push(element.savePosition(chart.getGridProperties().width, chart.getBase()));
       }
     }
     // Flush old 
@@ -1556,6 +1602,7 @@ var Element = function (data, title) {
   this.updateValue = function (label, value) {
     this.label = label;
     this.value = value;
+    return this;
   }
 
   this.die = function () {
@@ -1678,6 +1725,16 @@ Element.prototype.Bar = function () {
         ctx.strokeRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
       ctx.restore();
     }
+
+    if (cfg.displayValue) {
+      ctx.save();
+      ctx.fillStyle = tinycolor.darken(set.style.color, 30).toHex();
+      ctx.translate(this.getX(), chart.getBase() - 20);
+      ctx.rotate(-Math.PI/2);
+      ctx.fillText(this.value/1000, 0, 15);
+      ctx.restore();
+    }
+
   }
 
   this.isHovered = function (chart) {

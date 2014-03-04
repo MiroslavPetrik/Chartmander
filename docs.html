@@ -1,0 +1,29 @@
+---
+layout: default
+title: Chartmander.js Documentation
+---
+
+<div class="jumbotron chartmander">
+  {% include nav.html %}
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-3">
+      <ul class="nav nav-pills nav-stacked">
+        {% for post in site.posts %}
+          <li><a href="#{{ post.anchor }}">{{ post.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-sm-9">
+      <h1 class="page-header">Documentation</h1>
+      {% for post in site.posts %}
+        <h2 id="{{ post.anchor }}">{{ post.title }}</h2>
+        <!-- {{ post.date | date_to_string }} -->
+        {{post.content}}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
