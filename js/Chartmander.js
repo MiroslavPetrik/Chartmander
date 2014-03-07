@@ -271,6 +271,15 @@ var Chartmander = function (canvasID) {
     return chart;
   }
 
+  this.margin = function (_) {
+    if (!arguments.length) return chart.config.margin;
+    chart.config.margin.top    = typeof _.top    != 'undefined' ? _.top    : chart.config.margin.top;
+    chart.config.margin.right  = typeof _.right  != 'undefined' ? _.right  : chart.config.margin.right;
+    chart.config.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : chart.config.margin.bottom;
+    chart.config.margin.left   = typeof _.left   != 'undefined' ? _.left   : chart.config.margin.left;
+    return chart;
+  }
+
   this.colors = function (_) {
     var i = 0;
     forEach(_, function (color) {
@@ -446,7 +455,6 @@ Chartmander.prototype.CategoryBar = function (data) {
 
   // Axis defaults
   cfg.xAxisVisible = true;
-  cfg.yAxisVisible = true;
 
   // Chart state variables
   cfg.barWidth = cfg.maxBarWidth;
@@ -592,7 +600,6 @@ Chartmander.prototype.Pie = function (data) {
     forEach(chart.datasets, function (set) {
       var slice = set.elements[0];
       ctx.fillStyle = set.style.color;
-      ctx.lineWidth = 5;
       slice.updatePosition(rotate);
       slice.drawInto(chart, set);
     });
@@ -740,7 +747,7 @@ Chartmander.prototype.Line = function (data) {
 
   this.drawLines = function () {
     ctx.save();
-
+    ctx.lineWidth = chart.lineWidth();
     forEach(chart.datasets, function (set) {
       ctx.strokeStyle = set.style.color;
       ctx.beginPath();
@@ -753,7 +760,7 @@ Chartmander.prototype.Line = function (data) {
     ctx.restore();
   }
 
-  this.drawPoints = function (_perc_) {
+  this.drawPoints = function () {
     ctx.save();
     forEach(chart.datasets, function (set) {
       var hoveredInThisSet = []
@@ -842,6 +849,17 @@ Chartmander.prototype.Line = function (data) {
   }
 
   // User methods
+  this.areaVisible = function (_) {
+    if (!arguments.length) return this.config.drawArea;
+    this.config.drawArea = _;
+    return this;
+  }
+
+  this.lineWidth = function (_) {
+    if (!arguments.length) return this.config.lineWidth;
+    this.config.lineWidth = _;
+    return this;
+  }
 
   chart.recalcPoints();
   // Ignite
@@ -897,8 +915,6 @@ var xAxis = function () {
 
     this.TPP(range/chart.getGridProperties().width);
     this.labels = [];
-
-    console.log(stepIndex)
 
     while (labelCount < 1) {
       stepIndex--;
@@ -998,7 +1014,7 @@ var yAxis = function (labels) {
   this.dataMax = labels[1];
   this.config = {
     unit: "",
-    abbr: true,
+    abbr: false,
     margin: 10,
 
     labels: [],
@@ -1868,7 +1884,6 @@ Element.prototype.Slice = function () {
       }
       ctx.arc(cfg.center.x, cfg.center.y, cfg.radius, cfg.startAngle+this.getX(), cfg.startAngle+this.getY());
       ctx.arc(cfg.center.x, cfg.center.y, cfg.radius*cfg.innerRadius, cfg.startAngle+this.getY(), cfg.startAngle+this.getX(), true);
-      ctx.stroke();
       ctx.fill();
   }
 
@@ -1896,7 +1911,7 @@ Element.prototype.Slice = function () {
 
 Element.prototype.Point = function () {
 
-  this.drawInto = function (chart, set, type) {
+  this.drawInto = function (chart, set) {
 
     var ctx = chart.ctx
       , cfg = chart.config
@@ -1924,7 +1939,7 @@ Element.prototype.Point = function () {
       ctx.save();
       ctx.beginPath();
       ctx.fillStyle = style.onHover.color;
-      ctx.arc(this.getX(), this.getY(), cfg.pointRadius*this.getState(), 0, Math.PI*2, false);
+      ctx.arc(this.getX(), this.getY(),10*this.getState(), 0, Math.PI*2, false);
       ctx.fill();
       if (style.onHover.stroke > 0) {
         ctx.lineWidth = style.onHover.stroke*this.getState();

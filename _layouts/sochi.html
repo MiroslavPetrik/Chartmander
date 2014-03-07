@@ -5,20 +5,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>{{ page.title }}</title>
     <meta name="viewport" content="width=device-width">
-
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{site.baseurl}}/css/sochi.css">
-    <link rel="stylesheet" href="{{site.baseurl}}/css/syntax.css">
-    <link rel="stylesheet" href="{{site.baseurl}}/css/ionicons.min.css">
-    <script src="{{site.baseurl}}/js/jquery-2.1.0.min.js"></script>
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-    <script src="{{site.baseurl}}/js/moment.min.js"></script>
-    <script src="{{site.baseurl}}/js/tinycolor.js"></script>
-    <script src="{{site.baseurl}}/js/Chartmander.js"></script>
-    <script src="{{site.baseurl}}/js/dataFactory.js"></script>
-    <script src="{{site.baseurl}}/sochi/js/sochi.js"></script>
+    <link rel="stylesheet" href="{{site.cssdir}}bootstrap.min.css">
+    <link rel="stylesheet" href="{{site.cssdir}}sochi.css">
+    <link rel="stylesheet" href="{{site.cssdir}}ionicons.min.css">
+    <script src="{{site.jsdir}}jquery-2.1.0.min.js"></script>
+    <script src="{{site.jsdir}}bootstrap.min.js"></script>
+    <script src="{{site.jsdir}}moment.min.js"></script>
+    <script src="{{site.jsdir}}tinycolor.js"></script>
+    <script src="{{site.jsdir}}Chartmander.js"></script>
+    <script src="{{site.jsdir}}dataFactory.js"></script>
+    <script src="{{site.jsdir}}realshadow-min.js"></script>
+    <script src="{{site.jsdir}}sochi.js"></script>
   </head>
-  <body class="sochi">
+  <body>
   {{ content }}
+  <script>
+    $('.page').realshadow({
+      angle: Math.PI / 4,
+      type: "flat"
+    });
+  </script>
   </body>
 </html>

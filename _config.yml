@@ -1,6 +1,7 @@
 name: Chartmander.js
 baseurl: /Chartmander
+sochi: /Chartmander/sochi/
 cssdir: /Chartmander/css/ 
-jsdir: /Chartmander/js/ 
+jsdir: /Chartmander/js/
 markdown: redcarpet
 pygments: true
