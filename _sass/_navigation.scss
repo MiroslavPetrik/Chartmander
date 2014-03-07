@@ -1,6 +1,6 @@
 .nav {
 	position: absolute;
-	@include rem(top, 1);
+	@include rem(top, 2.4);
 	left: 0;
 	right: 0;
 	width: 100%;
@@ -10,16 +10,15 @@
 		@include rem(margin-top, 1.1);
 		color: #fff;
 	}
-	.link-down {
-		color: $violet;
-	}
 	ul {
+		@include rem(margin-top, .8);
 		list-style: none;
 		li {
 			float: left;
 			margin: 0;
 			padding: 0 9px;
 			a {
+				padding: 8px 0;
 				@include font(1.6);
 				color: lighten($b, 50%);
 				&:hover {

@@ -1,0 +1,19 @@
+@import "compass";
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700);
+
+html,body {
+	height: 100%;
+}
+body {
+	@include background-image(linear-gradient(#113b6f, #267ab5));
+}
+
+.sidebar {
+	li {
+		background: #fff;
+	}
+}
+
+.page {
+	background: rgba(255,255,255,.8);
+}

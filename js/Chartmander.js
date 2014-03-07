@@ -81,7 +81,6 @@ var Chartmander = function (canvasID) {
       cfg.hoverNotFinished = false;
       chart.clear();
       tip.removeItems();
-      chart.logs = [];
 
       // Paint grid area
       // ctx.save();
@@ -98,16 +97,17 @@ var Chartmander = function (canvasID) {
 
       if (cfg.type === "line") {
         chart.itemsInHoverRange = [];
-        if (cfg.drawUnder) {
-          chart.drawDataAs("under", _perc_);
+        chart.updatePoints(_perc_);
+        if (cfg.drawArea) {
+          chart.drawArea(_perc_);
         }
-        chart.drawDataAs("line", _perc_);
+        chart.drawLines();
         chart.grid.drawCrosshairInto(chart);
-        chart.drawDataAs("point", _perc_);
+        chart.drawPoints();
       } else if (cfg.type === "bar") {
         chart.drawBars(_perc_);
       } else if (cfg.type === "pie") {
-        chart.drawSegments(_perc_);
+        chart.drawSlices(_perc_);
       }
 
       if (tip) {
@@ -155,13 +155,15 @@ var Chartmander = function (canvasID) {
   }
 
   function handleHover (e) {
+    var rect = this.getBoundingClientRect();
     chart.config.mouse = {
-      x: e.pageX - this.offsetLeft,
-      y: e.pageY - this.offsetTop
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
     }
+    // console.log(chart.config.mouse.x, chart.config.mouse.y)
     // Allow repaint on hover only if chart and tooltip are done with self-repaint
     // AND if also hovered item is not repainting 
-    if (chart.config.animationCompleted >= 1 && !chart.tooltip.isAnimated() && !chart.config.hoverNotFinished ){
+    if (chart.config.animationCompleted >= 1 && !chart.tooltip.isAnimated() && !chart.config.hoverNotFinished ) {
       chart.draw(true)
     }
   }
@@ -212,6 +214,18 @@ var Chartmander = function (canvasID) {
     forEach(this.datasets, function (set) {
       total += set.getElementCount();
     })
+    return total;
+  }
+
+  // Warning
+  // might be negative values in line or bar chart, this is used only by pieChart
+  this.getElementValue = function () {
+    var total = 0;
+    forEach(this.datasets, function (set) {
+      forEach(set.elements, function (e) {
+        total += e.value;
+      })
+    });
     return total;
   }
 
@@ -559,35 +573,64 @@ Chartmander.prototype.Pie = function (data) {
 
   // Pie Chart Defaults
   cfg.type = "pie";
-  cfg.margin = { top: 50, right: 50, bottom: 50, left: 50 };
-  cfg.radius = 100;
-  cfg.innerRadius = 70;
-  cfg.scaleAnimation = false;
+  // cfg.margin = { top: 50, right: 50, bottom: 50, left: 50 };
+  cfg.center = { x: chart.getWidth()/2, y: chart.getHeight()/2 };
+  cfg.radius = Math.min.apply(null, [cfg.center.x, cfg.center.y]);
+  cfg.innerRadius = .6;
   cfg.rotateAnimation = true;
+  cfg.startAngle = 0;
 
   // Construct
   chart.tooltip = new Tooltip();
   chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
 
-  this.drawSegments = function (_perc_) {
-    var segmentsTotal = 0
-      , scale = cfg.scaleAnimation ? _perc_ : 1
-      , rotate = cfg.rotateAnimation ? _perc_ : 1
-      , startAngle = -Math.PI/2
-      , segmentAngle
+  this.drawSlices = function (_perc_) {
+    var rotate = cfg.rotateAnimation ? _perc_ : 1
       ;
 
-    forEach(chart.datasets, function (segment) {
-      segmentsTotal += segment.size();
+    ctx.save();
+    forEach(chart.datasets, function (set) {
+      var slice = set.elements[0];
+      ctx.fillStyle = set.style.color;
+      ctx.lineWidth = 5;
+      slice.updatePosition(rotate);
+      slice.drawInto(chart, set);
     });
+    ctx.restore();
+  }
 
-    forEach(chart.datasets, function (segment) {
-      var slice = segment.elements[0];
-      segmentAngle = slice.getAngle(segmentsTotal)*rotate;
-      ctx.fillStyle = segment.style.color;
-      slice.drawInto(chart, segment, rotate, scale, startAngle, segmentAngle);
-      startAngle += segmentAngle;
+  this.recalcSlices = function (update) {
+    var slice
+      , sliceStart = 0
+      , sliceEnd
+      ;
+    forEach(chart.datasets, function (set) {
+      // There is always one element inside of dataset in Pie Chart
+      slice = set.elements[0];
+      sliceEnd = sliceStart + chart.getAngleOf(slice.value)
+      if (update) {
+        slice.savePosition(); 
+      } else {
+        slice.savePosition(0, 0);
+      }
+      slice.moveTo(sliceStart, sliceEnd);
+      sliceStart = sliceEnd;
     });
+  }
+
+  this.update = function (data) {
+    var i = 0;
+    forEach(this.datasets, function (set) {
+      set.merge(data[i], chart);
+      i++;
+    });
+    chart.recalcSlices(true);
+    chart.animationCompleted = 0;
+    chart.draw();
+  }
+
+  this.getAngleOf = function (sliceValue) {
+    return (sliceValue/this.getElementValue())*Math.PI*2;
   }
 
   // User methods
@@ -603,6 +646,7 @@ Chartmander.prototype.Pie = function (data) {
     return this;
   }
 
+  chart.recalcSlices(false);
   // Ignite
   chart.draw();
   return this;
@@ -618,10 +662,10 @@ Chartmander.prototype.Line = function (data) {
   // Line Chart Defaults
   cfg.type = "line";
   cfg.margin = { top: 30, right: 50, bottom: 50, left: 50 };
-  cfg.drawUnder = true;
+  cfg.drawArea = true;
   cfg.pointRadius = 5;
   cfg.lineWidth = 2;
-  cfg.drawUnderOpacity = .15
+  cfg.areaOpacity = .95
   cfg.pointHoverRadius = 20;
   cfg.mergeHover = true;
 
@@ -666,30 +710,61 @@ Chartmander.prototype.Line = function (data) {
     });
   }
 
-  this.drawDataAs = function (type, _perc_) {
+  this.updatePoints = function (_perc_) {
+    forEach(chart.datasets, function (set) {
+      set.each(function (point) {
+        point.updatePosition(_perc_);
+      })
+    });
+  }
+
+  this.drawArea = function () {
+    ctx.save();
+
+    forEach(chart.datasets, function (set) {
+      ctx.fillStyle = set.style.color;
+      ctx.globalAlpha = cfg.areaOpacity;
+
+      ctx.beginPath();
+      ctx.moveTo(set.element(0).getX(), chart.getBase());
+      ctx.lineTo(set.element(0).getX(), set.element(0).getY());
+      set.each(function (point) {
+        ctx.lineTo(point.getX(), point.getY());
+      });
+      ctx.lineTo(set.element("last").getX(), chart.getBase());
+      ctx.fill();
+    });
+
+    ctx.restore();
+  }
+
+  this.drawLines = function () {
+    ctx.save();
+
+    forEach(chart.datasets, function (set) {
+      ctx.strokeStyle = set.style.color;
+      ctx.beginPath();
+      set.each(function (point) {
+        ctx.lineTo(point.getX(), point.getY());
+      });
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  }
+
+  this.drawPoints = function (_perc_) {
     ctx.save();
     forEach(chart.datasets, function (set) {
       var hoveredInThisSet = []
         , closestHovered
-        , style = set.style
         ;
 
       ctx.strokeStyle = set.style.color;
       ctx.fillStyle = set.style.color;
 
-      if (type == "line" || type == "under")
-        ctx.beginPath();
-
-      if (type == "under") {
-        ctx.moveTo(set.element(0).getX(), chart.getBase());
-        ctx.lineTo(set.element(0).getX(), set.element(0).getY());
-      }
-
       set.each(function (point) {
-        // Update only on first drawing
-        if (type == "under" || (type == "line" && !cfg.drawUnder) ) point.updatePosition(_perc_);
-        point.drawInto(chart, set, type);
-        // chart.itemsInHoverRange
+        point.drawInto(chart, set);
       });
 
       // Get items only from current set
@@ -718,7 +793,7 @@ Chartmander.prototype.Line = function (data) {
               set: set.title,
               label: set.elements[closestHovered.index].label,
               value: set.elements[closestHovered.index].value,
-              color: style.normal.color
+              color: set.style.normal.color
             })
           if (set.elements[closestHovered.index].isAnimated()){
             cfg.hoverNotFinished = true;
@@ -726,17 +801,6 @@ Chartmander.prototype.Line = function (data) {
         } else {
           set.elements[hoveredInThisSet[i].index].animOut();
         }
-      }
-
-      if (type == "line")
-        ctx.stroke();
-
-      if (type == "under") {
-        ctx.lineTo(set.element("last").getX(), chart.getBase());
-        ctx.save();
-        ctx.globalAlpha = cfg.drawUnderOpacity;
-        ctx.fill();
-        ctx.restore();
       }
     });
     ctx.restore();
@@ -806,7 +870,6 @@ var xAxis = function () {
   this.recalc = function (chart, type) {
 
     var range = this.dataMax - this.dataMin
-      // , steps = [1, 7, 30, 365]
       , steps = [
         {
           "days": 1,
@@ -834,6 +897,8 @@ var xAxis = function () {
 
     this.TPP(range/chart.getGridProperties().width);
     this.labels = [];
+
+    console.log(stepIndex)
 
     while (labelCount < 1) {
       stepIndex--;
@@ -1018,7 +1083,6 @@ var yAxis = function (labels) {
       labels.push(new Element(labelData, "yAxis").Label());
 
       while ( -(axis.dataMin - currLabel) > step) {
-        console.log(currLabel, step, axis.dataMin)
         currLabel = currLabel - step;
         labelData = {
           label: currLabel,
@@ -1326,7 +1390,7 @@ var Dataset = function (set, color, type) {
         strokeColor: tinycolor.darken(this.style.color, 30).toHex()
       };
       this.style.onHover = {
-        color: tinycolor.lighten(this.style.color, 5).toHex(),
+        color: tinycolor.lighten(this.style.color, 10).toHex(),
         stroke: 1,
         strokeColor: tinycolor.darken(this.style.color, 30).toHex()
       };
@@ -1401,7 +1465,7 @@ var Dataset = function (set, color, type) {
             });
             break;
       case "pie": forEach(set.values, function (segmentData) {
-              result.push(new Element(segmentData, set.title).Segment());
+              result.push(new Element(segmentData, set.title).Slice());
             });
             break;
       case "line": forEach(set.values, function (pointData) {
@@ -1412,7 +1476,6 @@ var Dataset = function (set, color, type) {
     }
     return result;
   }
-
 
   this.repaint();
 
@@ -1779,51 +1842,49 @@ Element.prototype.Bar = function () {
   return this;
 };
 
-Element.prototype.Segment = function () {
+Element.prototype.Slice = function () {
 
-  this.drawInto = function (chart, set, rotate, scale, startAngle, segmentAngle ) {
+  /*
+  ** IMPORTANT
+  ** Slice uses setters/getters X, Y but it return Start and End values
+  */
+
+  this.drawInto = function (chart, set) {
     var ctx = chart.ctx
       , cfg = chart.config
-      , x = chart.getWidth()/2
-      , y = chart.getHeight()/2
-      , hover = this.isHovered(chart, startAngle, startAngle + segmentAngle)
       ;
 
       ctx.beginPath();
-      if (hover) {
-        ctx.fillStyle = set.style.onHover.color;
-        chart.tooltip.addItem({
-          "set": set.title,
-          "label": this.label,
-          "value": this.value,
-          "color": set.style.normal.color
-        });
+      if (cfg.hovered) {
+        if (this.isHovered(chart)) {
+          ctx.fillStyle = set.style.onHover.color;
+          chart.tooltip.addItem({
+            "set": set.title,
+            "label": this.label,
+            "value": this.value,
+            "color": set.style.normal.color
+          });
+        }
       }
-      ctx.arc(x, y, scale * cfg.radius, startAngle, startAngle + segmentAngle, false);
-      ctx.arc(x, y, scale * cfg.innerRadius, startAngle + segmentAngle, startAngle, true);
-      ctx.closePath();
+      ctx.arc(cfg.center.x, cfg.center.y, cfg.radius, cfg.startAngle+this.getX(), cfg.startAngle+this.getY());
+      ctx.arc(cfg.center.x, cfg.center.y, cfg.radius*cfg.innerRadius, cfg.startAngle+this.getY(), cfg.startAngle+this.getX(), true);
+      ctx.stroke();
       ctx.fill();
   }
 
-  this.getAngle = function (total) {
-    return (this.value/total)*Math.PI*2;
-  }
-
-  this.isHovered = function (chart, startAngle, endAngle) {
-    var x = chart.getMouse("x") - chart.getWidth()/2
-      , y = chart.getMouse("y") - chart.getHeight()/2
+  this.isHovered = function (chart) {
+    var x = chart.getMouse("x") - chart.config.center.x
+      , y = chart.getMouse("y") - chart.config.center.y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
       ;
 
-
-    if (fromCenter <= chart.radius()) {
-      hoverAngle = Math.atan2(y, x);
+    if (fromCenter <= chart.radius() && fromCenter >= chart.radius()*chart.innerRadius()) {
+      hoverAngle = Math.atan2(y, x) - chart.config.startAngle;
       if (hoverAngle < 0)
         hoverAngle += Math.PI*2;
-      // console.log(startAngle.toFixed(2), endAngle.toFixed(2), hoverAngle.toFixed(2))
-      if (hoverAngle >= startAngle && hoverAngle <= endAngle)
+      if (hoverAngle >= this.getX() && hoverAngle <= this.getY())
         hovered = true;
     }
 
@@ -1846,50 +1907,44 @@ Element.prototype.Point = function () {
       var hover = this.isHovered(cfg.mouse, cfg.pointHoverRadius, cfg.mergeHover);
     }
 
-    if (type == "line" || type == "under") {
-      ctx.lineTo(this.getX(), this.getY());
-    } else if (type == "point") {
-      // Draw circle in normal state
+    // Draw circle in normal state
+    ctx.beginPath();
+    ctx.fillStyle = style.normal.color;
+    ctx.arc(this.getX(), this.getY(), cfg.pointRadius*(1-this.getState()), 0, Math.PI*2, false);
+    ctx.fill();
+    // Stroke circle
+    if (style.normal.stroke) {
+      ctx.lineWidth = style.normal.stroke*(1-this.getState());
+      ctx.strokeStyle = style.normal.strokeColor;
+      ctx.stroke();
+    }
+
+    if (this.getState() > 0) {
+      cfg.hoverNotFinished = true;
+      ctx.save();
       ctx.beginPath();
-      ctx.fillStyle = style.normal.color;
-      ctx.arc(this.getX(), this.getY(), cfg.pointRadius*(1-this.getState()), 0, Math.PI*2, false);
+      ctx.fillStyle = style.onHover.color;
+      ctx.arc(this.getX(), this.getY(), cfg.pointRadius*this.getState(), 0, Math.PI*2, false);
       ctx.fill();
-      // Stroke circle
-      if (style.normal.stroke) {
-        ctx.lineWidth = style.normal.stroke*(1-this.getState());
-        ctx.strokeStyle = style.normal.strokeColor;
+      if (style.onHover.stroke > 0) {
+        ctx.lineWidth = style.onHover.stroke*this.getState();
+        ctx.strokeStyle = style.onHover.strokeColor;
         ctx.stroke();
       }
-
-      if (this.getState() > 0) {
-        cfg.hoverNotFinished = true;
-        ctx.save();
-        ctx.beginPath();
-        ctx.fillStyle = style.onHover.color;
-        ctx.arc(this.getX(), this.getY(), cfg.pointRadius*this.getState(), 0, Math.PI*2, false);
-        ctx.fill();
-        if (style.onHover.stroke > 0) {
-          ctx.lineWidth = style.onHover.stroke*this.getState();
-          ctx.strokeStyle = style.onHover.strokeColor;
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
-      //
-      if (cfg.hovered) {
-        if (hover.was) {
-          chart.itemsInHoverRange.push({
-            "set": set.title,
-            "index": indexOf.call(set.elements, this),
-            "hoverDistance": hover.distance
-          });
-          return;
-        }
-      }
-      this.animOut();
-    } else {
-      throw new Error("Unknown drawing method for line chart.");
+      ctx.restore();
     }
+    //
+    if (cfg.hovered) {
+      if (hover.was) {
+        chart.itemsInHoverRange.push({
+          "set": set.title,
+          "index": indexOf.call(set.elements, this),
+          "hoverDistance": hover.distance
+        });
+        return;
+      }
+    }
+    this.animOut();
   }
 
   this.isHovered = function (mouse, hoverRadius, mergeHover) {
@@ -2084,6 +2139,9 @@ function getDatasetFrom (data, type, colors) {
     , color
     , datasets = []
     ;
+
+  if (data === undefined)
+    throw new Error("No data");
     
   forEach(data, function(set) {
     // pick a color
@@ -2103,7 +2161,6 @@ function getDatasetFrom (data, type, colors) {
   });
   return datasets;
 }
-
 
 function getArrayBy (data, property, exclusiveEntry) {
   var result = []

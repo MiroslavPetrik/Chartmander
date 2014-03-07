@@ -1,0 +1,57 @@
+---
+layout: sochi
+title: Sochi 2014 visualization with Chartmander.js
+---
+<div class="container">
+  <div class="row">
+    <!-- <h1>Sochi 2014</h1> -->
+<!--     <div class="col-sm-3">
+    <ul class="nav nav-pills nav-stacked sidebar">
+      <li><a href="#">Overview</a></li>
+      <li><a href="#">Countries</a></li>
+      <li><a href="#">Atletes</a></li>
+    </ul>
+    </div> -->
+    <div class="col-sm-9">
+      <section class="page">
+        <h2>Summary</h2>
+        <a href="#" class="update">update</a>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <canvas id="athletes" width="300" height="200"></canvas>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+
+var athletesData = [
+  {
+    "title": "Men",
+    "values": [{ "label": "men", "value": 1 }]
+  },
+  {
+    "title": "Women",
+    "values": [{ "label": "women", "value": 1 }]
+  }
+];
+
+$('.update').on('click', function (e) {
+  e.preventDefault()
+  athletes.update(dataFactory(["Men", "Women"], ["xx"], 50))
+})
+
+
+var athletes = new Chartmander("athletes").Pie(athletesData)
+    athletes.colors(["#30daff", "#ff4d5b"]);
+
+// $.getJSON(kimono('athletes?limit=0'), 
+//   function (data) {
+
+//     console.log(data)
+//   }
+// );
+</script>

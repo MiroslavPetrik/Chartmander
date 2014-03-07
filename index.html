@@ -2,12 +2,12 @@
 layout: default
 title: Chartmander - HTML5 canvas charts
 ---
-<div class="jumbotron chartmander">
+<header class="jumbotron chartmander">
   {% include nav.html %}
   <h1>Attractive charts for your new webapp or design mockup</h1>
   <!-- <button class="btn btn-default btn-block">Explore</button> -->
   <canvas id="chartmander-intro" class="chart" width="1200" height="400"></canvas>
-</div>
+</header>
 
 <div class="container">
   <div class="row">
@@ -53,80 +53,6 @@ title: Chartmander - HTML5 canvas charts
   </div>
 </div>
 <script>
-  function dataFactory (datasets, categories, range) {
-    var data = []
-      , direction = false
-      ;
-    for (var i = 0; i < datasets.length; i++) {
-      // direction = i % 2 == 0 ? false : true
-      data.push({
-        title: datasets[i],
-        values: stream(categories, direction, range)
-      })
-    };
-
-    return data;
-  }
-
-  function stream (cats, dir, range) {
-
-    var result = []
-      , direction = 1
-      ;
-
-    if (dir) direction = -1;
-
-    for (var i = 0; i < cats.length; i++) {
-      result.push({
-        label: cats[i],
-        value: parseInt( Math.random() * range * direction)
-      })
-    };
-
-    return result;
-  }
-
-  function sine (points) {
-    var result = []
-      , incrementAngle = (Math.PI*2)/points
-      ;
-    for (var i = 0; i < Math.PI*2; i += incrementAngle) {
-      result.push({
-        label: i,
-        value: parseFloat(Math.sin(i).toFixed(5))
-      })
-    };
-    return result;
-  }
-
-  function cosine (points) {
-    var result = []
-      , incrementAngle = (Math.PI*2)/points
-      ;
-    for (var i = 0; i < Math.PI*2; i += incrementAngle) {
-      result.push({
-        label: i,
-        value: parseFloat(Math.cos(i).toFixed(5))
-      })
-    };
-    return result;
-  }
-
-  function yearByMonths (yearCount) {
-    var dates = []
-      , month = 1
-      , startYear = 2014 - yearCount
-      ;
-    
-    for (var i = 0; i < yearCount; i++) {
-      month = 0;
-      while (month < 12) {
-        dates.push(new Date(startYear+i, month).getTime());
-        month++;
-      }
-    }
-    return dates;
-  }
   
   var dates = yearByMonths(1);
 
@@ -142,6 +68,10 @@ title: Chartmander - HTML5 canvas charts
   .font("14px Arial")
   ;
 
+  setInterval(function (argument) {
+    introChart.update(dataFactory(["Petrol"], dates, Math.random()*100))
+  }, 3000);
+
   introChart.grid.lineColor("#eaf1f7").verticalLines(false)
 
   // Bar Charts
@@ -149,25 +79,13 @@ title: Chartmander - HTML5 canvas charts
   var bar = new Chartmander("bar1").Bar(barData);
   var bar2 = new Chartmander("bar2").Bar(barData2);
 
-  bar2.datasetSpacing(1);
+  // bar2.datasetSpacing(1);
 
-  var pie = new Chartmander("pie1").Pie(dataFactory(["Eat","Sleep","Rave","Repeat"], ["watatatta"], 50));
-  pie.innerRadius(0).easingFunction("linear");
+  // var pie = new Chartmander("pie1").Pie(dataFactory(["Eat","Sleep","Rave","Repeat"], ["watatatta"], 50));
+  // pie.innerRadius(0).easingFunction("linear");
 
-  var pie2 = new Chartmander("pie2").Pie(dataFactory(["Eat","Sleep"], ["wat"], 50));
-  pie2.easingFunction("easeOutCubic").colors(["#2f8693", "#76bfc4", "#e9ecea"])
+  // var pie2 = new Chartmander("pie2").Pie(dataFactory(["Eat","Sleep"], ["wat"], 50));
+  // pie2.easingFunction("easeOutCubic").colors(["#2f8693", "#76bfc4", "#e9ecea"])
 
-  var pie3 = new Chartmander("pie3").Pie(dataFactory(["Eat","Sleep","Rave"], ["wat"], 50));
-  pie3.easingFunction("easeInElastic").colors(["orangered", "#eee"])
 
 </script>
-
-
-<!-- <div id="home">
-  <h1>Blog Posts</h1>
-  <ul class="posts">
-    {% for post in site.posts %}
-      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
-    {% endfor %}
-  </ul>
-</div> -->
