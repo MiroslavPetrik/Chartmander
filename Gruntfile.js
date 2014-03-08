@@ -26,8 +26,10 @@ module.exports = function (grunt) {
             }
         },
         watch: {
-            files: ['js/*'],
-            tasks: ['concat']
+            scripts: {
+                files: ['js/src/*.js', 'js/src/models/*.js', 'js/src/components/*.js'],
+                tasks: ['concat']
+            }
         }
     });
     grunt.loadNpmTasks('grunt-contrib-concat');

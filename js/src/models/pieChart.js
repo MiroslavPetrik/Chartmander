@@ -77,6 +77,7 @@ Chartmander.models.pieChart = function (canvas) {
   }
 
 
+
   ///////////////////////
   // Methods
   ///////////////////////

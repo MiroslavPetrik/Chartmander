@@ -273,8 +273,6 @@
     return indexOf.call(this, element);
   };
 
-})();
-
 Chartmander.models.chart = function (canvasID) {
 
   var chart = this;
@@ -621,6 +619,7 @@ Chartmander.models.pieChart = function (canvas) {
   var getAngleOf = function (sliceValue) {
     return (sliceValue/getElementValue())*Math.PI*2;
   }
+
 
 
   ///////////////////////
