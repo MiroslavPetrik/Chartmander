@@ -7,18 +7,21 @@ Chartmander.models.chart = function (canvasID) {
     , datasets = []
     , width = ctx.canvas.width
     , height = ctx.canvas.height
-    , colors = []
+    , margin = { top: 0, right: 0, bottom: 0, left: 0 }
+    , colors = ["blue", "green", "red"]
     , font = "13px Arial, sans-serif"
     , fontColor = "#555"
     , animate = true
     , hovered = false
-    , animationStep = 100
+    , animationSteps = 100
     , animationCompleted = 0
     , easing = "easeOutCubic"
-    , onAnimationCompleted = null
+    // , onAnimationCompleted = null
     , mouse = {}
     , hoverNotFinished = false
     ;
+
+  // var tip = Chartmander.components.tooltip();
 
   // this.crosshair = {
   //   x: null,
@@ -42,33 +45,31 @@ Chartmander.models.chart = function (canvasID) {
   // }
 
   clear = function () {
-    ctx.clearRect(0, 0, config.width, config.height);
+    ctx.clearRect(0, 0, width, height);
   };
 
   draw = function (drawComponents, finished) {
-    var margin = config.margin
       // , tip = chart.tooltip
-      , easingFunction = easing.easing
-      , animationStep = 1/config.animationStep
+      var easingFunction = easings[easing]
+      , animationIncrement = 1/animationSteps
       , _perc_
       ;
 
-    config.animationCompleted = config.animate ? 0 : 1
+    animationCompleted = animate ? 0 : 1;
 
     function loop () {
 
       if (finished) {
-        config.animationCompleted = 1;
-      } else if (config.animationCompleted < 1) {
-        config.animationCompleted += animationStep;
+        animationCompleted = 1;
+      } else if (animationCompleted < 1) {
+        animationCompleted += animationIncrement;
       }
 
-      _perc_ = easingFunction(config.animationCompleted);
-      config.hoverNotFinished = false;
-      chart.clear();
+      _perc_ = easingFunction(animationCompleted);
+      hoverNotFinished = false;
+      clear();
 
-      drawComponents();
-
+      drawComponents(_perc_);
       // tip.removeItems();
 
       // if (chart.xAxis)
@@ -123,7 +124,9 @@ Chartmander.models.chart = function (canvasID) {
       // }
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
-      if (config.animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || config.hoverNotFinished ) {
+
+      // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
+      if (animationCompleted < 1 || hoverNotFinished ) {
         requestAnimationFrame(loop);
       }
       else {
@@ -137,35 +140,37 @@ Chartmander.models.chart = function (canvasID) {
     requestAnimationFrame(loop);
   }
 
-  function handleHover (e) {
-    var rect = canvas.getBoundingClientRect();
-    config.mouse = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    }
-    // console.log(chart.config.mouse.x, chart.config.mouse.y)
-    // Allow repaint on hover only if chart and tooltip are done with self-repaint
-    // AND if also hovered item is not repainting 
-    if (config.animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverNotFinished ) {
-      chart.render(true)
-    }
-  }
+  // function handleHover (e) {
+  //   var rect = canvas.getBoundingClientRect();
+  //   config.mouse = {
+  //     x: e.clientX - rect.left,
+  //     y: e.clientY - rect.top
+  //   }
+  //   // console.log(chart.config.mouse.x, chart.config.mouse.y)
+  //   // Allow repaint on hover only if chart and tooltip are done with self-repaint
+  //   // AND if also hovered item is not repainting 
+  //   if (config.animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverNotFinished ) {
+  //     chart.render(true)
+  //   }
+  // }
 
   function handleEnter () {
-    config.hovered = true;
+    hovered = true;
   }
 
-  function handleLeave () {
-    config.hovered = false;
-    // chart.tooltip.removeItems();
-    if (config.animationCompleted >= 1)
-      draw(true);
-  }
+  // function handleLeave () {
+  //   hovered = false;
+  //   // chart.tooltip.removeItems();
+  //   if (animationCompleted >= 1)
+  //     draw(true);
+  // }
 
   ///////////////////////////////
-  // Methods
+  // Public Methods & Variables
   ///////////////////////////////
+
   chart.draw = draw;
+  chart.ctx = ctx;
 
   chart.width = function () {
     return width;
@@ -182,8 +187,20 @@ Chartmander.models.chart = function (canvasID) {
       return mouse.y;
   }
 
-  chart.getSetsCount = function () {
+  chart.completed = function (_) {
+    if(!arguments.length) return animationCompleted;
+    animationCompleted = _;
+    return chart;
+  }
+
+  chart.setsCount = function () {
     return datasets.length;
+  }
+
+  chart.datasets = function (_) {
+    if(!arguments.length) return datasets;
+    datasets = _;
+    return chart;
   }
 
   // this.getGridProperties = function () {
@@ -205,8 +222,6 @@ Chartmander.models.chart = function (canvasID) {
     return total;
   }
 
-
-  // User methods
   // this.title = function (_) {
   //   if(!arguments.length) return this.config.title;
   //   this.config.title = _;
@@ -230,8 +245,14 @@ Chartmander.models.chart = function (canvasID) {
   // }
 
   chart.fontColor = function (_) {
-    if (!arguments.length) return config.fontColor;
-    config.fontColor = _;
+    if (!arguments.length) return fontColor;
+    fontColor = _;
+    return chart;
+  }
+
+  chart.hovered = function (_) {
+    if (!arguments.length) return hovered;
+    hovered = _;
     return chart;
   }
 
@@ -246,21 +267,23 @@ Chartmander.models.chart = function (canvasID) {
   // }
 
   chart.margin = function (_) {
-    if (!arguments.length) return chart.config.margin;
-    chart.config.margin.top    = typeof _.top    != 'undefined' ? _.top    : chart.config.margin.top;
-    chart.config.margin.right  = typeof _.right  != 'undefined' ? _.right  : chart.config.margin.right;
-    chart.config.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : chart.config.margin.bottom;
-    chart.config.margin.left   = typeof _.left   != 'undefined' ? _.left   : chart.config.margin.left;
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     return chart;
   }
 
   chart.colors = function (_) {
-    var i = 0;
-    forEach(_, function (color) {
-      chart.datasets[i].style.color = color;
-      chart.datasets[i].repaint();
-      i++;
-    });
+    if(!arguments.length) return colors;
+    colors = _;
+    // var i = 0;
+    // forEach(_, function (color) {
+    //   chart.datasets[i].style.color = color;
+    //   chart.datasets[i].repaint();
+    //   i++;
+    // });
     return chart;
   }
 

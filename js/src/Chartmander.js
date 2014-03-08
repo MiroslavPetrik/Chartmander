@@ -175,8 +175,8 @@
   }
 
   function forEach (items, action) {
-    for (var i = 0; i < items.length; i++) {
-      action(items[i])
+    for (var i = 0, l = items.length; i < l; i++) {
+      action(items[i]);
     };
   }
 
@@ -202,7 +202,7 @@
         }
         color = tinycolor.darken(colors[indexCopy], 5*offset).toRgbString();
       }
-      datasets.push(new Dataset(set, color, type));
+      datasets.push(Chartmander.components.dataset(set, color, type));
       index++;
     });
     return datasets;

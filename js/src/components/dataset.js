@@ -1,117 +1,101 @@
 Chartmander.components.dataset = function (set, color, type) {
 
+  var dataset = this;
+
   var title = set.title
     , elements = getElements(type)
-    , type = type
-    , style = {
-        color: color
+    , normal = {
+        color: tinycolor.lighten(color, 5).toHex(),
+        strokeColor: tinycolor.darken(color, 10).toHex()
       }
+    , hover = {
+        color: tinycolor.lighten(color, 15).toHex(),
+        strokeColor: tinycolor.darken(color, 20).toHex()
+    }
     ;
 
-  this.each = function (action) {
-    forEach(this.elements, action);
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  dataset.each = function (action) {
+    forEach(elements, action);
   }
 
-  this.size = function () {
+  dataset.size = function () {
     var total = 0;
-    this.each(function (element) {
+    dataset.each(function (element) {
       total += element.value;
     })
     return total;
   }
 
-  this.getElementCount = function () {
-    return this.elements.length;
+  dataset.getElementCount = function () {
+    return dataset.elements.length;
   }
 
-  this.repaint = function () {
-    if (this.type == "bar" || this.type == "pie") {
-      this.style.normal = {
-        color: tinycolor.lighten(this.style.color, 10).toHex(),
-        stroke: 1,
-        strokeColor: tinycolor.darken(this.style.color, 30).toHex()
-      };
-      this.style.onHover = {
-        color: tinycolor.lighten(this.style.color, 10).toHex(),
-        stroke: 1,
-        strokeColor: tinycolor.darken(this.style.color, 30).toHex()
-      };
-    }
-    else if (this.type == "line") {
-      this.style.normal = {
-        color: "#FFFFFF",
-        stroke: 1,
-        strokeColor: tinycolor.darken(this.style.color, 20).toHex()
-      };
-      this.style.onHover = {
-        color: tinycolor.lighten(this.style.color).toHex(),
-        stroke: 1,
-        strokeColor: tinycolor.darken(this.style.color, 20).toHex()
-      };
-    }
-  }
+  // dataset.merge = function (newData, chart) {
+  //   var newElements = newData.values
+  //     , oldElements = dataset.elements
+  //     ;
 
-  this.merge = function (newData, chart) {
-    var newElements = newData.values
-      , oldElements = this.elements
-      ;
+  //   // Test equality of datastream
+  //   if (dataset.title != newData.title) {
+  //     throw new Error("Different datastream on update!");
+  //   }
 
-    // Test equality of datastream
-    if (this.title != newData.title) {
-      throw new Error("Different datastream on update!");
-    }
+  //   // Update existing elements, if new > old add new elements
+  //   for (var i=0, len=newElements.length; i != len; i++) {
+  //     // Update existing
+  //     if (oldElements[i] instanceof Element) {
+  //       dataset.elements[i].updateValue(newElements[i].label, newElements[i].value).savePosition();
+  //     }
+  //     // Create
+  //     else {
+  //       var element = new Element(newElements[i], dataset.title);
 
-    // Update existing elements, if new > old add new elements
-    for (var i=0, len=newElements.length; i != len; i++) {
-      // Update existing
-      if (oldElements[i] instanceof Element) {
-        this.elements[i].updateValue(newElements[i].label, newElements[i].value).savePosition();
-      }
-      // Create
-      else {
-        var element = new Element(newElements[i], this.title);
+  //       if (dataset.type == "bar")
+  //         element = element.Bar();
+  //       else if (dataset.type == "line")
+  //         element = element.Point();
+  //       // Each segment in pieChart is dataset with only one element therefore next lines will never get executec
+  //       // else if (dataset.type == "pie")
+  //       //   element = element.Segment();
+  //       dataset.elements.push(element.savePosition(chart.getGridProperties().width, chart.getBase()));
+  //     }
+  //   }
+  //   // Flush old 
+  //   if (oldElements.length > newElements.length) {
+  //     for (var j=oldElements-newElements; j!=0; j--) {
+  //       // supr FAUX
+  //       console.log("Delete");
+  //       dataset.elements[oldElements-j].die();
+  //     }
+  //   }
+  // }
 
-        if (this.type == "bar")
-          element = element.Bar();
-        else if (this.type == "line")
-          element = element.Point();
-        // Each segment in pieChart is dataset with only one element therefore next lines will never get executec
-        // else if (this.type == "pie")
-        //   element = element.Segment();
-        this.elements.push(element.savePosition(chart.getGridProperties().width, chart.getBase()));
-      }
-    }
-    // Flush old 
-    if (oldElements.length > newElements.length) {
-      for (var j=oldElements-newElements; j!=0; j--) {
-        // supr FAUX
-        console.log("Delete");
-        this.elements[oldElements-j].die();
-      }
-    }
-  }
-
-  this.element = function (index) {
+  dataset.getElement = function (index) {
     if (index == "last")
-      return this.elements[this.elements.length-1];
+      return elements[elements.length-1];
     else
-      return this.elements[index]
+      return elements[index];
   }
 
   function getElements (type) {
     var result = [];
     
     switch (type) {
-      case "bar": forEach(set.values, function (barData) {
-              result.push(new Element(barData, set.title).Bar());
+      case "bar": forEach(set.values, function (bar) {
+              result.push(Chartmander.components.bar(bar, set.title));
             });
             break;
-      case "pie": forEach(set.values, function (segmentData) {
-              result.push(new Element(segmentData, set.title).Slice());
+      case "pie": forEach(set.values, function (slice) {
+              result.push(Chartmander.components.slice(slice, set.title));
             });
             break;
-      case "line": forEach(set.values, function (pointData) {
-              result.push(new Element(pointData, set.title).Point());
+      case "line": forEach(set.values, function (point) {
+              result.push(Chartmander.components.point(point, set.title));
             });
             break;
       default: return;
@@ -119,7 +103,11 @@ Chartmander.components.dataset = function (set, color, type) {
     return result;
   }
 
-  this.repaint();
+  dataset.color = function (_) {
+    if(!arguments.length) return normal.color;
+    normal.color = _;
+    return this;
+  }
 
-  return this;
+  return dataset;
 }

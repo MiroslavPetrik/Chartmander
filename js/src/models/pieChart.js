@@ -2,7 +2,6 @@ Chartmander.models.pieChart = function (canvas) {
 
   var pie = Chartmander.models.chart(canvas)
     , type = "pie"
-    , margin = { top: 50, right: 50, bottom: 50, left: 50 }
     , center = { x: pie.width()/2, y: pie.height()/2 }
     , radius = Math.min.apply(null, [center.x, center.y])
     , innerRadius = .6
@@ -12,37 +11,20 @@ Chartmander.models.pieChart = function (canvas) {
 
   // Construct
   // chart.tooltip = Chartmander.components.tooltip();
-  
 
-  var data =  function (data) {
-    if (!datasets.length)
-      pie.datasets = getDatasetFrom(data, type, colors);
-    else
-      pie.update(data)
-  }
-
-  var drawSlices = function (_perc_) {
-    pie.ctx.save();
-    forEach(pie.datasets(), function (set) {
-      var slice = set.elements[0];
-      pie.ctx.fillStyle = set.style.color;
-      slice.updatePosition(rotateAnimation ? _perc_ : 1);
-      slice.drawInto(pie, set);
-    });
-    pie.ctx.restore();
-  }
 
   var recalcSlices = function (update) {
     var slice
       , sliceStart = 0
       , sliceEnd
       ;
-    forEach(pie.datasets, function (set) {
+
+    forEach(pie.datasets(), function (set) {
       // There is always one element inside of dataset in Pie pie
-      slice = set.elements[0];
-      sliceEnd = sliceStart + pie.getAngleOf(slice.value)
+      slice = set.getElement(0);
+      sliceEnd = sliceStart + getAngleOf(slice.value());
       if (update) {
-        slice.savePosition(); 
+        slice.savePosition();
       } else {
         slice.savePosition(0, 0);
       }
@@ -50,42 +32,74 @@ Chartmander.models.pieChart = function (canvas) {
       sliceStart = sliceEnd;
     });
   }
+  
+  var drawSlices = function (_perc_) {
+    pie.ctx.save();
+    forEach(pie.datasets(), function (set) {
+      var slice = set.getElement(0);
+      pie.ctx.fillStyle = set.color();
+      slice.updatePosition(rotateAnimation ? _perc_ : 1);
+      slice.drawInto(pie, set);
+    });
+    pie.ctx.restore();
+  }
+
+
+  var render =  function (data) {
+    if (pie.setsCount() == 0) {
+      pie.datasets(getDatasetFrom(data, type, pie.colors()));
+      recalcSlices(false);
+      pie.draw(drawComponents, false);
+    }
+    else {
+      update(data);
+      recalcSlices(true);
+      pie.completed(0);
+      pie.draw(drawComponents, false)
+    }
+  }
 
   var update = function (data) {
     var i = 0;
-    forEach(pie.datasets, function (set) {
+    forEach(pie.datasets(), function (set) {
       set.merge(data[i], pie);
       i++;
     });
-    pie.recalcSlices(true);
-    pie.animationCompleted = 0;
-    pie.draw();
   }
 
-  var getElementValue = function () {
+  var getDataSum = function () {
     var total = 0;
-    forEach(pie.datasets, function (set) {
-      forEach(set.elements, function (e) {
-        total += e.value;
-      })
+    forEach(pie.datasets(), function (set) {
+      set.each(function (e) {
+        total += e.value();
+      });
     });
     return total;
   }
 
   var getAngleOf = function (sliceValue) {
-    return (sliceValue/getElementValue())*Math.PI*2;
+    return (sliceValue/getDataSum())*Math.PI*2;
+  }
+
+  var drawComponents = function (_perc_) {
+    console.log("Pie render")
+    drawSlices(_perc_);
   }
 
 
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
 
-  ///////////////////////
-  // Methods
-  ///////////////////////
+  pie.render = render;
 
-  pie.getAngleOf = getAngleOf;
-  pie.data = data;
+  pie.center = function (_) {
+    if(!arguments.length) return center
+    center.x = typeof _.x != 'undefined' ? _.x : center.x;
+    center.y = typeof _.y != 'undefined' ? _.y : center.y;
+    return pie;
+  }
 
-  // User methods
   pie.innerRadius = function (_) {
     if(!arguments.length) return innerRadius;
     innerRadius = _;
@@ -95,12 +109,15 @@ Chartmander.models.pieChart = function (canvas) {
   pie.radius = function (_) {
     if(!arguments.length) return radius;
     radius = _;
+  }
+
+  pie.startAngle = function (_) {
+    if(!arguments.length) return startAngle;
+    startAngle = _;
     return pie;
   }
 
-  console.log(easings)
-  // pie.recalcSlices(false);
-  pie.draw(drawComponents, false);
+  // pie.draw(drawComponents, false);
 
   return pie;
 };
