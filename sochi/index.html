@@ -25,7 +25,8 @@ title: Sochi 2014 visualization with Chartmander.js
         <div class="panel panel-sochi">
           <div class="panel-heading">Top Countries</div>
           <div class="panel-body">
-            <canvas id="top-countries" width="750" height="200"></canvas>
+            <canvas id="circle" width="300" height="300"></canvas>
+            <!-- <canvas id="top-countries" width="750" height="200"></canvas> -->
           </div>
         </div>
       </section>
@@ -34,6 +35,17 @@ title: Sochi 2014 visualization with Chartmander.js
 </div>
 
 <script>
+
+Chartmander.addChart(function(){
+  var chart = Chartmander.models.pieChart("circle");
+    chart
+      .data(athletesData)
+      .colors(["red", "yellow"])
+      ;
+
+    return chart;
+});
+
 
 var athletesData = [
   {
@@ -46,27 +58,27 @@ var athletesData = [
   }
 ];
 
-$('.update').on('click', function (e) {
-  e.preventDefault()
-  athletes.update(dataFactory(["Men", "Women"], ["xx"], 50))
-})
+// $('.update').on('click', function (e) {
+//   e.preventDefault()
+//   athletes.update(dataFactory(["Men", "Women"], ["xx"], 50))
+// })
 
-var Medal = function (country, count) {
-  return {
-    "label": country,
-    "value": count
-  }
-}
+// var Medal = function (country, count) {
+//   return {
+//     "label": country,
+//     "value": count
+//   }
+// }
 
-getMedalsByCountries(0, function (chartData) {
-  var topCountries = new Chartmander("top-countries").CategoryBar(parseMedals(chartData));
-    topCountries.margin({ top: 0, left:0, right:0, bottom:0});
-});
+// getMedalsByCountries(0, function (chartData) {
+//   var topCountries = new Chartmander("top-countries").CategoryBar(parseMedals(chartData));
+//     topCountries.margin({ top: 0, left:0, right:0, bottom:0});
+// });
+      
+// var topAthletes = new Chartmander("top-athletes").CategoryBar();
 
-var topAthletes = new Chartmander("top-athletes").CategoryBar();
-
-var athletes = new Chartmander("athletes").Pie(athletesData)
-    athletes.colors(["#30daff", "#ff4d5b"]);
+// var athletes = new Chartmander("athletes").Pie(athletesData)
+//     athletes.colors(["#30daff", "#ff4d5b"]);
 
 // $.getJSON(kimono('athletes?limit=0'), 
 //   function (data) {

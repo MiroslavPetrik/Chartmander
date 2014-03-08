@@ -1,1996 +1,32 @@
-// Chartmander v0.1
+// Chartmander v0.1.1
 // https://github.com/11th/Chartmander
 // Copyright (c) 2014 Miroslav Petrik, MIT License
 
-var Chartmander = function (canvasID) {
-
-  var chart = this;
-
-  this.canvas = document.getElementById(canvasID);
-  this.ctx = this.canvas.getContext('2d');
-
-  // Global Chartmander defaults
-  this.config = {
-    width: this.ctx.canvas.width,
-    height: this.ctx.canvas.height,
-    colors: ["#1E90FF", "#6633CC", "#D00564"],
-    font: "13px Arial, sans-serif",
-    fontColor: "#555",
-    animate: true,
-    hovered: false,
-    animationStep: 100,
-    animationCompleted: 0,
-    easing: "easeOutCubic",
-    onAnimationCompleted: null,
-    mouse: {},
-    hoverNotFinished: false
-  };
-
-  this.datasets = [];
-  this.crosshair = {
-    x: null,
-    y: null,
-    visible: true,
-    sticky: true,
-    color: "#555",
-    lineWidth: 1
-  };
-  this.tooltip = new Tooltip();
-
-  this.canvas.addEventListener("mouseenter", handleEnter, false);
-  this.canvas.addEventListener("mousemove", handleHover, false);
-  this.canvas.addEventListener("mouseleave", handleLeave, false);
-
-  if (window.devicePixelRatio) {
-    this.ctx.canvas.style.width = this.config.width + "px";
-    this.ctx.canvas.style.height = this.config.height + "px";
-    this.ctx.canvas.height = this.config.height * window.devicePixelRatio;
-    this.ctx.canvas.width = this.config.width * window.devicePixelRatio;
-    this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  }
-
-  this.clear = function () {
-    this.ctx.clearRect(0, 0, this.config.width, this.config.height);
-  };
-
-  this.draw = function (finished) {
-    var ctx = chart.ctx
-      , cfg = chart.config
-      , margin = cfg.margin
-      , tip = chart.tooltip
-      , easingFunction = chart.easing(cfg.easing)
-      , animationStep = 1/cfg.animationStep
-      , _perc_
-      ;
-
-    if (chart.grid) {
-      var grid = chart.getGridProperties();
-    }
-
-    cfg.animationCompleted = cfg.animate ? 0 : 1
-
-    function loop () {
-
-      if (finished) {
-        cfg.animationCompleted = 1;
-      } else if (cfg.animationCompleted < 1) {
-        cfg.animationCompleted += animationStep;
-      }
-
-      _perc_ = easingFunction(cfg.animationCompleted);
-      cfg.hoverNotFinished = false;
-      chart.clear();
-      tip.removeItems();
-
-      // Paint grid area
-      // ctx.save();
-      // ctx.fillStyle = "rgba(0,0,0,.1)";
-      // ctx.fillRect(grid.left, grid.top, grid.width, grid.height);
-      // ctx.restore();
-
-      if (chart.xAxis)
-        chart.xAxis.drawInto(chart);
-      if (chart.yAxis)
-        chart.yAxis.drawInto(chart, _perc_);
-      if (chart.grid)
-        chart.grid.drawInto(chart, _perc_);
-
-      if (cfg.type === "line") {
-        chart.itemsInHoverRange = [];
-        chart.updatePoints(_perc_);
-        if (cfg.drawArea) {
-          chart.drawArea(_perc_);
-        }
-        chart.drawLines();
-        chart.grid.drawCrosshairInto(chart);
-        chart.drawPoints();
-      } else if (cfg.type === "bar") {
-        chart.drawBars(_perc_);
-      } else if (cfg.type === "pie") {
-        chart.drawSlices(_perc_);
-      }
-
-      if (tip) {
-        if (tip.hasItems()) {
-          tip.recalc(chart.ctx);
-        }
-        tip.drawInto(chart);
-      }
-
-      if (cfg.title) {
-        ctx.save();
-        ctx.font = "18px Arial";
-        ctx.fillText(cfg.title, chart.getGridProperties().left, chart.getGridProperties().top/2);
-        ctx.restore();
-      }
-
-      if (cfg.legend) {
-        ctx.save();
-        // ctx.font = "18px Arial";
-        var legendWidth = 100, counter = 0;
-        forEach(chart.datasets, function (set) {
-          var left = chart.getGridProperties().width-200+counter*legendWidth
-          ctx.fillStyle = set.style.color;
-          ctx.fillRect(left-15, chart.getGridProperties().top/2-5, 10, 10);
-          ctx.fillStyle = "#000";
-          ctx.fillText(set.title, left, chart.getGridProperties().top/2);
-          counter++;
-        });
-        ctx.restore();
-      }
-
-      // Request self-repaint if chart or tooltip or data element has not finished animating yet
-      if (cfg.animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || cfg.hoverNotFinished ) {
-        requestAnimationFrame(loop);
-      }
-      else {
-        console.log("Animation Finished.")
-      }
-    }
-    // Global paint settings
-    ctx.textBaseline = "middle";
-    ctx.font = cfg.font;
-    // First paint
-    requestAnimationFrame(loop);
-  }
-
-  function handleHover (e) {
-    var rect = this.getBoundingClientRect();
-    chart.config.mouse = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    }
-    // console.log(chart.config.mouse.x, chart.config.mouse.y)
-    // Allow repaint on hover only if chart and tooltip are done with self-repaint
-    // AND if also hovered item is not repainting 
-    if (chart.config.animationCompleted >= 1 && !chart.tooltip.isAnimated() && !chart.config.hoverNotFinished ) {
-      chart.draw(true)
-    }
-  }
-
-  function handleEnter () {
-    chart.config.hovered = true;
-  }
-
-  function handleLeave () {
-    chart.config.hovered = false;
-    // chart.tooltip.removeItems();
-    if (chart.config.animationCompleted >= 1)
-      chart.draw(true);
-  }
-
-  this.getWidth = function () {
-    return this.config.width;
-  }
-
-  this.getHeight = function () {
-    return this.config.height;
-  }
-
-  this.getMouse = function (axis) {
-    if (axis === "x")
-      return chart.config.mouse.x;
-    else
-      return chart.config.mouse.y;
-  }
-
-  this.getSetsCount = function () {
-    return chart.datasets.length;
-  }
-
-  this.getGridProperties = function () {
-    return chart.grid.config.properties;
-  }
-
-  this.getBase = function () {
-    if(chart.config.type === "pie")
-      return "TODO";
-    else 
-      return chart.getGridProperties()["bottom"] - chart.yAxis.config.zeroLevel;
-  }
-
-  this.getElementCount = function () {
-    var total = 0;
-    forEach(this.datasets, function (set) {
-      total += set.getElementCount();
-    })
-    return total;
-  }
-
-  // Warning
-  // might be negative values in line or bar chart, this is used only by pieChart
-  this.getElementValue = function () {
-    var total = 0;
-    forEach(this.datasets, function (set) {
-      forEach(set.elements, function (e) {
-        total += e.value;
-      })
-    });
-    return total;
-  }
-
-  // User methods
-  this.title = function (_) {
-    if(!arguments.length) return this.config.title;
-    this.config.title = _;
-    return this;
-  }
-
-  this.showXAxis = function (_) {
-    this.config.xAxisVisible = _;
-    return chart;
-  }
-
-  this.showYAxis = function (_) {
-    this.config.yAxisVisible = _;
-    return chart;
-  }
-
-  this.easingFunction = function (_) {
-    this.config.easing = _;
-    return chart;
-  }
-
-  this.pointRadius = function (_) {
-    this.config.pointRadius = _;
-    return chart;
-  }
-
-  this.fontColor = function (_) {
-    this.config.fontColor = _;
-    return chart;
-  }
-
-  this.font = function (_) {
-    this.config.font = _;
-    return chart;
-  }
-
-  this.crossColor = function (_) {
-    this.crosshair.color = _;
-    return chart;
-  }
-
-  this.margin = function (_) {
-    if (!arguments.length) return chart.config.margin;
-    chart.config.margin.top    = typeof _.top    != 'undefined' ? _.top    : chart.config.margin.top;
-    chart.config.margin.right  = typeof _.right  != 'undefined' ? _.right  : chart.config.margin.right;
-    chart.config.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : chart.config.margin.bottom;
-    chart.config.margin.left   = typeof _.left   != 'undefined' ? _.left   : chart.config.margin.left;
-    return chart;
-  }
-
-  this.colors = function (_) {
-    var i = 0;
-    forEach(_, function (color) {
-      chart.datasets[i].style.color = color;
-      chart.datasets[i].repaint();
-      i++;
-    });
-    return chart;
-  }
-
-  return chart;
-}
-
-
-//////////////////////////////
-// Chartmander types
-//////////////////////////////
-
-Chartmander.prototype.Bar = function (data) {
-
-  var chart = this
-    , ctx = chart.ctx
-    , cfg = chart.config
-    ;
-
-  // Bar Chart Default
-  cfg.type = "bar";
-  cfg.margin = { top: 50, right: 80, bottom: 50, left: 80 };
-  cfg.stacked = false;
-  cfg.maxBarWidth = 30;
-  cfg.datasetSpacing = 0;
-
-  // Axis defaults
-  cfg.xAxisVisible = true;
-  cfg.yAxisVisible = true;
-
-
-  // Chart state variables
-  cfg.barWidth = cfg.maxBarWidth;
-  cfg.groupWidth = 0;
-  cfg.groupOffset = 0;
-
-  // Construct
-  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
-  // chart.xAxis = getAxesFrom(chart.datasets)[0];
-  chart.xAxis = new xAxis();
-  chart.yAxis = getAxesFrom(chart.datasets)[1];
-  chart.grid = new Grid();
-
-  var xValues = getArrayBy(data, "label")
-  // , yValues = getArrayBy(data, "value")
-  , xRange = getRange(xValues)
-  // , yRange = getRange(yValues)
-  ;
-
-  chart.xAxis.dataMin = xRange.min;
-  chart.xAxis.dataMax = xRange.max;
-  // chart.xAxis.recalc(chart);
-
-
-  // Recalc
-  chart.grid.calculateProperties(cfg.margin, cfg);
-  chart.xAxis.recalc(chart);
-  chart.yAxis.recalc(chart);
-
-  this.recalcBars = function () {
-    var counter = 0
-      , grid = chart.getGridProperties()
-      , streams = chart.datasets.length
-      , leftFix
-      , x
-      , y
-      ;
-
-    cfg.barWidth = Math.floor( chart.getGridProperties().width/chart.getElementCount() );
-    leftFix = (cfg.barWidth*streams)/2
-
-    // faux
-    chart.yAxis.config.margin = leftFix + 10;
-
-    forEach(chart.datasets, function (set) {
-      set.each(function (bar) {
-        x = grid.left - leftFix + (bar.label-chart.xAxis.dataMin)/chart.xAxis.TPP() + counter*cfg.barWidth;
-        y = -bar.value/chart.yAxis.VPP();
-        bar.savePosition(grid.width/2, 0).moveTo(x, y).saveBase(chart.getBase()).moveBase(chart.getBase());
-      })
-      counter++;
-    });
-  }
-
-  this.drawBars = function (_perc_) {
-    var counter = {
-        dataset: 0
-      }
-      ;
-
-    ctx.save();
-    forEach(chart.datasets, function (set) {
-      ctx.fillStyle = set.style.normal.color;
-      ctx.lineWidth = set.style.normal.stroke;
-      ctx.strokeStyle = set.style.normal.strokeColor;
-      set.each(function (bar) {
-        bar.updatePosition(_perc_);
-        bar.updatePositionBase(_perc_);
-        bar.drawInto(chart, set);
-      })
-      counter.dataset++;
-    })
-    ctx.restore();
-  }
-
-  this.update = function (data) {
-    var i = 0
-      , xValues = getArrayBy(data, "label")
-      , yValues = getArrayBy(data, "value")
-      , xRange = getRange(xValues)
-      , yRange = getRange(yValues)
-      ;
-
-    // Recalc Axes
-    chart.yAxis.dataMin = yRange.min;
-    chart.yAxis.dataMax = yRange.max;
-    chart.yAxis.recalc(chart);
-
-    chart.xAxis.dataMin = xRange.min;
-    chart.xAxis.dataMax = xRange.max;
-    chart.xAxis.recalc(chart);
-
-    // Recalc sets
-    forEach(this.datasets, function (set) {
-      if (data[i] === undefined)
-        throw new Error("Missing dataset. Dataset count on update must match.")
-
-      set.merge(data[i], chart);
-
-      set.each(function (element) {
-        element.savePosition().moveTo(false, - element.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
-      });
-      i++;
-    });
-
-    chart.animationCompleted = 0;
-    chart.draw();
-  }
-
-  // User methods
-  this.datasetSpacing = function (_) {
-    this.config.datasetSpacing = _;
-    return chart;
-  }
-
-  chart.recalcBars();
-  // Ignite
-  chart.draw();
-  return chart;
-}
-
-Chartmander.prototype.CategoryBar = function (data) {
-
-  var chart = this
-    , ctx = chart.ctx
-    , cfg = chart.config
-    ;
-
-  // Bar Chart Default
-  cfg.type = "bar";
-  cfg.margin = { top: 70, right: 50, bottom: 50, left: 70 };
-  cfg.stacked = false;
-  cfg.maxBarWidth = 30;
-  cfg.datasetSpacing = 0;
-  cfg.displayValue = true;
-  cfg.legend = true;
-
-  // Axis defaults
-  cfg.xAxisVisible = true;
-
-  // Chart state variables
-  cfg.barWidth = cfg.maxBarWidth;
-  cfg.groupWidth = 0;
-  cfg.groupOffset = 0;
-
-  // Construct
-  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
-  chart.xAxis = new xAxisCategory(getArrayBy(data, "label", true));
-  chart.yAxis = getAxesFrom(chart.datasets)[1];
-  chart.grid = new Grid();
-
-  // Recalc
-  chart.grid.calculateProperties(cfg.margin, cfg);
-  chart.xAxis.recalc(chart);
-  chart.yAxis.recalc(chart);
-
-  this.recalcBars = function () {
-    var counter = {
-        dataset: 0,
-        element: 0
-      }
-      , streams = chart.getSetsCount()
-      , grid = chart.getGridProperties()
-      , x
-      , y
-      ;
-
-    if( (streams * cfg.barWidth + (streams-1)*cfg.datasetSpacing) > chart.xAxis.labelSpace )
-      cfg.barWidth = Math.floor( (chart.xAxis.labelSpace - ((streams-1)*cfg.datasetSpacing)) / streams );
-
-    cfg.groupWidth = cfg.barWidth*streams + cfg.datasetSpacing*(streams-1);
-    cfg.groupOffset = (chart.xAxis.labelSpace - cfg.groupWidth)/2;
-
-    forEach(chart.datasets, function (set) {
-      counter.element = 0;
-      set.each(function (bar) {
-        x = grid.left + cfg.groupOffset + counter.dataset*cfg.barWidth + counter.element*chart.xAxis.labelSpace + counter.dataset*cfg.datasetSpacing;
-        y = -bar.value/chart.yAxis.VPP();
-        bar.savePosition(grid.width/2, 0).moveTo(x, y).saveBase(chart.getBase()).moveBase(chart.getBase());
-        counter.element++;
-      })
-      counter.dataset++;
-    });
-  }
-
-  this.drawBars = function (_perc_) {
-    var counter = {
-        dataset: 0
-      }
-      ;
-
-    ctx.save();
-    forEach(chart.datasets, function (set) {
-      ctx.fillStyle = set.style.normal.color;
-      ctx.lineWidth = set.style.normal.stroke;
-      ctx.strokeStyle = set.style.normal.strokeColor;
-      set.each(function (bar) {
-        bar.updatePosition(_perc_);
-        bar.updatePositionBase(_perc_);
-        bar.drawInto(chart, set);
-      })
-      counter.dataset++;
-    })
-    ctx.restore();
-  }
-
-  this.update = function (data) {
-    var i = 0
-      , yValues = getArrayBy(data, "value")
-      , yRange = getRange(yValues)
-      ;
-
-    // Recalc Axes
-    chart.yAxis.dataMin = yRange.min;
-    chart.yAxis.dataMax = yRange.max;
-    chart.yAxis.recalc(chart);
-
-    chart.xAxis = new xAxisCategory(getArrayBy(data, "label", true));
-    chart.xAxis.recalc(chart);
-
-    // Recalc sets
-    forEach(this.datasets, function (set) {
-      if (data[i] === undefined)
-        throw new Error("Missing dataset. Dataset count on update must match.")
-
-      set.merge(data[i], chart);
-
-      set.each(function (bar) {
-        bar.savePosition().moveTo(false, - bar.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
-      });
-      i++;
-    });
-
-    chart.animationCompleted = 0;
-    chart.draw();
-  }
-
-  this.stacked = function (_) {
-    if (!arguments.length) return this.stacked;
-    this.stacked = _;
-    return this;
-  }
-
-  // User methods
-  this.datasetSpacing = function (_) {
-    if (!arguments.length) return this.config.datasetSpacing;
-    this.config.datasetSpacing = _;
-    return this;
-  }
-
-  chart.recalcBars();
-  // Ignite
-  chart.draw();
-  return chart;
-}
-
-Chartmander.prototype.Pie = function (data) {
-
-  var chart = this
-    , ctx = chart.ctx
-    , cfg = chart.config
-    ;
-
-  // Pie Chart Defaults
-  cfg.type = "pie";
-  // cfg.margin = { top: 50, right: 50, bottom: 50, left: 50 };
-  cfg.center = { x: chart.getWidth()/2, y: chart.getHeight()/2 };
-  cfg.radius = Math.min.apply(null, [cfg.center.x, cfg.center.y]);
-  cfg.innerRadius = .6;
-  cfg.rotateAnimation = true;
-  cfg.startAngle = 0;
-
-  // Construct
-  chart.tooltip = new Tooltip();
-  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
-
-  this.drawSlices = function (_perc_) {
-    var rotate = cfg.rotateAnimation ? _perc_ : 1
-      ;
-
-    ctx.save();
-    forEach(chart.datasets, function (set) {
-      var slice = set.elements[0];
-      ctx.fillStyle = set.style.color;
-      slice.updatePosition(rotate);
-      slice.drawInto(chart, set);
-    });
-    ctx.restore();
-  }
-
-  this.recalcSlices = function (update) {
-    var slice
-      , sliceStart = 0
-      , sliceEnd
-      ;
-    forEach(chart.datasets, function (set) {
-      // There is always one element inside of dataset in Pie Chart
-      slice = set.elements[0];
-      sliceEnd = sliceStart + chart.getAngleOf(slice.value)
-      if (update) {
-        slice.savePosition(); 
-      } else {
-        slice.savePosition(0, 0);
-      }
-      slice.moveTo(sliceStart, sliceEnd);
-      sliceStart = sliceEnd;
-    });
-  }
-
-  this.update = function (data) {
-    var i = 0;
-    forEach(this.datasets, function (set) {
-      set.merge(data[i], chart);
-      i++;
-    });
-    chart.recalcSlices(true);
-    chart.animationCompleted = 0;
-    chart.draw();
-  }
-
-  this.getAngleOf = function (sliceValue) {
-    return (sliceValue/this.getElementValue())*Math.PI*2;
-  }
-
-  // User methods
-  this.innerRadius = function (_) {
-    if(!arguments.length) return this.config.innerRadius;
-    this.config.innerRadius = _;
-    return this;
-  }
-
-  this.radius = function (_) {
-    if(!arguments.length) return this.config.radius;
-    this.config.radius = _;
-    return this;
-  }
-
-  chart.recalcSlices(false);
-  // Ignite
-  chart.draw();
-  return this;
-};
-
-Chartmander.prototype.Line = function (data) {
-
-  var chart = this
-    , ctx = chart.ctx
-    , cfg = chart.config
-    ;
-
-  // Line Chart Defaults
-  cfg.type = "line";
-  cfg.margin = { top: 30, right: 50, bottom: 50, left: 50 };
-  cfg.drawArea = true;
-  cfg.pointRadius = 5;
-  cfg.lineWidth = 2;
-  cfg.areaOpacity = .95
-  cfg.pointHoverRadius = 20;
-  cfg.mergeHover = true;
-
-  // Axis defaults
-  cfg.xAxisVisible = true;
-  cfg.yAxisVisible = true;
-
-  // Construct
-  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
-  // chart.xAxis = getAxesFrom(chart.datasets)[0];
-  chart.xAxis = new xAxis();
-  chart.yAxis = getAxesFrom(chart.datasets)[1];
-  chart.grid = new Grid();
-  chart.itemsInHoverRange = [];
-
-  var xValues = getArrayBy(data, "label")
-  // , yValues = getArrayBy(data, "value")
-  , xRange = getRange(xValues)
-  // , yRange = getRange(yValues)
-  ;
-
-  chart.xAxis.dataMin = xRange.min;
-  chart.xAxis.dataMax = xRange.max;
-
-  // Recalculation based on provided data
-  chart.grid.calculateProperties(cfg.margin, cfg);
-  chart.yAxis.recalc(chart);
-  chart.xAxis.recalc(chart);
-
-  this.recalcPoints = function () {
-    var grid = chart.getGridProperties()
-      , x
-      , y
-      ;
-
-    forEach(chart.datasets, function (set) {
-      set.each(function (point) {
-        x = Math.ceil(grid.left + (point.label-chart.xAxis.dataMin)/chart.xAxis.TPP());
-        y = chart.getBase()- point.value/chart.yAxis.VPP();
-        point.savePosition(grid.width/2, chart.getBase()).moveTo(x, y);
-      })
-    });
-  }
-
-  this.updatePoints = function (_perc_) {
-    forEach(chart.datasets, function (set) {
-      set.each(function (point) {
-        point.updatePosition(_perc_);
-      })
-    });
-  }
-
-  this.drawArea = function () {
-    ctx.save();
-
-    forEach(chart.datasets, function (set) {
-      ctx.fillStyle = set.style.color;
-      ctx.globalAlpha = cfg.areaOpacity;
-
-      ctx.beginPath();
-      ctx.moveTo(set.element(0).getX(), chart.getBase());
-      ctx.lineTo(set.element(0).getX(), set.element(0).getY());
-      set.each(function (point) {
-        ctx.lineTo(point.getX(), point.getY());
-      });
-      ctx.lineTo(set.element("last").getX(), chart.getBase());
-      ctx.fill();
-    });
-
-    ctx.restore();
-  }
-
-  this.drawLines = function () {
-    ctx.save();
-    ctx.lineWidth = chart.lineWidth();
-    forEach(chart.datasets, function (set) {
-      ctx.strokeStyle = set.style.color;
-      ctx.beginPath();
-      set.each(function (point) {
-        ctx.lineTo(point.getX(), point.getY());
-      });
-      ctx.stroke();
-    });
-
-    ctx.restore();
-  }
-
-  this.drawPoints = function () {
-    ctx.save();
-    forEach(chart.datasets, function (set) {
-      var hoveredInThisSet = []
-        , closestHovered
-        ;
-
-      ctx.strokeStyle = set.style.color;
-      ctx.fillStyle = set.style.color;
-
-      set.each(function (point) {
-        point.drawInto(chart, set);
-      });
-
-      // Get items only from current set
-      forEach(chart.itemsInHoverRange, function (item) {
-        if (item.set == set.title) {
-          hoveredInThisSet.push(item);
-        }
-      });
-
-      // Find closest hovered
-      for (var i = 0, len = hoveredInThisSet.length; i < len; i++) {
-        if (i == 0) {
-          closestHovered = hoveredInThisSet[i];
-          continue;
-        }
-        if (hoveredInThisSet[i].hoverDistance < closestHovered.hoverDistance) {
-          closestHovered = hoveredInThisSet[i];
-        }
-      }
-
-      // Control Hovered
-      for (var i = 0, len = hoveredInThisSet.length; i < len; i++) {
-        if (hoveredInThisSet[i] === closestHovered) {
-          set.elements[closestHovered.index].animIn();
-          chart.tooltip.addItem({
-              set: set.title,
-              label: set.elements[closestHovered.index].label,
-              value: set.elements[closestHovered.index].value,
-              color: set.style.normal.color
-            })
-          if (set.elements[closestHovered.index].isAnimated()){
-            cfg.hoverNotFinished = true;
-          }
-        } else {
-          set.elements[hoveredInThisSet[i].index].animOut();
-        }
-      }
-    });
-    ctx.restore();
-  }
-
-  this.update = function (data) {
-    var i = 0
-      , xValues = getArrayBy(data, "label")
-      , yValues = getArrayBy(data, "value")
-      , xRange = getRange(xValues)
-      , yRange = getRange(yValues)
-      ;
-
-    // Recalc Axes
-    chart.yAxis.dataMin = yRange.min;
-    chart.yAxis.dataMax = yRange.max;
-    chart.yAxis.recalc(chart);
-
-    chart.xAxis.dataMin = xRange.min;
-    chart.xAxis.dataMax = xRange.max;
-    chart.xAxis.recalc(chart);
-
-    // Recalc sets
-    forEach(this.datasets, function (set) {
-      if (data[i] === undefined)
-        throw new Error("Missing dataset. Dataset count on update must match.")
-      set.merge(data[i], chart);
-      set.each(function (point) {
-        var x = chart.getGridProperties().left + (point.label - chart.xAxis.dataMin)/chart.xAxis.TPP()
-          , y = chart.getBase() - point.value/chart.yAxis.VPP();
-
-        point.moveTo(x, y);
-      });
-      i++;
-    });
-
-    chart.animationCompleted = 0;
-    chart.draw();
-  }
-
-  // User methods
-  this.areaVisible = function (_) {
-    if (!arguments.length) return this.config.drawArea;
-    this.config.drawArea = _;
-    return this;
-  }
-
-  this.lineWidth = function (_) {
-    if (!arguments.length) return this.config.lineWidth;
-    this.config.lineWidth = _;
-    return this;
-  }
-
-  chart.recalcPoints();
-  // Ignite
-  chart.draw();
-  return chart;
-};
-
-
-///////////////////////
-// Components
-///////////////////////
-
-var xAxis = function () {
-  var axis = this;
-
-  this.labels = [];
-  this.labelSpace = 0;
-  this.dataMin = 0;
-  this.dataMax = 0;
-
-  this.config = {
-    "dateFormat": "MM/YYYY",
-    "TPP": 0 // Time Per Pixel
-  }
-
-  this.recalc = function (chart, type) {
-
-    var range = this.dataMax - this.dataMin
-      , steps = [
-        {
-          "days": 1,
-          "label": "days"
-        },
-        {
-          "days": 7,
-          "label": "weeks"
-        },
-        {
-          "days": 30,
-          "label": "months"
-        },
-        {
-          "days": 365,
-          "label": "years"
-        }
-      ]
-      , dayMSec = 60*60*24*1000
-      , daysInRange = range/dayMSec
-      , startDate = moment(this.dataMin)
-      , stepIndex = steps.length
-      , labelCount = 0
-      ;
-
-    this.TPP(range/chart.getGridProperties().width);
-    this.labels = [];
-
-    while (labelCount < 1) {
-      stepIndex--;
-      labelCount = daysInRange/steps[stepIndex].days;
-    }
-    labelsCount = Math.round(labelCount);
-
-    for (var i = 0; i < labelCount; i++) {
-      var label = moment(startDate).add(steps[stepIndex].label, i);
-      this.labels.push(label.valueOf());
-    }
-
-    return this;
-  }
-
-  this.drawInto = function (chart) {
-    var ctx = chart.ctx
-      , cfg = chart.config
-      , topOffset = chart.getGridProperties().bottom + 25
-      ;
-
-    if (cfg.xAxisVisible) {
-      ctx.save();
-      ctx.fillStyle = cfg.fontColor;
-      ctx.font = cfg.font;
-      this.each(function (label) {
-        var leftOffset = chart.getGridProperties().left + (label-chart.xAxis.dataMin)/chart.xAxis.TPP();
-          ;
-        ctx.fillText(moment(label).format(axis.dateFormat()), leftOffset, topOffset);
-      });
-      ctx.restore();
-    }
-  }
-
-  this.each = function (action) {
-    forEach(this.labels, action);
-  }
-
-  this.TPP = function (_) {
-    if (!arguments.length) return this.config.TPP;
-    this.config.TPP = _;
-    return this;
-  }
-
-  // User methods
-  this.dateFormat = function (_) {
-    if (!arguments.length) return this.config.dateFormat;
-    this.config.dateFormat = _;
-    return this;
-  }
-}
-
-var xAxisCategory = function (labels) {
-  var axis = this;
-
-  this.labels = labels;
-  this.labelSpace = 0;
-
-  this.config = {
-  }
-
-  this.recalc = function (chart) {
-    this.labelSpace = chart.getGridProperties().width/this.labels.length;
-    return this;
-  }
-
-  this.drawInto = function (chart) {
-    var ctx = chart.ctx
-      , cfg = chart.config
-      , topOffset = chart.getGridProperties().bottom + 25
-      , counter = 0
-      ;
-
-    if (cfg.xAxisVisible) {
-      ctx.save();
-      ctx.fillStyle = cfg.fontColor;
-      ctx.font = cfg.font;
-      this.each(function (label) {
-        var leftOffset = chart.getGridProperties().left + counter*axis.labelSpace + axis.labelSpace/2 - ctx.measureText(label).width/2;
-        ctx.fillText(label, leftOffset, topOffset);
-        counter++;
-      });
-      ctx.restore();
-    }
-  }
-
-  this.each = function (action) {
-    forEach(this.labels, action);
-  }
-}
-
-var yAxis = function (labels) {
-
-  var axis = this;
-
-  this.dataMin = labels[0];
-  this.dataMax = labels[1];
-  this.config = {
-    unit: "",
-    abbr: false,
-    margin: 10,
-
-    labels: [],
-    zeroLevel: 0,
-    VPP: 0, // Value Per Pixel
-    opacity: 0
-  };
-  this.newConfig = {
-    labels: [],
-    zeroLevel: 0,
-    VPP: 0,
-    opacity: 0
-  };
-
-
-  this.recalc = function (chart) {
-
-    var range = this.dataMax - (this.dataMin > 0 ? 0 : this.dataMin)
-      , height = chart.getGridProperties().height
-      , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
-      , labelValueSteps = [1, 2, 5]
-      , stepBase = range.toExponential().split("e")
-      , stepExponent = parseInt(stepBase[1])
-      ;
-
-    stepBase = closestElement(stepBase[0], labelValueSteps);
-    var labels = getLabels(getAxeSetup(stepBase, stepExponent));
-
-    // First time 
-    if (axis.config.labels.length == 0) {
-      axis.config.VPP = range/height;
-      axis.config.zeroLevel = height - this.dataMax/axis.config.VPP;
-      axis.config.labels = labels;
-
-      // Set Positions for labels
-      for (var i=0, len=axis.config.labels.length; i<len; i++) {
-        var label = axis.config.labels[i]
-          , prev
-          ;
-        if (label.value < 0)
-          prev = axis.config.labels[i+1];
-        else if (label.value > 0)
-          prev = axis.config.labels[i-1];
-        else if (label.value == 0) {
-          label.startAt(chart.getBase()).moveTo(false, chart.getBase());
-          continue;
-        }
-        label.startAt(chart.getBase() - prev.value/axis.config.VPP).moveTo(false, chart.getBase() - label.value/axis.config.VPP);
-      }
-    }
-    // On update
-    else {
-      axis.newConfig.VPP = range/height;
-      axis.newConfig.zeroLevel = height - this.dataMax/axis.newConfig.VPP;
-      axis.newConfig.labels = labels;
-
-      forEach(axis.config.labels, function (label) {
-        // Move to updated position
-        label.savePosition().moveTo(false, chart.getGridProperties()["bottom"] - axis.newConfig.zeroLevel - label.value/axis.newConfig.VPP)
-      });
-
-      forEach(axis.newConfig.labels, function (label) {
-        // Render to old position and move to new
-        label.startAt(chart.getGridProperties()["bottom"] - axis.config.zeroLevel - label.value/axis.config.VPP).moveTo(false,chart.getGridProperties()["bottom"]- axis.newConfig.zeroLevel - label.value/axis.newConfig.VPP);
-      });
-
-      axis.config.VPP = axis.newConfig.VPP;
-      axis.config.zeroLevel = axis.newConfig.zeroLevel;
-    }
-
-    function getLabels (setup) {
-      var labels = []
-        , lefts = setup.labelCount
-        , step = setup.valueStep
-        , currLabel = 0
-        , labelData = {
-          label: 0,
-          value: 0
-        }
-        ;
-
-      labels.push(new Element(labelData, "yAxis").Label());
-
-      while ( -(axis.dataMin - currLabel) > step) {
-        currLabel = currLabel - step;
-        labelData = {
-          label: currLabel,
-          value: currLabel
-        }
-        labels.splice(0, 0, new Element(labelData, "yAxis").Label());
-      }
-
-      currLabel = 0;
-
-      while ( (axis.dataMax - currLabel) > step) {
-        currLabel = currLabel + step;
-        labelData = {
-          label: currLabel,
-          value: currLabel
-        }
-        labels.push(new Element(labelData, "yAxis").Label())
-      }
-
-      return labels;
-    }
-
-    function getAxeSetup (base, exponent, stop) {
-      var currIndex = indexOf.call(labelValueSteps, base)
-        , newIndex
-        , newExponent
-        , currLabelValueStep = Math.pow(10, exponent)*base
-        , currLabelCount = range/currLabelValueStep
-        ;
-
-      if (stop)
-        return {
-          valueStep: currLabelValueStep,
-          labelCount: Math.floor(currLabelCount)
-        };
-
-      // Debug
-      // console.log("curr Index ", currIndex, " exponent", exponent, " currLabelValueStep ", currLabelValueStep, " labelCount ", currLabelCount, " maxLabelCount ", maxLabelCount )
+(function(){
+
+  var Chartmander = window.Chartmander || {};
+  window.Chartmander = Chartmander;
+  Chartmander.version = '0.1.1';
+  Chartmander.models = Chartmander.models || {};
+  Chartmander.components = Chartmander.components || {};
+
+  Chartmander.charts = []; // Store all rendered charts
+
+  Chartmander.addChart = function (callback) {
+    var newChart = callback()
+    //   , alreadyRendered = false;
+    // forEach(Chartmander.charts, function (chart) {
       
-      if (currLabelCount < maxLabelCount) {
-        // Maybe there is space for more labels...
-        newIndex = (currIndex - 1 <= -1) ? 2 : (currIndex - 1);
-        newExponent = (newIndex == 2) ? (exponent - 1) : exponent;
+    // });
+    // if (alreadyRendered) 
+      
+    // else
+      Chartmander.charts.push(newChart)
 
-        return getAxeSetup(labelValueSteps[newIndex], newExponent);
-      }
-      else {
-        // Too far, return previous and stop
-        newIndex = (currIndex + 1 >=  3) ? 0 : (currIndex + 1);
-        newExponent = (newIndex == 0) ? (exponent + 1) : exponent;
-
-        return getAxeSetup(labelValueSteps[newIndex], newExponent, true);
-      }
-    }
-  }
-
-  this.VPP = function () {
-      return this.config.VPP;
-  }
-
-  this.fadeIn = function (axis) {
-    if (axis=="new") {
-      this.newConfig.opacity += .05;
-      if(this.newConfig.opacity>1)
-        this.newConfig.opacity = 1;
-    }
-    else if (axis=="current") {
-      this.config.opacity += .05;
-      if(this.config.opacity>1)
-        this.config.opacity = 1;
-    }
-  }
-
-  this.fadeOut = function (axis) {
-    if (axis=="new") {
-      this.newConfig.opacity -= .05;
-      if(this.newConfig.opacity<0)
-        this.newConfig.opacity = 0;
-    }
-    else if (axis=="current") {
-      this.config.opacity -= .05;
-      if(this.config.opacity<0)
-        this.config.opacity = 0;
-    }
-  }
-
-  this.drawInto = function (chart, _perc_) {
-    var ctx = chart.ctx
-      , cfg = chart.config
-      , grid = chart.grid.config.properties
-      ;
-
-    if (cfg.yAxisVisible) {
-      ctx.save();
-      ctx.textAlign = "right";
-      ctx.fillStyle = cfg.fontColor;
-      ctx.font = cfg.font;
-      ctx.save();
-      ctx.globalAlpha = axis.config.opacity;
-      forEach(this.config.labels, function (label) {
-        var labelValue = axis.config.abbr ? (label.label/1000).toString() : label.label.toString();
-        label.updatePosition(_perc_);
-        ctx.fillText(labelValue + " " + axis.unit(), grid.left - axis.config.margin, label.getY());
-      });
-      ctx.restore();
-      if (axis.newConfig.labels.length > 0) {
-        ctx.save();
-        ctx.globalAlpha = axis.newConfig.opacity;
-        forEach(this.newConfig.labels, function (label) {
-          var labelValue = axis.config.abbr ? (label.label/1000).toString() : label.label.toString();
-          label.updatePosition(_perc_);
-          ctx.fillText(labelValue + " " + axis.unit(), grid.left - axis.config.margin, label.getY());
-        });
-        ctx.restore();
-
-        axis.fadeIn("new");
-        axis.fadeOut("current");
-        if (axis.newConfig.opacity == 1) {
-          // axis.config=axis.newConfig;
-          axis.config.labels = axis.newConfig.labels;
-          axis.config.opacity = axis.newConfig.opacity;
-
-          // Reset values for next update
-          axis.newConfig.labels = [];
-          axis.newConfig.opacity = 0;
-        }
-      }
-      else {
-        axis.fadeIn("current");
-      }
-      ctx.restore();
-    }
-  }
-
-  this.unit = function (_) {
-    if(!arguments.length) return this.config.unit;
-    this.config.unit = _;
-    return this;
-  }
-
-  return this;
-}
-
-var Grid = function () {
-
-  var grid = this;
-  // Grid defaults
-  this.config = {
-    visible : true,
-    horizontalLines : true,
-    verticalLines : true,
-    lineColor : "#DBDFE5",
-    lineWidth : 1,
-    evenOddContrast : true,
-    oddColor : "#EAEAEA"
-  }
-
-  this.calculateProperties = function (margin, config) {
-    this.config.properties = {
-      top: margin.top,
-      right: config.width - margin.right,
-      bottom: config.height - margin.bottom,
-      left: margin.left,
-      width: (config.width - margin.right) - margin.left,
-      height: (config.height - margin.bottom) - margin.top
-    }
-  }
-
-  this.drawInto = function (chart, _perc_) {
-    var ctx = chart.ctx
-      , grid = this.config
-      ;
-
-    if (grid.visible) {
-      ctx.strokeStyle = grid.lineColor;
-      ctx.lineWidth = grid.lineWidth;
-
-      if (grid.horizontalLines) {
-        ctx.save();
-        ctx.globalAlpha = chart.yAxis.config.opacity;
-        forEach(chart.yAxis.config.labels, function (line) {
-          ctx.beginPath();
-          if (line.label == 0) {
-            ctx.save();
-            ctx.strokeStyle = "#999"; // TODO Axis Width and Color
-          }
-          ctx.moveTo(grid.properties.left, line.getY());
-          ctx.lineTo(grid.properties.right, line.getY());
-          ctx.stroke();
-          if (line.label==0) ctx.restore();
-        })
-        ctx.restore();
-      }
-      if (chart.yAxis.newConfig.labels.length > 0) {
-        ctx.save();
-        ctx.globalAlpha = chart.yAxis.newConfig.opacity;
-        forEach(chart.yAxis.newConfig.labels, function (line) {
-          ctx.beginPath();
-          if (line.label == 0) {
-            ctx.save();
-            ctx.strokeStyle = "#999"; // TODO Axis Width and Color
-          }
-          ctx.moveTo(grid.properties.left, line.getY());
-          ctx.lineTo(grid.properties.right, line.getY());
-          ctx.stroke();
-          if (line.label==0) ctx.restore();
-        })
-        ctx.restore();
-      }
-
-      if (grid.verticalLines) {
-        for (var i = 0; i < chart.xAxis.labels.length+1; i++) {
-          var xOffset = grid.properties.left + i*(grid.properties.width / chart.xAxis.labels.length);
-
-          ctx.beginPath();
-          ctx.moveTo(xOffset, grid.properties.top);
-          ctx.lineTo(xOffset, grid.properties.bottom);
-          ctx.stroke();
-        };
-      }
-    }
-  }
-
-  this.hasInRangeX = function (point) {
-     return point.x >= this.config.properties.left && point.x <= this.config.properties.right;
-  }
-
-  this.drawCrosshairInto = function (chart) {
-
-    var crosshair = chart.crosshair;
-
-    if (crosshair.visible && chart.config.hovered) {
-      chart.ctx.save();
-      chart.ctx.strokeStyle = crosshair.color;
-      chart.ctx.lineWidth = crosshair.lineWidth;
-
-      if (chart.grid.hasInRangeX(chart.config.mouse)) {
-        crosshair.x = chart.getMouse("x");
-        if (crosshair.sticky && chart.itemsInHoverRange.length > 0) {
-          var availablePoints = [];
-
-          forEach(chart.hoveredItems, function (point) {
-            availablePoints.push(point.position.x);
-          })
-          crosshair.x = closestElement(crosshair.x, availablePoints);
-        }
-      }
-      else
-        return;
-
-      chart.ctx.beginPath();
-      chart.ctx.moveTo(crosshair.x, grid.config.properties.top);
-      chart.ctx.lineTo(crosshair.x, grid.config.properties.bottom);
-      chart.ctx.stroke();
-      chart.ctx.restore();
-    }
-  }
-
-  this.lineColor = function (_) {
-    this.config.lineColor = _;
-    return this;
-  }
-
-  this.horizontalLines = function (_) {
-    this.config.horizontalLines = _;
-    return this;
-  }
-
-  this.verticalLines = function (_) {
-    this.config.verticalLines = _;
-    return this;
-  }
-}
-
-var Dataset = function (set, color, type) {
-
-  this.title = set.title;
-  this.elements = getElements(type);
-  this.type = type;
-  this.style = {
-    color: color
-  };
-
-  this.each = function (action) {
-    forEach(this.elements, action);
-  }
-
-  this.size = function () {
-    var total = 0;
-    this.each(function (element) {
-      total += element.value;
-    })
-    return total;
-  }
-
-  this.getElementCount = function () {
-    return this.elements.length;
-  }
-
-  this.repaint = function () {
-    if (this.type == "bar" || this.type == "pie") {
-      this.style.normal = {
-        color: tinycolor.lighten(this.style.color, 10).toHex(),
-        stroke: 1,
-        strokeColor: tinycolor.darken(this.style.color, 30).toHex()
-      };
-      this.style.onHover = {
-        color: tinycolor.lighten(this.style.color, 10).toHex(),
-        stroke: 1,
-        strokeColor: tinycolor.darken(this.style.color, 30).toHex()
-      };
-    }
-    else if (this.type == "line") {
-      this.style.normal = {
-        color: "#FFFFFF",
-        stroke: 1,
-        strokeColor: tinycolor.darken(this.style.color, 20).toHex()
-      };
-      this.style.onHover = {
-        color: tinycolor.lighten(this.style.color).toHex(),
-        stroke: 1,
-        strokeColor: tinycolor.darken(this.style.color, 20).toHex()
-      };
-    }
-  }
-
-  this.merge = function (newData, chart) {
-    var newElements = newData.values
-      , oldElements = this.elements
-      ;
-
-    // Test equality of datastream
-    if (this.title != newData.title) {
-      throw new Error("Different datastream on update!");
-    }
-
-    // Update existing elements, if new > old add new elements
-    for (var i=0, len=newElements.length; i != len; i++) {
-      // Update existing
-      if (oldElements[i] instanceof Element) {
-        this.elements[i].updateValue(newElements[i].label, newElements[i].value).savePosition();
-      }
-      // Create
-      else {
-        var element = new Element(newElements[i], this.title);
-
-        if (this.type == "bar")
-          element = element.Bar();
-        else if (this.type == "line")
-          element = element.Point();
-        // Each segment in pieChart is dataset with only one element therefore next lines will never get executec
-        // else if (this.type == "pie")
-        //   element = element.Segment();
-        this.elements.push(element.savePosition(chart.getGridProperties().width, chart.getBase()));
-      }
-    }
-    // Flush old 
-    if (oldElements.length > newElements.length) {
-      for (var j=oldElements-newElements; j!=0; j--) {
-        // supr FAUX
-        console.log("Delete");
-        this.elements[oldElements-j].die();
-      }
-    }
-  }
-
-  this.element = function (index) {
-    if (index == "last")
-      return this.elements[this.elements.length-1];
-    else
-      return this.elements[index]
-  }
-
-  function getElements (type) {
-    var result = [];
-    
-    switch (type) {
-      case "bar": forEach(set.values, function (barData) {
-              result.push(new Element(barData, set.title).Bar());
-            });
-            break;
-      case "pie": forEach(set.values, function (segmentData) {
-              result.push(new Element(segmentData, set.title).Slice());
-            });
-            break;
-      case "line": forEach(set.values, function (pointData) {
-              result.push(new Element(pointData, set.title).Point());
-            });
-            break;
-      default: return;
-    }
-    return result;
-  }
-
-  this.repaint();
-
-  return this;
-}
-
-var Tooltip = function (items) {
-
-  var tip = this;
-
-  this.items = [];
-
-  // Tooltip defaults
-  this.config = {
-    margin: 20,
-    padding: 10,
-    backgroundColor: "rgba(46, 59, 66, .8)",
-    width: 100,
-    height: 60,
-    dateFormat: "MMMM Do YYYY",
-    header: {
-      fontSize: 15,
-      lineHeight: 1.5,
-      fontColor: "#EEEEEE"
-    },
-    set: {
-      fontSize: 12,
-      lineHeight: 1.5,
-      iconSize: 10,
-      fontColor: "#FFFFFF"
-    }
-  };
-  this.state = {
-    isAnimated: false,
-    animationCompleted: 0,
-    current: {
-      x: 0,
-      y: 0
-    },
-    desired: {
-      x: 0,
-      y: 0
-    }
-  };
-
-  this.drawInto = function (chart) {
-    var ctx = chart.ctx
-      , tip = chart.tooltip
-      , cfg = tip.config
-      , topOffset = chart.config.mouse.y
-      , leftOffset = chart.crosshair.x + cfg.margin
-      , lineHeight = cfg.set.fontSize*cfg.set.lineHeight
-      ;
-
-    if (chart.config.type == "bar")
-      leftOffset = chart.config.mouse.x
-
-    if (tip.hasItems()) {
-      tip.fadeIn();
-
-      ctx.save();
-      // Draw Tooltip body
-      ctx.globalAlpha = tip.getState();
-      ctx.fillStyle = tip.backgroundColor();
-      ctx.fillRect(leftOffset, topOffset, cfg.width + cfg.padding*2, cfg.height + cfg.padding*2);
-
-      // Draw Tooltip items
-      ctx.fillStyle = cfg.set.fontColor;
-      leftOffset += cfg.padding;
-      topOffset += cfg.padding;
-      ctx.textBaseline = "top";
-      // Tooltip header
-      ctx.fillText(moment(tip.items[0].label).format(tip.dateFormat()), leftOffset, topOffset);
-      topOffset += lineHeight;
-      forEach(tip.items, function (item) {
-        ctx.fillText(item.set + " " + item.value, leftOffset, topOffset);
-        topOffset += lineHeight;
-      });
-      ctx.restore();
-    } else {
-      tip.fadeOut();
-    }
-  }
-
-  this.addItem = function (item) {
-    tip.items.push(item);
-  }
-
-  this.hasItems = function () {
-    return this.items.length > 0;
-  }
-
-  this.removeItems = function () {
-    this.items = [];
-  }
-
-  this.recalc = function (ctx) {
-    var maxWidth = 0
-      , lineWidth = 0
-      , height = 0
-      , lineHeight = this.config.set.fontSize*this.config.set.lineHeight
-      ;
-
-    height += this.config.header.fontSize*this.config.header.lineHeight;
-    maxWidth = ctx.measureText(moment(this.items[0].label).format(this.dateFormat())).width
-
-    forEach(this.items, function (item) {
-      lineWidth = ctx.measureText(item.set).width + ctx.measureText(item.value).width;
-      if (lineWidth > maxWidth)
-        maxWidth = lineWidth;
-      height += lineHeight;
-    });
-    
-    this.config.width = maxWidth;
-    this.config.height = height;
   }
 
 
-  this.fadeOut = function () {
-      tip.state.animationCompleted -= .05;
-
-      if (tip.getState() <= 0) {
-        tip.isAnimated(false);
-        tip.state.animationCompleted = 0;
-      }
-  } 
-
-  this.fadeIn = function () {
-      tip.state.animationCompleted += .05;
-
-      if (tip.getState() >= 1) {
-        tip.isAnimated(false);
-        tip.state.animationCompleted = 1;
-      }
-  }
-
-  this.getState = function () {
-    return tip.state.animationCompleted;
-  }
-
-  this.isAnimated = function (_) {
-    if(!arguments.length) return tip.state.isAnimated
-    tip.state.isAnimated = _;
-  }
-
-  // User methods
-  this.backgroundColor = function (_) {
-    if (!arguments.length) return tip.config.backgroundColor;
-    tip.config.backgroundColor = _;
-    return this;
-  }
-
-  this.dateFormat = function (_) {
-    if (!arguments.length) return tip.config.dateFormat;
-    tip.config.dateFormat = _;
-    return this;
-
-  }
-
-  return this;
-}
-
-var Element = function (data, title) {
-
-  this.set = title;
-  this.label = data.label;
-  this.value = data.value;
-  this.state = {
-    isAnimated: false,
-    animationCompleted: 0, // normal => 0, hover => 1
-    permissionToDie: false,
-    // Positions
-    now: {
-      x: 0,
-      y: 0
-    },
-    from: {
-      x: 0,
-      y: 0
-    },
-    to: {
-      x: 0,
-      y: 0
-    }
-  }
-
-  this.updateValue = function (label, value) {
-    this.label = label;
-    this.value = value;
-    return this;
-  }
-
-  this.die = function () {
-    this.permissionToDie = true;
-    return this;
-  }
-
-  this.moveTo = function (x, y) {
-    if (x!=false)
-      this.state.to.x = x;
-    if(y!=false)
-      this.state.to.y = y;
-    return this;
-  }
-
-  this.animIn = function () {
-    this.isAnimated(true);
-    this.state.animationCompleted += .07;
-    if (this.getState() >= 1) {
-      this.isAnimated(false);
-      this.state.animationCompleted = 1;
-    }
-  }
-
-  this.animOut = function () {
-    this.isAnimated(true);
-    this.state.animationCompleted -= .07;
-    if (this.getState() <= 0) {
-      this.isAnimated(false);
-      this.state.animationCompleted = 0;
-    }
-  }
-
-  this.updatePosition = function (_perc_) {
-    var deltaX = this.state.from.x - this.state.to.x
-      , deltaY = this.state.from.y - this.state.to.y
-      ;
-    this.state.now.x = this.state.from.x - deltaX*_perc_;
-    this.state.now.y = this.state.from.y - deltaY*_perc_;
-  }
-
-  this.savePosition = function (x, y) {
-    if (!arguments.length) {
-      this.state.from.x = this.state.now.x;
-      this.state.from.y = this.state.now.y;
-    } else {
-      this.state.from.x = x;
-      this.state.from.y = y;
-    }
-    return this;
-  }
-
-  this.isAnimated = function (_) {
-    if(!arguments.length) return this.state.isAnimated;
-    this.state.isAnimated = _;
-  }
-
-  this.getState = function () {
-    return this.state.animationCompleted;
-  }
-
-  this.getX = function () {
-    return this.state.now.x;
-  }
-
-  this.getY = function () {
-    return this.state.now.y;
-  }
-
-  this.setX = function (x) {
-    this.state.now.x = x;
-  }
-
-  this.setY = function (y) {
-    this.state.now.y = y;
-  }
-
-  this.resetPosition = function (chart, yStart) {
-    if(!isNaN(yStart))
-      this.state.from.y = yStart;
-    else
-      this.state.from.y = chart.getBase();
-    this.moveTo(false, chart.getBase() - this.value/chart.yAxis.VPP());
-  }
-
-  return this;
-}
-
-Element.prototype.Bar = function () {
-
-  this.state.from.base = 0;
-  this.state.to.base = 0;
-  this.state.now.base = 0;
-
-  this.drawInto = function (chart, set) {
-    var ctx = chart.ctx
-      , cfg = chart.config
-      , style = set.style
-      , hover = this.isHovered(chart)
-      ;
-
-    if (hover) {
-      ctx.save();
-      ctx.fillStyle = style.onHover.color;
-      ctx.strokeStyle = style.onHover.strokeColor;
-      chart.tooltip.addItem({
-        "set": set.title,
-        "label": this.label,
-        "value": this.value,
-        "color": style.normal.color
-      });
-    }
-
-    ctx.fillRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
-    if (style.normal.stroke > 0)
-      ctx.strokeRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
-
-    if (hover) {
-      if (style.onHover.stroke > 0)
-        ctx.strokeRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
-      ctx.restore();
-    }
-
-    if (cfg.displayValue) {
-      ctx.save();
-      ctx.fillStyle = tinycolor.darken(set.style.color, 30).toHex();
-      ctx.translate(this.getX(), chart.getBase() - 20);
-      ctx.rotate(-Math.PI/2);
-      ctx.fillText(this.value/1000, 0, 15);
-      ctx.restore();
-    }
-
-  }
-
-  this.isHovered = function (chart) {
-    var x = chart.getMouse("x")
-      , y = chart.getMouse("y")
-      , cfg = chart.config
-      , hovered = false
-      , yRange = [this.getBase(), this.getBase()+this.getY()].sort(function(a,b){return a-b})
-      ;
-
-    if (x >= this.getX() && x <= this.getX()+cfg.barWidth && y >= yRange[0] && y<= yRange[1]) {
-      hovered = true;
-    }
-
-    return hovered;
-  }
-
-  this.updatePositionBase = function (_perc_) {
-    var baseDelta = this.state.from.base - this.state.to.base
-      ;
-    this.state.now.base = this.state.from.base - baseDelta*_perc_;
-  }
-
-  this.saveBase = function (base) {
-    if(!arguments.length)
-      this.state.from.base = this.getBase();
-    else
-      this.state.from.base = base;
-
-    return this;
-  }
-
-  this.moveBase = function (base) {
-    this.state.to.base = base;
-    return this;
-  }
-
-  this.getBase = function () {
-    return this.state.now.base;
-  }
-
-  return this;
-};
-
-Element.prototype.Slice = function () {
-
-  /*
-  ** IMPORTANT
-  ** Slice uses setters/getters X, Y but it return Start and End values
-  */
-
-  this.drawInto = function (chart, set) {
-    var ctx = chart.ctx
-      , cfg = chart.config
-      ;
-
-      ctx.beginPath();
-      if (cfg.hovered) {
-        if (this.isHovered(chart)) {
-          ctx.fillStyle = set.style.onHover.color;
-          chart.tooltip.addItem({
-            "set": set.title,
-            "label": this.label,
-            "value": this.value,
-            "color": set.style.normal.color
-          });
-        }
-      }
-      ctx.arc(cfg.center.x, cfg.center.y, cfg.radius, cfg.startAngle+this.getX(), cfg.startAngle+this.getY());
-      ctx.arc(cfg.center.x, cfg.center.y, cfg.radius*cfg.innerRadius, cfg.startAngle+this.getY(), cfg.startAngle+this.getX(), true);
-      ctx.fill();
-  }
-
-  this.isHovered = function (chart) {
-    var x = chart.getMouse("x") - chart.config.center.x
-      , y = chart.getMouse("y") - chart.config.center.y
-      , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
-      , hoverAngle
-      , hovered = false
-      ;
-
-    if (fromCenter <= chart.radius() && fromCenter >= chart.radius()*chart.innerRadius()) {
-      hoverAngle = Math.atan2(y, x) - chart.config.startAngle;
-      if (hoverAngle < 0)
-        hoverAngle += Math.PI*2;
-      if (hoverAngle >= this.getX() && hoverAngle <= this.getY())
-        hovered = true;
-    }
-
-    return hovered;
-  }
-
-  return this;
-};
-
-Element.prototype.Point = function () {
-
-  this.drawInto = function (chart, set) {
-
-    var ctx = chart.ctx
-      , cfg = chart.config
-      , style = set.style
-      ;
-
-    if (cfg.hovered) {
-      var hover = this.isHovered(cfg.mouse, cfg.pointHoverRadius, cfg.mergeHover);
-    }
-
-    // Draw circle in normal state
-    ctx.beginPath();
-    ctx.fillStyle = style.normal.color;
-    ctx.arc(this.getX(), this.getY(), cfg.pointRadius*(1-this.getState()), 0, Math.PI*2, false);
-    ctx.fill();
-    // Stroke circle
-    if (style.normal.stroke) {
-      ctx.lineWidth = style.normal.stroke*(1-this.getState());
-      ctx.strokeStyle = style.normal.strokeColor;
-      ctx.stroke();
-    }
-
-    if (this.getState() > 0) {
-      cfg.hoverNotFinished = true;
-      ctx.save();
-      ctx.beginPath();
-      ctx.fillStyle = style.onHover.color;
-      ctx.arc(this.getX(), this.getY(),10*this.getState(), 0, Math.PI*2, false);
-      ctx.fill();
-      if (style.onHover.stroke > 0) {
-        ctx.lineWidth = style.onHover.stroke*this.getState();
-        ctx.strokeStyle = style.onHover.strokeColor;
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-    //
-    if (cfg.hovered) {
-      if (hover.was) {
-        chart.itemsInHoverRange.push({
-          "set": set.title,
-          "index": indexOf.call(set.elements, this),
-          "hoverDistance": hover.distance
-        });
-        return;
-      }
-    }
-    this.animOut();
-  }
-
-  this.isHovered = function (mouse, hoverRadius, mergeHover) {
-    var distance = Math.abs(mouse.x - this.getX());
-
-    if (!mergeHover) {
-      distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(mouse.y - this.getY(), 2));
-    }
-
-    return {
-      "was": distance < hoverRadius,
-      "distance": distance
-    };
-  }
-
-  return this;
-};
-
-Element.prototype.Label = function() {
-
-  this.startAt = function (val) {
-    this.state.from.y = val;
-    return this;
-  } 
-
-  return this;
-};
-
-Chartmander.prototype.easing = function (myEasing) {
-
-  var functions = {
+  var easings = {
     linear : function (t){
       return t;
     },
@@ -2121,123 +157,797 @@ Chartmander.prototype.easing = function (myEasing) {
     }
   }
 
-  return functions[myEasing];
-};
+  var requestAnimationFrame = (function(){
+    return  window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function(callback) {
+          window.setTimeout(callback, 1000 / 60);
+        };
+  })();
 
-//////////////////////////////////////////////////////////////
-
-var requestAnimationFrame = (function(){
-  return  window.requestAnimationFrame ||
-      window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      window.oRequestAnimationFrame ||
-      window.msRequestAnimationFrame ||
-      function(callback) {
-        window.setTimeout(callback, 1000 / 60);
-      };
-})();
-
-function closestElement (element, array) {
-  return array.reduce(function (prev, curr) {
-    return (Math.abs(curr - element) < Math.abs(prev - element) ? curr : prev);
-  });
-}
-
-function forEach (items, action) {
-  for (var i = 0; i < items.length; i++) {
-    action(items[i])
-  };
-}
-
-function getDatasetFrom (data, type, colors) {
-  var index = 0
-    , color
-    , datasets = []
-    ;
-
-  if (data === undefined)
-    throw new Error("No data");
-    
-  forEach(data, function(set) {
-    // pick a color
-    if (colors[index] != undefined) {
-      color = tinycolor(colors[index]).toRgbString();
-    }
-    else {
-      var offset=1, indexCopy = index;
-      while(indexCopy/colors.length >= 1){
-        offset++;
-        indexCopy -= colors.length;
-      }
-      color = tinycolor.darken(colors[indexCopy], 5*offset).toRgbString();
-    }
-    datasets.push(new Dataset(set, color, type));
-    index++;
-  });
-  return datasets;
-}
-
-function getArrayBy (data, property, exclusiveEntry) {
-  var result = []
-    , streamID = 0;
-
-  forEach(data, function (set) {
-    if (exclusiveEntry && streamID == 1) return result;
-    result = result.concat(set.values.map(function (element) {
-      return element[property];
-    }));
-    streamID++;
-  });
-  return result;
-}
-
-function getRange (values) {
-  return {
-    "min": Math.min.apply(null, values),
-    "max": Math.max.apply(null, values)
+  function closestElement (element, array) {
+    return array.reduce(function (prev, curr) {
+      return (Math.abs(curr - element) < Math.abs(prev - element) ? curr : prev);
+    });
   }
-}
 
-function getAxesFrom (datasets) {
-  var xLabels = []
-    , yLowest = 0
-    , yHighest = 0
-    ;
-
-  // Labels filter
-  forEach(datasets, function (set) {
-    set.each(function (bar) {
-      if(indexOf.call(xLabels, bar.label) === -1 )
-        xLabels.push(bar.label);
-
-      if(bar.value > yHighest)
-        yHighest = bar.value;
-
-      if(bar.value < yLowest)
-        yLowest = bar.value
-    })
-  })
-
-  return [new xAxis(xLabels), new yAxis([yLowest, yHighest])];
-}
-
-var indexOf = function (element) {
-  if (typeof Array.prototype.indexOf === 'function') {
-    indexOf = Array.prototype.indexOf;
-  } else {
-    indexOf = function(element) {
-      var i = -1, index = -1;
-
-      for(i = 0; i < this.length; i++) {
-        if(this[i] === element) {
-          index = i;
-          break;
-        }
-      }
-
-      return index;
+  function forEach (items, action) {
+    for (var i = 0; i < items.length; i++) {
+      action(items[i])
     };
   }
 
-  return indexOf.call(this, element);
+  function getDatasetFrom (data, type, colors) {
+    var index = 0
+      , color
+      , datasets = []
+      ;
+
+    if (data === undefined)
+      throw new Error("No data");
+      
+    forEach(data, function(set) {
+      // pick a color
+      if (colors[index] != undefined) {
+        color = tinycolor(colors[index]).toRgbString();
+      }
+      else {
+        var offset=1, indexCopy = index;
+        while(indexCopy/colors.length >= 1){
+          offset++;
+          indexCopy -= colors.length;
+        }
+        color = tinycolor.darken(colors[indexCopy], 5*offset).toRgbString();
+      }
+      datasets.push(new Dataset(set, color, type));
+      index++;
+    });
+    return datasets;
+  }
+
+  function getArrayBy (data, property, exclusiveEntry) {
+    var result = []
+      , streamID = 0;
+
+    forEach(data, function (set) {
+      if (exclusiveEntry && streamID == 1) return result;
+      result = result.concat(set.values.map(function (element) {
+        return element[property];
+      }));
+      streamID++;
+    });
+    return result;
+  }
+
+  function getRange (values) {
+    return {
+      "min": Math.min.apply(null, values),
+      "max": Math.max.apply(null, values)
+    }
+  }
+
+  function getAxesFrom (datasets) {
+    var xLabels = []
+      , yLowest = 0
+      , yHighest = 0
+      ;
+
+    // Labels filter
+    forEach(datasets, function (set) {
+      set.each(function (bar) {
+        if(indexOf.call(xLabels, bar.label) === -1 )
+          xLabels.push(bar.label);
+
+        if(bar.value > yHighest)
+          yHighest = bar.value;
+
+        if(bar.value < yLowest)
+          yLowest = bar.value
+      })
+    })
+
+    return [new xAxis(xLabels), new yAxis([yLowest, yHighest])];
+  }
+
+  var indexOf = function (element) {
+    if (typeof Array.prototype.indexOf === 'function') {
+      indexOf = Array.prototype.indexOf;
+    } else {
+      indexOf = function(element) {
+        var i = -1, index = -1;
+
+        for(i = 0; i < this.length; i++) {
+          if(this[i] === element) {
+            index = i;
+            break;
+          }
+        }
+
+        return index;
+      };
+    }
+
+    return indexOf.call(this, element);
+  };
+
+})();
+
+Chartmander.models.chart = function (canvasID) {
+
+  var chart = this;
+
+  var canvas = document.getElementById(canvasID)
+    , ctx = canvas.getContext('2d')
+    , datasets = []
+    , width = ctx.canvas.width
+    , height = ctx.canvas.height
+    , colors = []
+    , font = "13px Arial, sans-serif"
+    , fontColor = "#555"
+    , animate = true
+    , hovered = false
+    , animationStep = 100
+    , animationCompleted = 0
+    , easing = "easeOutCubic"
+    , onAnimationCompleted = null
+    , mouse = {}
+    , hoverNotFinished = false
+    ;
+
+  // this.crosshair = {
+  //   x: null,
+  //   y: null,
+  //   visible: true,
+  //   sticky: true,
+  //   color: "#555",
+  //   lineWidth: 1
+  // };
+
+  // canvas.addEventListener("mouseenter", handleEnter, false);
+  // canvas.addEventListener("mousemove", handleHover, false);
+  // canvas.addEventListener("mouseleave", handleLeave, false);
+
+  // if (window.devicePixelRatio) {
+  //   ctx.canvas.style.width = config.width + "px";
+  //   ctx.canvas.style.height = config.height + "px";
+  //   ctx.canvas.height = config.height * window.devicePixelRatio;
+  //   ctx.canvas.width = config.width * window.devicePixelRatio;
+  //   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  // }
+
+  clear = function () {
+    ctx.clearRect(0, 0, config.width, config.height);
+  };
+
+  draw = function (drawComponents, finished) {
+    var margin = config.margin
+      // , tip = chart.tooltip
+      , easingFunction = easing.easing
+      , animationStep = 1/config.animationStep
+      , _perc_
+      ;
+
+    config.animationCompleted = config.animate ? 0 : 1
+
+    function loop () {
+
+      if (finished) {
+        config.animationCompleted = 1;
+      } else if (config.animationCompleted < 1) {
+        config.animationCompleted += animationStep;
+      }
+
+      _perc_ = easingFunction(config.animationCompleted);
+      config.hoverNotFinished = false;
+      chart.clear();
+
+      drawComponents();
+
+      // tip.removeItems();
+
+      // if (chart.xAxis)
+      //   chart.xAxis.drawInto(chart);
+      // if (chart.yAxis)
+      //   chart.yAxis.drawInto(chart, _perc_);
+      // if (chart.grid)
+      //   chart.grid.drawInto(chart, _perc_);
+
+      // if (cfg.type === "line") {
+      //   chart.itemsInHoverRange = [];
+      //   chart.updatePoints(_perc_);
+      //   if (cfg.drawArea) {
+      //     chart.drawArea(_perc_);
+      //   }
+      //   chart.drawLines();
+      //   chart.grid.drawCrosshairInto(chart);
+      //   chart.drawPoints();
+      // } else if (cfg.type === "bar") {
+      //   chart.drawBars(_perc_);
+      // } else if (cfg.type === "pie") {
+      //   chart.drawSlices(_perc_);
+      // }
+
+      // if (tip) {
+      //   if (tip.hasItems()) {
+      //     tip.recalc(chart.ctx);
+      //   }
+      //   tip.drawInto(chart);
+      // }
+
+      // if (cfg.title) {
+      //   ctx.save();
+      //   ctx.font = "18px Arial";
+      //   ctx.fillText(cfg.title, chart.getGridProperties().left, chart.getGridProperties().top/2);
+      //   ctx.restore();
+      // }
+
+      // if (cfg.legend) {
+      //   ctx.save();
+      //   // ctx.font = "18px Arial";
+      //   var legendWidth = 100, counter = 0;
+      //   forEach(chart.datasets, function (set) {
+      //     var left = chart.getGridProperties().width-200+counter*legendWidth
+      //     ctx.fillStyle = set.style.color;
+      //     ctx.fillRect(left-15, chart.getGridProperties().top/2-5, 10, 10);
+      //     ctx.fillStyle = "#000";
+      //     ctx.fillText(set.title, left, chart.getGridProperties().top/2);
+      //     counter++;
+      //   });
+      //   ctx.restore();
+      // }
+
+      // Request self-repaint if chart or tooltip or data element has not finished animating yet
+      if (config.animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || config.hoverNotFinished ) {
+        requestAnimationFrame(loop);
+      }
+      else {
+        console.log("Animation Finished.")
+      }
+    }
+    // Global paint settings
+    // ctx.textBaseline = "middle";
+    // ctx.font = config.font;
+    // First paint
+    requestAnimationFrame(loop);
+  }
+
+  function handleHover (e) {
+    var rect = canvas.getBoundingClientRect();
+    config.mouse = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    }
+    // console.log(chart.config.mouse.x, chart.config.mouse.y)
+    // Allow repaint on hover only if chart and tooltip are done with self-repaint
+    // AND if also hovered item is not repainting 
+    if (config.animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverNotFinished ) {
+      chart.render(true)
+    }
+  }
+
+  function handleEnter () {
+    config.hovered = true;
+  }
+
+  function handleLeave () {
+    config.hovered = false;
+    // chart.tooltip.removeItems();
+    if (config.animationCompleted >= 1)
+      draw(true);
+  }
+
+  ///////////////////////////////
+  // Methods
+  ///////////////////////////////
+  chart.draw = draw;
+
+  chart.width = function () {
+    return width;
+  }
+
+  chart.height = function () {
+    return height;
+  }
+
+  chart.getMouse = function (axis) {
+    if (axis === "x")
+      return mouse.x;
+    else
+      return mouse.y;
+  }
+
+  chart.getSetsCount = function () {
+    return datasets.length;
+  }
+
+  // this.getGridProperties = function () {
+  //   return chart.grid.config.properties;
+  // }
+
+  // chart.getBase = function () {
+  //   if(chart.config.type === "pie")
+  //     return "TODO";
+  //   else 
+  //     return chart.getGridProperties()["bottom"] - chart.yAxis.config.zeroLevel;
+  // }
+
+  chart.getElementCount = function () {
+    var total = 0;
+    forEach(this.datasets, function (set) {
+      total += set.getElementCount();
+    })
+    return total;
+  }
+
+
+  // User methods
+  // this.title = function (_) {
+  //   if(!arguments.length) return this.config.title;
+  //   this.config.title = _;
+  //   return this;
+  // }
+
+  // this.showXAxis = function (_) {
+  //   this.config.xAxisVisible = _;
+  //   return chart;
+  // }
+
+  // this.showYAxis = function (_) {
+  //   this.config.yAxisVisible = _;
+  //   return chart;
+  // }
+
+  // line char
+  // this.pointRadius = function (_) {
+  //   this.config.pointRadius = _;
+  //   return chart;
+  // }
+
+  chart.fontColor = function (_) {
+    if (!arguments.length) return config.fontColor;
+    config.fontColor = _;
+    return chart;
+  }
+
+  chart.font = function (_) {
+    this.config.font = _;
+    return chart;
+  }
+
+  // this.crossColor = function (_) {
+  //   this.crosshair.color = _;
+  //   return chart;
+  // }
+
+  chart.margin = function (_) {
+    if (!arguments.length) return chart.config.margin;
+    chart.config.margin.top    = typeof _.top    != 'undefined' ? _.top    : chart.config.margin.top;
+    chart.config.margin.right  = typeof _.right  != 'undefined' ? _.right  : chart.config.margin.right;
+    chart.config.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : chart.config.margin.bottom;
+    chart.config.margin.left   = typeof _.left   != 'undefined' ? _.left   : chart.config.margin.left;
+    return chart;
+  }
+
+  chart.colors = function (_) {
+    var i = 0;
+    forEach(_, function (color) {
+      chart.datasets[i].style.color = color;
+      chart.datasets[i].repaint();
+      i++;
+    });
+    return chart;
+  }
+
+  return chart;
+}
+
+Chartmander.models.pieChart = function (canvas) {
+
+  var pie = Chartmander.models.chart(canvas)
+    , type = "pie"
+    , margin = { top: 50, right: 50, bottom: 50, left: 50 }
+    , center = { x: pie.width()/2, y: pie.height()/2 }
+    , radius = Math.min.apply(null, [center.x, center.y])
+    , innerRadius = .6
+    , rotateAnimation = true
+    , startAngle = 0
+    ;
+
+  // Construct
+  // chart.tooltip = Chartmander.components.tooltip();
+  
+
+  var data =  function (data) {
+    if (!datasets.length)
+      pie.datasets = getDatasetFrom(data, type, colors);
+    else
+      pie.update(data)
+  }
+
+  var drawSlices = function (_perc_) {
+    pie.ctx.save();
+    forEach(pie.datasets(), function (set) {
+      var slice = set.elements[0];
+      pie.ctx.fillStyle = set.style.color;
+      slice.updatePosition(rotateAnimation ? _perc_ : 1);
+      slice.drawInto(pie, set);
+    });
+    pie.ctx.restore();
+  }
+
+  var recalcSlices = function (update) {
+    var slice
+      , sliceStart = 0
+      , sliceEnd
+      ;
+    forEach(pie.datasets, function (set) {
+      // There is always one element inside of dataset in Pie pie
+      slice = set.elements[0];
+      sliceEnd = sliceStart + pie.getAngleOf(slice.value)
+      if (update) {
+        slice.savePosition(); 
+      } else {
+        slice.savePosition(0, 0);
+      }
+      slice.moveTo(sliceStart, sliceEnd);
+      sliceStart = sliceEnd;
+    });
+  }
+
+  var update = function (data) {
+    var i = 0;
+    forEach(pie.datasets, function (set) {
+      set.merge(data[i], pie);
+      i++;
+    });
+    pie.recalcSlices(true);
+    pie.animationCompleted = 0;
+    pie.draw();
+  }
+
+  var getElementValue = function () {
+    var total = 0;
+    forEach(pie.datasets, function (set) {
+      forEach(set.elements, function (e) {
+        total += e.value;
+      })
+    });
+    return total;
+  }
+
+  var getAngleOf = function (sliceValue) {
+    return (sliceValue/getElementValue())*Math.PI*2;
+  }
+
+
+  ///////////////////////
+  // Methods
+  ///////////////////////
+
+  pie.getAngleOf = getAngleOf;
+  pie.data = data;
+
+  // User methods
+  pie.innerRadius = function (_) {
+    if(!arguments.length) return innerRadius;
+    innerRadius = _;
+    return pie;
+  }
+
+  pie.radius = function (_) {
+    if(!arguments.length) return radius;
+    radius = _;
+    return pie;
+  }
+
+  console.log(easings)
+  // pie.recalcSlices(false);
+  pie.draw(drawComponents, false);
+
+  return pie;
 };
+
+Chartmander.components.dataset = function (set, color, type) {
+
+  var title = set.title
+    , elements = getElements(type)
+    , type = type
+    , style = {
+        color: color
+      }
+    ;
+
+  this.each = function (action) {
+    forEach(this.elements, action);
+  }
+
+  this.size = function () {
+    var total = 0;
+    this.each(function (element) {
+      total += element.value;
+    })
+    return total;
+  }
+
+  this.getElementCount = function () {
+    return this.elements.length;
+  }
+
+  this.repaint = function () {
+    if (this.type == "bar" || this.type == "pie") {
+      this.style.normal = {
+        color: tinycolor.lighten(this.style.color, 10).toHex(),
+        stroke: 1,
+        strokeColor: tinycolor.darken(this.style.color, 30).toHex()
+      };
+      this.style.onHover = {
+        color: tinycolor.lighten(this.style.color, 10).toHex(),
+        stroke: 1,
+        strokeColor: tinycolor.darken(this.style.color, 30).toHex()
+      };
+    }
+    else if (this.type == "line") {
+      this.style.normal = {
+        color: "#FFFFFF",
+        stroke: 1,
+        strokeColor: tinycolor.darken(this.style.color, 20).toHex()
+      };
+      this.style.onHover = {
+        color: tinycolor.lighten(this.style.color).toHex(),
+        stroke: 1,
+        strokeColor: tinycolor.darken(this.style.color, 20).toHex()
+      };
+    }
+  }
+
+  this.merge = function (newData, chart) {
+    var newElements = newData.values
+      , oldElements = this.elements
+      ;
+
+    // Test equality of datastream
+    if (this.title != newData.title) {
+      throw new Error("Different datastream on update!");
+    }
+
+    // Update existing elements, if new > old add new elements
+    for (var i=0, len=newElements.length; i != len; i++) {
+      // Update existing
+      if (oldElements[i] instanceof Element) {
+        this.elements[i].updateValue(newElements[i].label, newElements[i].value).savePosition();
+      }
+      // Create
+      else {
+        var element = new Element(newElements[i], this.title);
+
+        if (this.type == "bar")
+          element = element.Bar();
+        else if (this.type == "line")
+          element = element.Point();
+        // Each segment in pieChart is dataset with only one element therefore next lines will never get executec
+        // else if (this.type == "pie")
+        //   element = element.Segment();
+        this.elements.push(element.savePosition(chart.getGridProperties().width, chart.getBase()));
+      }
+    }
+    // Flush old 
+    if (oldElements.length > newElements.length) {
+      for (var j=oldElements-newElements; j!=0; j--) {
+        // supr FAUX
+        console.log("Delete");
+        this.elements[oldElements-j].die();
+      }
+    }
+  }
+
+  this.element = function (index) {
+    if (index == "last")
+      return this.elements[this.elements.length-1];
+    else
+      return this.elements[index]
+  }
+
+  function getElements (type) {
+    var result = [];
+    
+    switch (type) {
+      case "bar": forEach(set.values, function (barData) {
+              result.push(new Element(barData, set.title).Bar());
+            });
+            break;
+      case "pie": forEach(set.values, function (segmentData) {
+              result.push(new Element(segmentData, set.title).Slice());
+            });
+            break;
+      case "line": forEach(set.values, function (pointData) {
+              result.push(new Element(pointData, set.title).Point());
+            });
+            break;
+      default: return;
+    }
+    return result;
+  }
+
+  this.repaint();
+
+  return this;
+}
+
+Chartmander.components.element = function (data, title) {
+
+  var set = title
+    , label = data.label
+    , value = data.value
+    , state = {
+        isAnimated: false,
+        animationCompleted: 0, // normal => 0, hover => 1
+        permissionToDie: false,
+        // Positions
+        now: {
+          x: 0,
+          y: 0
+        },
+        from: {
+          x: 0,
+          y: 0
+        },
+        to: {
+          x: 0,
+          y: 0
+        }
+      }
+    ;
+
+
+  element.label = function (_) {
+    if(!arguments.length) return label;
+    label = _;
+    return element;
+  }
+
+  element.value = function (_) {
+    if(!arguments.length) return value;
+    value = _;
+    return element;
+  }
+
+  // this.die = function () {
+  //   this.permissionToDie = true;
+  //   return this;
+  // }
+
+  element.moveTo = function (x, y) {
+    if (x!=false)
+      state.to.x = x;
+    if(y!=false)
+      state.to.y = y;
+    return element;
+  }
+
+  this.animIn = function () {
+    this.isAnimated(true);
+    this.state.animationCompleted += .07;
+    if (this.getState() >= 1) {
+      this.isAnimated(false);
+      this.state.animationCompleted = 1;
+    }
+  }
+
+  this.animOut = function () {
+    this.isAnimated(true);
+    this.state.animationCompleted -= .07;
+    if (this.getState() <= 0) {
+      this.isAnimated(false);
+      this.state.animationCompleted = 0;
+    }
+  }
+
+  this.updatePosition = function (_perc_) {
+    var deltaX = state.from.x - state.to.x
+      , deltaY = state.from.y - state.to.y
+      ;
+    state.now.x = state.from.x - deltaX*_perc_;
+    state.now.y = state.from.y - deltaY*_perc_;
+  }
+
+  this.savePosition = function (x, y) {
+    if (!arguments.length) {
+      state.from.x = state.now.x;
+      state.from.y = state.now.y;
+    } else {
+      state.from.x = x;
+      state.from.y = y;
+    }
+    return element;
+  }
+
+  this.isAnimated = function (_) {
+    if(!arguments.length) return state.isAnimated;
+    state.isAnimated = _;
+    return element;
+  }
+
+  this.getState = function () {
+    return state.animationCompleted;
+  }
+
+  this.getX = function () {
+    return state.now.x;
+  }
+
+  this.getY = function () {
+    return state.now.y;
+  }
+
+  this.setX = function (x) {
+    state.now.x = x;
+  }
+
+  this.setY = function (y) {
+    state.now.y = y;
+  }
+
+  // this.resetPosition = function (chart, yStart) {
+  //   if(!isNaN(yStart))
+  //     state.from.y = yStart;
+  //   else
+  //     state.from.y = chart.getBase();
+  //   this.moveTo(false, chart.getBase() - value/chart.yAxis.VPP());
+  // }
+
+  return element;
+}
+
+Chartmander.components.slice = function (data, title) {
+
+  /*
+  ** IMPORTANT
+  ** Slice uses setters/getters X, Y but it return Start and End values
+  */
+
+  var slice = Chartmander.components.element(data, title);
+
+  slice.drawInto = function (chart, set) {
+    chart.ctx.beginPath();
+    // Check if this slice was hovered
+    if (chart.hovered()) {
+      if (sliceIsHovered(chart)) {
+        chart.ctx.fillStyle = set.style.onHover.color;
+        // chart.tooltip.addItem({
+        //   "set": set.title,
+        //   "label": slice.label,
+        //   "value": slice.value,
+        //   "color": set.style.normal.color
+        // });
+      }
+    }
+    chart.ctx.arc(chart.center(), chart.center(), chart.radius(), cfg.startAngle+slice.getX(), cfg.startAngle+slice.getY());
+    chart.ctx.arc(chart.center(), chart.center(), chart.radius()*chart.innerRadius(), cfg.startAngle+slice.getY(), cfg.startAngle+slice.getX(), true);
+    chart.ctx.fill();
+  }
+
+  var sliceIsHovered = function (chart) {
+    var x = chart.getMouse("x") - chart.center()
+      , y = chart.getMouse("y") - chart.center()
+      , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
+      , hoverAngle
+      , hovered = false
+      ;
+
+    if (fromCenter <= chart.radius() && fromCenter >= chart.radius()*chart.innerRadius()) {
+      hoverAngle = Math.atan2(y, x) - chart.startAngle();
+      if (hoverAngle < 0)
+        hoverAngle += Math.PI*2;
+      if (hoverAngle >= slice.getX() && hoverAngle <= slice.getY())
+        hovered = true;
+    }
+
+    return hovered;
+  }
+
+  return slice;
+};
+})();
