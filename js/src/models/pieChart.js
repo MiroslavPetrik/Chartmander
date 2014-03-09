@@ -1,6 +1,6 @@
 Chartmander.models.pieChart = function (canvas) {
 
-  var pie = Chartmander.models.chart(canvas)
+  var pie = new Chartmander.models.chart(canvas)
     , type = "pie"
     , center = { x: pie.width()/2, y: pie.height()/2 }
     , radius = Math.min.apply(null, [center.x, center.y])
@@ -9,9 +9,7 @@ Chartmander.models.pieChart = function (canvas) {
     , startAngle = 0
     ;
 
-  // Construct
   // chart.tooltip = Chartmander.components.tooltip();
-
 
   var recalcSlices = function (update) {
     var slice
@@ -21,6 +19,8 @@ Chartmander.models.pieChart = function (canvas) {
 
     forEach(pie.datasets(), function (set) {
       // There is always one element inside of dataset in Pie pie
+
+      console.log(set.els()[0].value())
       slice = set.getElement(0);
       sliceEnd = sliceStart + getAngleOf(slice.value());
       if (update) {
@@ -36,6 +36,7 @@ Chartmander.models.pieChart = function (canvas) {
   var drawSlices = function (_perc_) {
     pie.ctx.save();
     forEach(pie.datasets(), function (set) {
+      // console.log(set.getElement(0).value())
       var slice = set.getElement(0);
       pie.ctx.fillStyle = set.color();
       slice.updatePosition(rotateAnimation ? _perc_ : 1);
@@ -116,8 +117,6 @@ Chartmander.models.pieChart = function (canvas) {
     startAngle = _;
     return pie;
   }
-
-  // pie.draw(drawComponents, false);
 
   return pie;
 };

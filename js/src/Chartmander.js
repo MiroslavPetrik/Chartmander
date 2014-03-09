@@ -202,7 +202,7 @@
         }
         color = tinycolor.darken(colors[indexCopy], 5*offset).toRgbString();
       }
-      datasets.push(Chartmander.components.dataset(set, color, type));
+      datasets.push(new Chartmander.components.dataset(set, color, type));
       index++;
     });
     return datasets;

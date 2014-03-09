@@ -25,9 +25,6 @@ Chartmander.components.element = function (data, title) {
       }
     ;
 
-
-
-
   element.label = function (_) {
     if(!arguments.length) return label;
     label = _;

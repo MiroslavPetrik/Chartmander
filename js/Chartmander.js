@@ -202,7 +202,7 @@
         }
         color = tinycolor.darken(colors[indexCopy], 5*offset).toRgbString();
       }
-      datasets.push(Chartmander.components.dataset(set, color, type));
+      datasets.push(new Chartmander.components.dataset(set, color, type));
       index++;
     });
     return datasets;
@@ -567,7 +567,7 @@ Chartmander.models.chart = function (canvasID) {
 
 Chartmander.models.pieChart = function (canvas) {
 
-  var pie = Chartmander.models.chart(canvas)
+  var pie = new Chartmander.models.chart(canvas)
     , type = "pie"
     , center = { x: pie.width()/2, y: pie.height()/2 }
     , radius = Math.min.apply(null, [center.x, center.y])
@@ -576,9 +576,7 @@ Chartmander.models.pieChart = function (canvas) {
     , startAngle = 0
     ;
 
-  // Construct
   // chart.tooltip = Chartmander.components.tooltip();
-
 
   var recalcSlices = function (update) {
     var slice
@@ -588,6 +586,8 @@ Chartmander.models.pieChart = function (canvas) {
 
     forEach(pie.datasets(), function (set) {
       // There is always one element inside of dataset in Pie pie
+
+      console.log(set.els()[0].value())
       slice = set.getElement(0);
       sliceEnd = sliceStart + getAngleOf(slice.value());
       if (update) {
@@ -603,6 +603,7 @@ Chartmander.models.pieChart = function (canvas) {
   var drawSlices = function (_perc_) {
     pie.ctx.save();
     forEach(pie.datasets(), function (set) {
+      // console.log(set.getElement(0).value())
       var slice = set.getElement(0);
       pie.ctx.fillStyle = set.color();
       slice.updatePosition(rotateAnimation ? _perc_ : 1);
@@ -684,8 +685,6 @@ Chartmander.models.pieChart = function (canvas) {
     return pie;
   }
 
-  // pie.draw(drawComponents, false);
-
   return pie;
 };
 
@@ -704,6 +703,27 @@ Chartmander.components.dataset = function (set, color, type) {
         strokeColor: tinycolor.darken(color, 20).toHex()
     }
     ;
+
+
+  function getElements (type) {
+    var result = [];
+    switch (type) {
+      case "bar": forEach(set.values, function (bar) {
+              result.push(new Chartmander.components.bar(bar, set.title));
+            });
+            break;
+      case "pie": forEach(set.values, function (slice) {
+              result.push(new Chartmander.components.slice(slice, set.title));
+            });
+            break;
+      case "line": forEach(set.values, function (point) {
+              result.push(new Chartmander.components.point(point, set.title));
+            });
+            break;
+      default: return;
+    }
+    return result;
+  }
 
 
   ///////////////////////////////
@@ -773,32 +793,18 @@ Chartmander.components.dataset = function (set, color, type) {
       return elements[index];
   }
 
-  function getElements (type) {
-    var result = [];
-    
-    switch (type) {
-      case "bar": forEach(set.values, function (bar) {
-              result.push(Chartmander.components.bar(bar, set.title));
-            });
-            break;
-      case "pie": forEach(set.values, function (slice) {
-              result.push(Chartmander.components.slice(slice, set.title));
-            });
-            break;
-      case "line": forEach(set.values, function (point) {
-              result.push(Chartmander.components.point(point, set.title));
-            });
-            break;
-      default: return;
-    }
-    return result;
+  dataset.els = function () {
+    return elements;
   }
+
 
   dataset.color = function (_) {
     if(!arguments.length) return normal.color;
     normal.color = _;
     return this;
   }
+
+  // console.log(elements[0].value())
 
   return dataset;
 }
@@ -829,9 +835,6 @@ Chartmander.components.element = function (data, title) {
         y: 0
       }
     ;
-
-
-
 
   element.label = function (_) {
     if(!arguments.length) return label;
@@ -931,7 +934,7 @@ Chartmander.components.slice = function (data, title) {
   ** Slice uses X, Y methods but they refer to Start and End values
   */
 
-  var slice = Chartmander.components.element(data, title);
+  var slice = new Chartmander.components.element(data, title);
 
   var sliceIsHovered = function (chart) {
     var x = chart.getMouse("x") - chart.center().x

@@ -15,6 +15,27 @@ Chartmander.components.dataset = function (set, color, type) {
     ;
 
 
+  function getElements (type) {
+    var result = [];
+    switch (type) {
+      case "bar": forEach(set.values, function (bar) {
+              result.push(new Chartmander.components.bar(bar, set.title));
+            });
+            break;
+      case "pie": forEach(set.values, function (slice) {
+              result.push(new Chartmander.components.slice(slice, set.title));
+            });
+            break;
+      case "line": forEach(set.values, function (point) {
+              result.push(new Chartmander.components.point(point, set.title));
+            });
+            break;
+      default: return;
+    }
+    return result;
+  }
+
+
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
@@ -82,32 +103,18 @@ Chartmander.components.dataset = function (set, color, type) {
       return elements[index];
   }
 
-  function getElements (type) {
-    var result = [];
-    
-    switch (type) {
-      case "bar": forEach(set.values, function (bar) {
-              result.push(Chartmander.components.bar(bar, set.title));
-            });
-            break;
-      case "pie": forEach(set.values, function (slice) {
-              result.push(Chartmander.components.slice(slice, set.title));
-            });
-            break;
-      case "line": forEach(set.values, function (point) {
-              result.push(Chartmander.components.point(point, set.title));
-            });
-            break;
-      default: return;
-    }
-    return result;
+  dataset.els = function () {
+    return elements;
   }
+
 
   dataset.color = function (_) {
     if(!arguments.length) return normal.color;
     normal.color = _;
     return this;
   }
+
+  // console.log(elements[0].value())
 
   return dataset;
 }

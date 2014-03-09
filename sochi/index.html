@@ -39,11 +39,11 @@ title: Sochi 2014 visualization with Chartmander.js
 var athletesData = [
   {
     "title": "Men",
-    "values": [{ "label": "men", "value": 1 }]
+    "values": [{ "label": "men", "value": 5 }]
   },
   {
     "title": "Women",
-    "values": [{ "label": "women", "value": 1 }]
+    "values": [{ "label": "women", "value": 4 }]
   }
 ];
 
@@ -52,7 +52,7 @@ Chartmander.addChart(function(){
   var chart = Chartmander.models.pieChart("circle");
     chart
       .margin({left: 30})
-      .colors(["red", "yellow"])
+      // .colors(["blue", "yellow"])
       ;
     // Data after settings
     chart.render(athletesData);
