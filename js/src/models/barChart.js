@@ -1,29 +1,21 @@
-Chartmander.prototype.Bar = function (data) {
+Chartmander.models.barChart = function (canvas) {
 
-  var chart = this
-    , ctx = chart.ctx
-    , cfg = chart.config
+  var bars = new Chartmander.models.chart(canvas)
+    , type = "bar"
+    // , margin = { top: 50, right: 80, bottom: 50, left: 80 };
+    , stacked = false
+    , maxBarWidth = 30
+    , datasetSpacing = 0
+    , barWidth = maxBarWidth
+    , groupWidth = 0
+    , groupOffset = 0
     ;
 
-  // Bar Chart Default
-  cfg.type = "bar";
-  cfg.margin = { top: 50, right: 80, bottom: 50, left: 80 };
-  cfg.stacked = false;
-  cfg.maxBarWidth = 30;
-  cfg.datasetSpacing = 0;
+  var xAxis = new Chartmander.components.xAxis()
+    , yAxis = new Chartmander.components.yAxis()
+    , grid  = new Chartmander.components.grid()
+    ;
 
-  // Axis defaults
-  cfg.xAxisVisible = true;
-  cfg.yAxisVisible = true;
-
-
-  // Chart state variables
-  cfg.barWidth = cfg.maxBarWidth;
-  cfg.groupWidth = 0;
-  cfg.groupOffset = 0;
-
-  // Construct
-  chart.datasets = getDatasetFrom(data, cfg.type, cfg.colors);
   // chart.xAxis = getAxesFrom(chart.datasets)[0];
   chart.xAxis = new xAxis();
   chart.yAxis = getAxesFrom(chart.datasets)[1];
@@ -41,32 +33,43 @@ Chartmander.prototype.Bar = function (data) {
 
 
   // Recalc
-  chart.grid.calculateProperties(cfg.margin, cfg);
+  chart.grid.calculateProperties(margin, cfg);
   chart.xAxis.recalc(chart);
   chart.yAxis.recalc(chart);
 
-  this.render = function () {
-    
+
+  var render =  function (data) {
+    if (bars.setsCount() == 0) {
+      bars.datasets(getDatasetFrom(data, type, bars.colors()));
+      recalcBars(false);
+      bars.draw(drawComponents, false);
+    }
+    else {
+      update(data);
+      recalcBars(true);
+      bars.completed(0);
+      bars.draw(drawComponents, false)
+    }
   }
 
-  this.recalcBars = function () {
+
+  bars.recalcBars = function () {
     var counter = 0
-      , grid = chart.getGridProperties()
-      , streams = chart.datasets.length
+      , streams = chart.setsCount()
       , leftFix
       , x
       , y
       ;
 
-    cfg.barWidth = Math.floor( chart.getGridProperties().width/chart.getElementCount() );
-    leftFix = (cfg.barWidth*streams)/2
+    barWidth = Math.floor( grid.width() /chart.elementCount() );
+    leftFix = (barWidth*streams)/2
 
     // faux
     chart.yAxis.config.margin = leftFix + 10;
 
     forEach(chart.datasets, function (set) {
       set.each(function (bar) {
-        x = grid.left - leftFix + (bar.label-chart.xAxis.dataMin)/chart.xAxis.TPP() + counter*cfg.barWidth;
+        x = grid.left - leftFix + (bar.label-chart.xAxis.dataMin)/chart.xAxis.TPP() + counter*barWidth;
         y = -bar.value/chart.yAxis.VPP();
         bar.savePosition(grid.width/2, 0).moveTo(x, y).saveBase(chart.getBase()).moveBase(chart.getBase());
       })
@@ -74,7 +77,7 @@ Chartmander.prototype.Bar = function (data) {
     });
   }
 
-  this.drawBars = function (_perc_) {
+  bars.drawBars = function (_perc_) {
     var counter = {
         dataset: 0
       }
@@ -95,7 +98,7 @@ Chartmander.prototype.Bar = function (data) {
     ctx.restore();
   }
 
-  this.update = function (data) {
+ var update = function (data) {
     var i = 0
       , xValues = getArrayBy(data, "label")
       , yValues = getArrayBy(data, "value")
@@ -113,30 +116,38 @@ Chartmander.prototype.Bar = function (data) {
     chart.xAxis.recalc(chart);
 
     // Recalc sets
-    forEach(this.datasets, function (set) {
+    forEach(datasets, function (set) {
       if (data[i] === undefined)
         throw new Error("Missing dataset. Dataset count on update must match.")
 
       set.merge(data[i], chart);
 
-      set.each(function (element) {
-        element.savePosition().moveTo(false, - element.value/chart.yAxis.VPP()).saveBase().moveBase(chart.getBase());
+      set.each(function (bar) {
+        bar.savePosition().moveTo(false, - bar.value()/yAxis.VPP()).saveBase().moveBase(chart.getBase());
       });
       i++;
     });
 
-    chart.animationCompleted = 0;
-    chart.draw();
+    chart.completed(0);
+    draw();
   }
 
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  bars.render = render;
+
   // User methods
-  this.datasetSpacing = function (_) {
-    this.config.datasetSpacing = _;
-    return chart;
+  bars.datasetSpacing = function (_) {
+    if(!arguments.length) return datasetSpacing;
+    datasetSpacing = _;
+    return bars;
   }
 
   chart.recalcBars();
   // Ignite
   chart.draw();
-  return chart;
+  return bars;
 }

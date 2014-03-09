@@ -292,7 +292,7 @@ Chartmander.models.chart = function (canvasID) {
     , animationCompleted = 0
     , easing = "easeOutCubic"
     // , onAnimationCompleted = null
-    , mouse = {}
+    , mouse = { x: 0, y: 0 }
     , hoverNotFinished = false
     ;
 
@@ -307,25 +307,24 @@ Chartmander.models.chart = function (canvasID) {
   //   lineWidth: 1
   // };
 
-  // canvas.addEventListener("mouseenter", handleEnter, false);
-  // canvas.addEventListener("mousemove", handleHover, false);
-  // canvas.addEventListener("mouseleave", handleLeave, false);
+  canvas.addEventListener("mouseenter", handleEnter, false);
+  canvas.addEventListener("mousemove", handleHover, false);
+  canvas.addEventListener("mouseleave", handleLeave, false);
 
-  // if (window.devicePixelRatio) {
-  //   ctx.canvas.style.width = config.width + "px";
-  //   ctx.canvas.style.height = config.height + "px";
-  //   ctx.canvas.height = config.height * window.devicePixelRatio;
-  //   ctx.canvas.width = config.width * window.devicePixelRatio;
-  //   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  // }
+  if (window.devicePixelRatio) {
+    ctx.canvas.style.width = width + "px";
+    ctx.canvas.style.height = height + "px";
+    ctx.canvas.height = height * window.devicePixelRatio;
+    ctx.canvas.width = width * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
 
   clear = function () {
     ctx.clearRect(0, 0, width, height);
   };
 
   draw = function (drawComponents, finished) {
-      // , tip = chart.tooltip
-      var easingFunction = easings[easing]
+    var easingFunction = easings[easing]
       , animationIncrement = 1/animationSteps
       , _perc_
       ;
@@ -415,30 +414,28 @@ Chartmander.models.chart = function (canvasID) {
     requestAnimationFrame(loop);
   }
 
-  // function handleHover (e) {
-  //   var rect = canvas.getBoundingClientRect();
-  //   config.mouse = {
-  //     x: e.clientX - rect.left,
-  //     y: e.clientY - rect.top
-  //   }
-  //   // console.log(chart.config.mouse.x, chart.config.mouse.y)
-  //   // Allow repaint on hover only if chart and tooltip are done with self-repaint
-  //   // AND if also hovered item is not repainting 
-  //   if (config.animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverNotFinished ) {
-  //     chart.render(true)
-  //   }
-  // }
+  function handleHover (event) {
+    var rect = canvas.getBoundingClientRect();
+    mouse.x = event.clientX - rect.left;
+    mouse.y = event.clientY - rect.top;
+    // Allow repaint on hover only if chart and tooltip are done with self-repaint
+    // AND if also hovered item is not repainting 
+    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverNotFinished ) {
+    if (animationCompleted >= 1 ) {
+      chart.drawFull();
+    }
+  }
 
   function handleEnter () {
     hovered = true;
   }
 
-  // function handleLeave () {
-  //   hovered = false;
-  //   // chart.tooltip.removeItems();
-  //   if (animationCompleted >= 1)
-  //     draw(true);
-  // }
+  function handleLeave () {
+    hovered = false;
+    // chart.tooltip.removeItems();
+    if (animationCompleted >= 1)
+      chart.drawFull();
+  }
 
   ///////////////////////////////
   // Public Methods & Variables
@@ -455,11 +452,11 @@ Chartmander.models.chart = function (canvasID) {
     return height;
   }
 
-  chart.getMouse = function (axis) {
-    if (axis === "x")
-      return mouse.x;
-    else
-      return mouse.y;
+  chart.mouse = function (_) {
+    if(!arguments.length) return mouse
+    mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
+    mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
+    return pie;
   }
 
   chart.completed = function (_) {
@@ -489,11 +486,11 @@ Chartmander.models.chart = function (canvasID) {
   //     return chart.getGridProperties()["bottom"] - chart.yAxis.config.zeroLevel;
   // }
 
-  chart.getElementCount = function () {
+  chart.elementCount = function () {
     var total = 0;
-    forEach(this.datasets, function (set) {
-      total += set.getElementCount();
-    })
+    forEach(datasets, function (set) {
+      total += set.elementCount();
+    });
     return total;
   }
 
@@ -518,6 +515,20 @@ Chartmander.models.chart = function (canvasID) {
   //   this.config.pointRadius = _;
   //   return chart;
   // }
+  chart.margin = function (_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return chart;
+  }
+
+  chart.colors = function (_) {
+    if(!arguments.length) return colors;
+    colors = _;
+    return chart;
+  }
 
   chart.fontColor = function (_) {
     if (!arguments.length) return fontColor;
@@ -541,26 +552,6 @@ Chartmander.models.chart = function (canvasID) {
   //   return chart;
   // }
 
-  chart.margin = function (_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return chart;
-  }
-
-  chart.colors = function (_) {
-    if(!arguments.length) return colors;
-    colors = _;
-    // var i = 0;
-    // forEach(_, function (color) {
-    //   chart.datasets[i].style.color = color;
-    //   chart.datasets[i].repaint();
-    //   i++;
-    // });
-    return chart;
-  }
 
   return chart;
 }
@@ -650,8 +641,11 @@ Chartmander.models.pieChart = function (canvas) {
   }
 
   var drawComponents = function (_perc_) {
-    console.log("Pie render")
     drawSlices(_perc_);
+  }
+
+  var drawFull = function () {
+    pie.draw(drawComponents, true);
   }
 
 
@@ -660,6 +654,7 @@ Chartmander.models.pieChart = function (canvas) {
   ///////////////////////////////
 
   pie.render = render;
+  pie.drawFull = drawFull;
 
   pie.center = function (_) {
     if(!arguments.length) return center
@@ -742,7 +737,7 @@ Chartmander.components.dataset = function (set, color, type) {
     return total;
   }
 
-  dataset.getElementCount = function () {
+  dataset.elementCount = function () {
     return dataset.elements.length;
   }
 
@@ -801,6 +796,12 @@ Chartmander.components.dataset = function (set, color, type) {
   dataset.color = function (_) {
     if(!arguments.length) return normal.color;
     normal.color = _;
+    return this;
+  }
+
+  dataset.hoverColor = function (_) {
+    if(!arguments.length) return hover.color;
+    hover.color = _;
     return this;
   }
 
@@ -936,20 +937,22 @@ Chartmander.components.slice = function (data, title) {
 
   var slice = new Chartmander.components.element(data, title);
 
-  var sliceIsHovered = function (chart) {
-    var x = chart.getMouse("x") - chart.center().x
-      , y = chart.getMouse("y") - chart.center().y
+  var sliceIsHovered = function (pie) {
+    var x = pie.mouse().x - pie.center().x
+      , y = pie.mouse().y - pie.center().y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
       ;
 
-    if (fromCenter <= chart.radius() && fromCenter >= chart.radius()*chart.innerRadius()) {
-      hoverAngle = Math.atan2(y, x) - chart.startAngle();
-      if (hoverAngle < 0)
+    if (fromCenter <= pie.radius() && fromCenter >= pie.radius()*pie.innerRadius()) {
+      hoverAngle = Math.atan2(y, x) - pie.startAngle();
+      if (hoverAngle < 0) {
         hoverAngle += Math.PI*2;
-      if (hoverAngle >= slice.x() && hoverAngle <= slice.y())
+      }
+      if (hoverAngle >= slice.x() && hoverAngle <= slice.y()) {
         hovered = true;
+      }
     }
 
     return hovered;
@@ -964,7 +967,7 @@ Chartmander.components.slice = function (data, title) {
     // Check if this slice was hovered
     if (pie.hovered()) {
       if (sliceIsHovered(pie)) {
-        pie.ctx.fillStyle = set.color();
+        pie.ctx.fillStyle = set.hoverColor();
         // pie.tooltip.addItem({
         //   "set": set.title,
         //   "label": slice.label,
@@ -980,4 +983,5 @@ Chartmander.components.slice = function (data, title) {
 
   return slice;
 };
+
 })();

@@ -1,19 +1,18 @@
-var xAxis = function () {
+Chartmander.models.axis = function () {
+
   var axis = this;
 
-  this.labels = [];
-  this.labelSpace = 0;
-  this.dataMin = 0;
-  this.dataMax = 0;
+  var labels = []
+    , labelSpace = 0
+    , dataMin = 0
+    , dataMax = 0
+    , dateFormat: "MM/YYYY"
+    , TPP: 0
+    ;
 
-  this.config = {
-    "dateFormat": "MM/YYYY",
-    "TPP": 0 // Time Per Pixel
-  }
+  recalc = function (chart, type) {
 
-  this.recalc = function (chart, type) {
-
-    var range = this.dataMax - this.dataMin
+    var range = dataMax - dataMin
       , steps = [
         {
           "days": 1,
@@ -34,13 +33,13 @@ var xAxis = function () {
       ]
       , dayMSec = 60*60*24*1000
       , daysInRange = range/dayMSec
-      , startDate = moment(this.dataMin)
+      , startDate = moment(dataMin)
       , stepIndex = steps.length
       , labelCount = 0
       ;
 
-    this.TPP(range/chart.getGridProperties().width);
-    this.labels = [];
+    TPP(range/chart.getGridProperties().width);
+    labels = [];
 
     while (labelCount < 1) {
       stepIndex--;
@@ -50,46 +49,46 @@ var xAxis = function () {
 
     for (var i = 0; i < labelCount; i++) {
       var label = moment(startDate).add(steps[stepIndex].label, i);
-      this.labels.push(label.valueOf());
+      labels.push(label.valueOf());
     }
 
-    return this;
+    return axis;
   }
 
-  this.drawInto = function (chart) {
+  drawInto = function (chart) {
     var ctx = chart.ctx
-      , cfg = chart.config
-      , topOffset = chart.getGridProperties().bottom + 25
+      , topOffset = chart.grid.config().bottom + 25
       ;
 
-    if (cfg.xAxisVisible) {
-      ctx.save();
-      ctx.fillStyle = cfg.fontColor;
-      ctx.font = cfg.font;
-      this.each(function (label) {
-        var leftOffset = chart.getGridProperties().left + (label-chart.xAxis.dataMin)/chart.xAxis.TPP();
-          ;
-        ctx.fillText(moment(label).format(axis.dateFormat()), leftOffset, topOffset);
-      });
-      ctx.restore();
-    }
+    ctx.save();
+    ctx.fillStyle = chart.fontColor();
+    ctx.font = chart.font();
+    forEach(labels, function (label) {
+      var leftOffset = chart.getGridProperties().left + (label-chart.xAxis.dataMin)/chart.xAxis.TPP();
+      
+    })
+    each(function (label) {
+        ;
+      ctx.fillText(moment(label).format(axis.dateFormat()), leftOffset, topOffset);
+    });
+    ctx.restore();
   }
 
-  this.each = function (action) {
-    forEach(this.labels, action);
+  each = function (action) {
+    forEach(labels, action);
   }
 
-  this.TPP = function (_) {
-    if (!arguments.length) return this.config.TPP;
-    this.config.TPP = _;
-    return this;
+  TPP = function (_) {
+    if (!arguments.length) return TPP;
+    TPP = _;
+    return axis;
   }
 
   // User methods
-  this.dateFormat = function (_) {
-    if (!arguments.length) return this.config.dateFormat;
-    this.config.dateFormat = _;
-    return this;
+  dateFormat = function (_) {
+    if (!arguments.length) return dateFormat;
+    dateFormat = _;
+    return axis;
   }
 }
 

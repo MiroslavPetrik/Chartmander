@@ -52,7 +52,7 @@ Chartmander.components.dataset = function (set, color, type) {
     return total;
   }
 
-  dataset.getElementCount = function () {
+  dataset.elementCount = function () {
     return dataset.elements.length;
   }
 
@@ -111,6 +111,12 @@ Chartmander.components.dataset = function (set, color, type) {
   dataset.color = function (_) {
     if(!arguments.length) return normal.color;
     normal.color = _;
+    return this;
+  }
+
+  dataset.hoverColor = function (_) {
+    if(!arguments.length) return hover.color;
+    hover.color = _;
     return this;
   }
 

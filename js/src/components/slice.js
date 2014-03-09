@@ -7,20 +7,22 @@ Chartmander.components.slice = function (data, title) {
 
   var slice = new Chartmander.components.element(data, title);
 
-  var sliceIsHovered = function (chart) {
-    var x = chart.getMouse("x") - chart.center().x
-      , y = chart.getMouse("y") - chart.center().y
+  var sliceIsHovered = function (pie) {
+    var x = pie.mouse().x - pie.center().x
+      , y = pie.mouse().y - pie.center().y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
       ;
 
-    if (fromCenter <= chart.radius() && fromCenter >= chart.radius()*chart.innerRadius()) {
-      hoverAngle = Math.atan2(y, x) - chart.startAngle();
-      if (hoverAngle < 0)
+    if (fromCenter <= pie.radius() && fromCenter >= pie.radius()*pie.innerRadius()) {
+      hoverAngle = Math.atan2(y, x) - pie.startAngle();
+      if (hoverAngle < 0) {
         hoverAngle += Math.PI*2;
-      if (hoverAngle >= slice.x() && hoverAngle <= slice.y())
+      }
+      if (hoverAngle >= slice.x() && hoverAngle <= slice.y()) {
         hovered = true;
+      }
     }
 
     return hovered;
@@ -35,7 +37,7 @@ Chartmander.components.slice = function (data, title) {
     // Check if this slice was hovered
     if (pie.hovered()) {
       if (sliceIsHovered(pie)) {
-        pie.ctx.fillStyle = set.color();
+        pie.ctx.fillStyle = set.hoverColor();
         // pie.tooltip.addItem({
         //   "set": set.title,
         //   "label": slice.label,

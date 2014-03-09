@@ -83,8 +83,11 @@ Chartmander.models.pieChart = function (canvas) {
   }
 
   var drawComponents = function (_perc_) {
-    console.log("Pie render")
     drawSlices(_perc_);
+  }
+
+  var drawFull = function () {
+    pie.draw(drawComponents, true);
   }
 
 
@@ -93,6 +96,7 @@ Chartmander.models.pieChart = function (canvas) {
   ///////////////////////////////
 
   pie.render = render;
+  pie.drawFull = drawFull;
 
   pie.center = function (_) {
     if(!arguments.length) return center
