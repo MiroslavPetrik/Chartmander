@@ -178,10 +178,10 @@ Chartmander.models.chart = function (canvasID) {
   }
 
   chart.mouse = function (_) {
-    if(!arguments.length) return mouse
+    if(!arguments.length) return mouse;
     mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
     mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
-    return pie;
+    return chart;
   }
 
   chart.completed = function (_) {
@@ -268,7 +268,8 @@ Chartmander.models.chart = function (canvasID) {
   }
 
   chart.font = function (_) {
-    this.config.font = _;
+    if (!arguments.length) return font;
+    font = _;
     return chart;
   }
 

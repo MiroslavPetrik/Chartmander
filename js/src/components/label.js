@@ -1,9 +1,11 @@
-Element.prototype.Label = function() {
+Chartmander.components.label = function() {
 
-  this.startAt = function (val) {
-    this.state.from.y = val;
-    return this;
+	var label = Chartmander.components.element();
+
+  label.startAt = function (val) {
+    label.state.from.y = val;
+    return label;
   } 
 
-  return this;
+  return label;
 };

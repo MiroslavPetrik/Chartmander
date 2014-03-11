@@ -25,6 +25,10 @@ Chartmander.components.element = function (data, title) {
       }
     ;
 
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
   element.label = function (_) {
     if(!arguments.length) return label;
     label = _;

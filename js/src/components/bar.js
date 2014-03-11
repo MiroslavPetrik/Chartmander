@@ -1,87 +1,96 @@
-Element.prototype.Bar = function () {
+Chartmander.components.bar = function (data, title) {
 
-  this.state.from.base = 0;
-  this.state.to.base = 0;
-  this.state.now.base = 0;
+  var bar = Chartmander.components.element(data, title);
 
-  this.drawInto = function (chart, set) {
-    var ctx = chart.ctx
-      , cfg = chart.config
-      , style = set.style
-      , hover = this.isHovered(chart)
+  var base = {
+        from: 0,
+        to:   0,
+        now:  0
+      }
       ;
 
-    if (hover) {
+  drawInto = function (chart, set) {
+    var ctx = chart.ctx
+      , style = set.style
+      ;
+
+    if (isHovered(chart)) {
       ctx.save();
-      ctx.fillStyle = style.onHover.color;
-      ctx.strokeStyle = style.onHover.strokeColor;
-      chart.tooltip.addItem({
-        "set": set.title,
-        "label": this.label,
-        "value": this.value,
-        "color": style.normal.color
-      });
+      ctx.fillStyle = style.hoverColor();
+      // ctx.strokeStyle = style.onHover.strokeColor;
+      // chart.tooltip.addItem({
+      //   "set": set.title
+      //   "label": bar.label,
+      //   "value": bar.value,
+      //   "color": style.normal.color
+      // });
     }
 
-    ctx.fillRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
-    if (style.normal.stroke > 0)
-      ctx.strokeRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
+    ctx.fillRect(bar.x(), bar.getBase(), chart.barWidth(), bar.y());
+    // if (style.normal.stroke > 0)
+      // ctx.strokeRect(bar.x(), bar.getBase(), chart.barWidth(), bar.y());
 
-    if (hover) {
-      if (style.onHover.stroke > 0)
-        ctx.strokeRect(this.getX(), this.getBase(), cfg.barWidth, this.getY());
-      ctx.restore();
-    }
+    // if (hover) {
+    //   if (style.onHover.stroke > 0)
+    //     ctx.strokeRect(bar.x(), bar.getBase(), cfg.barWidth, bar.y());
+    //   ctx.restore();
+    // }
 
-    if (cfg.displayValue) {
-      ctx.save();
-      ctx.fillStyle = tinycolor.darken(set.style.color, 30).toHex();
-      ctx.translate(this.getX(), chart.getBase() - 20);
-      ctx.rotate(-Math.PI/2);
-      ctx.fillText(this.value/1000, 0, 15);
-      ctx.restore();
-    }
+    // if (chart.displayValue()) {
+    //   ctx.save();
+    //   ctx.fillStyle = tinycolor.darken(set.color(), 30).toHex();
+    //   ctx.translate(bar.x(), chart.getBase() - 20);
+    //   ctx.rotate(-Math.PI/2);
+    //   ctx.fillText(bar.value/1000, 0, 15);
+    //   ctx.restore();
+    // }
 
   }
 
-  this.isHovered = function (chart) {
-    var x = chart.getMouse("x")
-      , y = chart.getMouse("y")
+  isHovered = function (chart) {
+    var x = chart.mouse("x")
+      , y = chart.mouse("y")
       , cfg = chart.config
       , hovered = false
-      , yRange = [this.getBase(), this.getBase()+this.getY()].sort(function(a,b){return a-b})
+      , yRange = [bar.getBase(), bar.getBase()+bar.y()].sort(function(a,b){return a-b})
       ;
 
-    if (x >= this.getX() && x <= this.getX()+cfg.barWidth && y >= yRange[0] && y<= yRange[1]) {
+    if (x >= bar.x() && x <= bar.x()+cfg.barWidth && y >= yRange[0] && y<= yRange[1]) {
       hovered = true;
     }
 
     return hovered;
   }
 
-  this.updatePositionBase = function (_perc_) {
-    var baseDelta = this.state.from.base - this.state.to.base
-      ;
-    this.state.now.base = this.state.from.base - baseDelta*_perc_;
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  bar.drawInto = drawInto;
+
+  bar.updatePositionBase = function (_perc_) {
+    var baseDelta = base.from - base.to;
+    base.now = base.from - baseDelta*_perc_;
   }
 
-  this.saveBase = function (base) {
-    if(!arguments.length)
-      this.state.from.base = this.getBase();
-    else
-      this.state.from.base = base;
-
-    return this;
+  bar.saveBase = function (_) {
+    if (!arguments.length) {
+      base.from = bar.getBase();
+    }
+    else {
+      base.from = _;
+    }
+    return bar;
   }
 
-  this.moveBase = function (base) {
-    this.state.to.base = base;
-    return this;
+  bar.moveBase = function (_) {
+    base.to = _;
+    return bar;
   }
 
-  this.getBase = function () {
-    return this.state.now.base;
+  bar.getBase = function () {
+    return base.now;
   }
 
-  return this;
+  return bar;
 };

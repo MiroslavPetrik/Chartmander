@@ -47,13 +47,13 @@ Chartmander.components.dataset = function (set, color, type) {
   dataset.size = function () {
     var total = 0;
     dataset.each(function (element) {
-      total += element.value;
+      total += element.value();
     })
     return total;
   }
 
   dataset.elementCount = function () {
-    return dataset.elements.length;
+    return elements.length;
   }
 
   // dataset.merge = function (newData, chart) {
@@ -111,16 +111,14 @@ Chartmander.components.dataset = function (set, color, type) {
   dataset.color = function (_) {
     if(!arguments.length) return normal.color;
     normal.color = _;
-    return this;
+    return dataset;
   }
 
   dataset.hoverColor = function (_) {
     if(!arguments.length) return hover.color;
     hover.color = _;
-    return this;
+    return dataset;
   }
-
-  // console.log(elements[0].value())
 
   return dataset;
 }

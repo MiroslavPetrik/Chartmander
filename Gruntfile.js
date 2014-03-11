@@ -7,9 +7,16 @@ module.exports = function (grunt) {
                     'js/src/Chartmander.js',
                     'js/src/models/chart.js',
                     'js/src/models/pieChart.js',
+                    'js/src/models/barChart.js',
                     'js/src/components/dataset.js',
+                    'js/src/components/grid.js',
+                    'js/src/components/axis.js',
+                    'js/src/components/xaxis.js',
+                    'js/src/components/yaxis.js',
                     'js/src/components/element.js',
                     'js/src/components/slice.js',
+                    'js/src/components/bar.js',
+                    'js/src/components/label.js',
                     'js/src/end.js'
                 ],
                 dest: 'js/Chartmander.js'

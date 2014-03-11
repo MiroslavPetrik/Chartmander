@@ -453,10 +453,10 @@ Chartmander.models.chart = function (canvasID) {
   }
 
   chart.mouse = function (_) {
-    if(!arguments.length) return mouse
+    if(!arguments.length) return mouse;
     mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
     mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
-    return pie;
+    return chart;
   }
 
   chart.completed = function (_) {
@@ -543,7 +543,8 @@ Chartmander.models.chart = function (canvasID) {
   }
 
   chart.font = function (_) {
-    this.config.font = _;
+    if (!arguments.length) return font;
+    font = _;
     return chart;
   }
 
@@ -683,6 +684,148 @@ Chartmander.models.pieChart = function (canvas) {
   return pie;
 };
 
+Chartmander.models.barChart = function (canvas) {
+
+  var bars = new Chartmander.models.chart(canvas);
+
+  var type = "bar"
+    , stacked = false
+    , maxBarWidth = 30
+    , datasetSpacing = 0
+    , barWidth = maxBarWidth
+    , groupWidth = 0
+    , groupOffset = 0
+    ;
+
+  ///////////////////////////////////
+  // Use components
+  ///////////////////////////////////
+
+  var xAxis = new Chartmander.components.xAxis()
+    , yAxis = new Chartmander.components.yAxis()
+    , grid  = new Chartmander.components.grid()
+    ;
+
+  // var xValues = getArrayBy(data, "label")
+  // // , yValues = getArrayBy(data, "value")
+  // , xRange = getRange(xValues)
+  // // , yRange = getRange(yValues)
+  // ;
+
+  var render =  function (data) {
+    if (bars.setsCount() == 0) {
+      var xrange = getRange(getArrayBy(data, "label"));
+      bars.datasets(getDatasetFrom(data, type, bars.colors()));
+
+      recalcBars(false);
+      bars.draw(drawComponents, false);
+    }
+    else {
+      update(data);
+      recalcBars(true);
+      bars.completed(0);
+      bars.draw(drawComponents, false)
+    }
+  }
+
+
+  var recalcBars = function () {
+    var counter = 0
+      , streams = bars.setsCount()
+      , leftFix
+      , x
+      , y
+      ;
+
+    barWidth = Math.floor( grid.width()/bars.elementCount() );
+    leftFix = (barWidth*streams)/2;
+
+    // faux
+    // yAxis.margin(leftFix + 10);
+
+    forEach(bars.datasets(), function (set) {
+      set.each(function (bar) {
+        x = grid.left() - leftFix + (bar.label()-xAxis.min())/xAxis.scale() + counter*barWidth;
+        y = -bar.value()/yAxis.scale();
+        bar.savePosition(grid.width()/2, 0).moveTo(x, y).saveBase(bars.getBase()).moveBase(bars.getBase());
+      });
+      counter++;
+    });
+  }
+
+  var drawBars = function (_perc_) {
+    var counter = {
+        dataset: 0
+      }
+      ;
+
+    ctx.save();
+    forEach(chart.datasets(), function (set) {
+      ctx.fillStyle = set.color();
+      // ctx.lineWidth = set.style.normal.stroke;
+      // ctx.strokeStyle = set.style.normal.strokeColor;
+      set.each(function (bar) {
+        bar.updatePosition(_perc_);
+        bar.updatePositionBase(_perc_);
+        bar.drawInto(chart, set);
+      })
+      counter.dataset++;
+    })
+    ctx.restore();
+  }
+
+ var update = function (data) {
+    var i = 0
+      , xValues = getArrayBy(data, "label")
+      , yValues = getArrayBy(data, "value")
+      , xRange = getRange(xValues)
+      , yRange = getRange(yValues)
+      ;
+
+    // Recalc Axeslo
+
+    chart.yAxis.min(yRange.min).max(yRange.max);
+    // chart.yAxis.recalc(chart);
+    chart.xAxis.min(xRange.min).max(xRange.max);
+    // chart.xAxis.recalc(chart);
+
+    // Recalc sets
+    forEach(bars.datasets(), function (set) {
+      if (data[i] === undefined)
+        throw new Error("Missing dataset. Dataset count on update must match.")
+
+      set.merge(data[i], chart);
+
+      set.each(function (bar) {
+        bar.savePosition().moveTo(false, - bar.value()/yAxis.scale()).saveBase().moveBase(chart.getBase());
+      });
+      i++;
+    });
+
+    chart.completed(0);
+    draw();
+  }
+
+  var drawComponents = function () {
+
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  bars.render = render;
+
+  // User methods
+  bars.datasetSpacing = function (_) {
+    if(!arguments.length) return datasetSpacing;
+    datasetSpacing = _;
+    return bars;
+  }
+
+  return bars;
+}
+
 Chartmander.components.dataset = function (set, color, type) {
 
   var dataset = this;
@@ -732,13 +875,13 @@ Chartmander.components.dataset = function (set, color, type) {
   dataset.size = function () {
     var total = 0;
     dataset.each(function (element) {
-      total += element.value;
+      total += element.value();
     })
     return total;
   }
 
   dataset.elementCount = function () {
-    return dataset.elements.length;
+    return elements.length;
   }
 
   // dataset.merge = function (newData, chart) {
@@ -796,18 +939,574 @@ Chartmander.components.dataset = function (set, color, type) {
   dataset.color = function (_) {
     if(!arguments.length) return normal.color;
     normal.color = _;
-    return this;
+    return dataset;
   }
 
   dataset.hoverColor = function (_) {
     if(!arguments.length) return hover.color;
     hover.color = _;
-    return this;
+    return dataset;
   }
 
-  // console.log(elements[0].value())
-
   return dataset;
+}
+
+Chartmander.components.grid = function () {
+
+  var grid = this
+    , horizontalLines = true
+    , verticalLines = true
+    , lineColor = "#DBDFE5"
+    , lineWidth = 1
+    // , evenOddContrast = true
+    // , oddColor = "#EAEAEA"
+    ;
+
+  // Properties/margins
+  var top = 0
+    , right = 0
+    , bottom = 0
+    , left = 0
+    , width = 0
+    , height = 0
+    ;
+
+  calculateProperties = function (margin, config) {
+    grid.config.properties = {
+      top: margin.top,
+      right: config.width - margin.right,
+      bottom: config.height - margin.bottom,
+      left: margin.left,
+      width: (config.width - margin.right) - margin.left,
+      height: (config.height - margin.bottom) - margin.top
+    }
+  }
+
+  drawInto = function (chart, _perc_) {
+    var ctx = chart.ctx;
+
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = lineWidth;
+
+    if (horizontalLines) {
+      ctx.save();
+      ctx.globalAlpha = chart.yAxis.opacity();
+      forEach(chart.yAxis.labels(), function (line) {
+        ctx.beginPath();
+        if (line.label() == 0) {
+          ctx.save();
+          ctx.strokeStyle = "#999"; // TODO Axis Width and Color
+        }
+        ctx.moveTo(left, line.y());
+        ctx.lineTo(right, line.y());
+        ctx.stroke();
+        if (line.label==0) ctx.restore();
+      })
+      ctx.restore();
+    }
+    // if (chart.yAxis.newConfig.labels.length > 0) {
+    //   ctx.save();
+    //   ctx.globalAlpha = chart.yAxis.newConfig.opacity;
+    //   forEach(chart.yAxis.newConfig.labels, function (line) {
+    //     ctx.beginPath();
+    //     if (line.label == 0) {
+    //       ctx.save();
+    //       ctx.strokeStyle = "#999"; // TODO Axis Width and Color
+    //     }
+    //     ctx.moveTo(left, line.y());
+    //     ctx.lineTo(right, line.y());
+    //     ctx.stroke();
+    //     if (line.label()==0) ctx.restore();
+    //   })
+    //   ctx.restore();
+    // }
+
+    if (verticalLines) {
+      for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
+        var xOffset = grid.left() + i*(width / chart.xAxis.labels().length);
+
+        ctx.beginPath();
+        ctx.moveTo(xOffset, top);
+        ctx.lineTo(xOffset, bottom);
+        ctx.stroke();
+      };
+    }
+  }
+
+  hasInRangeX = function (point) {
+     return point.x() >= left && point.x() <= right;
+  }
+
+  // grid.drawCrosshairInto = function (chart) {
+
+  //   var crosshair = chart.crosshair;
+
+  //   if (crosshair.visible && chart.config.hovered) {
+  //     chart.ctx.save();
+  //     chart.ctx.strokeStyle = crosshair.color;
+  //     chart.ctx.lineWidth = crosshair.lineWidth;
+
+  //     if (chart.grid.hasInRangeX(chart.config.mouse)) {
+  //       crosshair.x = chart.getMouse("x");
+  //       if (crosshair.sticky && chart.itemsInHoverRange.length > 0) {
+  //         var availablePoints = [];
+
+  //         forEach(chart.hoveredItems, function (point) {
+  //           availablePoints.push(point.position.x);
+  //         })
+  //         crosshair.x = closestElement(crosshair.x, availablePoints);
+  //       }
+  //     }
+  //     else
+  //       return;
+
+  //     chart.ctx.beginPath();
+  //     chart.ctx.moveTo(crosshair.x, grid.config.properties.top);
+  //     chart.ctx.lineTo(crosshair.x, grid.config.properties.bottom);
+  //     chart.ctx.stroke();
+  //     chart.ctx.restore();
+  //   }
+  // }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+
+  grid.width = function (_) {
+    if (!arguments.length) return width;
+    width = _;
+    return grid;
+  }
+
+  grid.left = function (_) {
+    if (!arguments.length) return left;
+    left = _;
+    return grid;
+  }
+
+  grid.lineColor = function (_) {
+    if (!arguments.length) return lineColor;
+    lineColor = _;
+    return grid;
+  }
+
+  grid.horizontalLines = function (_) {
+    if (!arguments.length) return horizontalLines;
+    horizontalLines = _;
+    return grid;
+  }
+
+  grid.verticalLines = function (_) {
+    if (!arguments.length) return verticalLines;
+    verticalLines = _;
+    return grid;
+  }
+
+  return grid;
+}
+
+Chartmander.components.axis = function () {
+
+  var axis = this;
+
+  var labels = []
+    , labelSpace = 0
+    , dataMin = 0
+    , dataMax = 0
+    , scale = 1
+    , format = ""
+    , opacity = 0
+    ;
+
+  // RECALC/DRAW X axis specific.......
+
+  // recalc = function (chart, type) {
+
+  //   var range = dataMax - dataMin
+  //     , steps = [
+  //       {
+  //         "days": 1,
+  //         "label": "days"
+  //       },
+  //       {
+  //         "days": 7,
+  //         "label": "weeks"
+  //       },
+  //       {
+  //         "days": 30,
+  //         "label": "months"
+  //       },
+  //       {
+  //         "days": 365,
+  //         "label": "years"
+  //       }
+  //     ]
+  //     , dayMSec = 60*60*24*1000
+  //     , daysInRange = range/dayMSec
+  //     , startDate = moment(dataMin)
+  //     , stepIndex = steps.length
+  //     , labelCount = 0
+  //     ;
+
+  //   TPP(range/chart.getGridProperties().width);
+  //   labels = [];
+
+  //   while (labelCount < 1) {
+  //     stepIndex--;
+  //     labelCount = daysInRange/steps[stepIndex].days;
+  //   }
+  //   labelsCount = Math.round(labelCount);
+
+  //   for (var i = 0; i < labelCount; i++) {
+  //     var label = moment(startDate).add(steps[stepIndex].label, i);
+  //     labels.push(label.valueOf());
+  //   }
+
+  //   return axis;
+  // }
+
+  // drawInto = function (chart) {
+  //   var ctx = chart.ctx
+  //     , topOffset = chart.grid.config().bottom + 25
+  //     ;
+
+  //   ctx.save();
+  //   ctx.fillStyle = chart.fontColor();
+  //   ctx.font = chart.font();
+  //   forEach(labels, function (label) {
+  //     var leftOffset = chart.getGridProperties().left + (label-chart.xAxis.dataMin)/chart.xAxis.TPP();
+      
+  //   })
+  //   each(function (label) {
+  //       ;
+  //     ctx.fillText(moment(label).format(axis.dateFormat()), leftOffset, topOffset);
+  //   });
+  //   ctx.restore();
+  // }
+
+  each = function (action) {
+    forEach(labels, action);
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  axis.min = function (_) {
+    if (!arguments.length) return dataMin;
+    dataMin = _;
+    return axis; 
+  }
+
+  axis.max = function (_) {
+    if (!arguments.length) return dataMax;
+    dataMax = _;
+    return axis;
+  }
+
+  axis.scale = function (_) {
+    if (!arguments.length) return scale;
+    scale = _;
+    return axis; 
+  }
+  
+  axis.format = function (_) {
+    if (!arguments.length) return format;
+    format = _;
+    return axis;
+  }
+
+  axis.labels = function (_) {
+    if (!arguments.length) return labels;
+    labels = _;
+    return axis;
+  }
+
+  axis.opacity = function () {
+    return opacity;
+  }
+
+  axis.fadeIn = function () {
+    opacity += .05;
+    if (opacity > 1)
+      opacity = 1;
+  }
+
+  axis.fadeOut = function () {
+    opacity -= .05;
+    if (opacity < 0)
+      opacity = 0;
+  }
+
+  return axis;
+}
+
+Chartmander.components.xAxis = function () {
+
+  var axis = new Chartmander.components.axis();
+
+  // RECALC/DRAW X axis specific.......
+
+  recalc = function (chart, type) {
+
+    var range = dataMax - dataMin
+      , steps = [
+        {
+          "days": 1,
+          "label": "days"
+        },
+        {
+          "days": 7,
+          "label": "weeks"
+        },
+        {
+          "days": 30,
+          "label": "months"
+        },
+        {
+          "days": 365,
+          "label": "years"
+        }
+      ]
+      , dayMSec = 60*60*24*1000
+      , daysInRange = range/dayMSec
+      , startDate = moment(dataMin)
+      , stepIndex = steps.length
+      , labelCount = 0
+      ;
+
+    axis.domain(range/chart.grid.width());
+    labels = [];
+
+    while (labelCount < 1) {
+      stepIndex--;
+      labelCount = daysInRange/steps[stepIndex].days;
+    }
+    labelsCount = Math.round(labelCount);
+
+    for (var i = 0; i < labelCount; i++) {
+      var label = moment(startDate).add(steps[stepIndex].label, i);
+      labels.push(label.valueOf());
+    }
+
+  }
+
+  drawInto = function (chart) {
+    var ctx = chart.ctx
+      , topOffset = chart.grid.config().bottom + 25
+      ;
+
+    ctx.save();
+    ctx.fillStyle = chart.fontColor();
+    ctx.font = chart.font();
+    forEach(labels, function (label) {
+      var leftOffset = chart.grid.left() + (label-chart.xAxis.min())/chart.xAxis.scale();
+      
+    })
+    each(function (label) {
+      ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
+    });
+    ctx.restore();
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  return axis;
+}
+
+Chartmander.components.yAxis = function (min, max) {
+
+  var axis = new Chartmander.components.axis();
+
+  var unit = ""
+    , abbr = false
+    , margin = 10 // Offset from grid
+    , zeroLevel = 0
+    ;
+
+  recalc = function (chart) {
+
+    var range = axis.max() - (axis.min() > 0 ? 0 : axis.min())
+      , height = chart.grid.height()
+      , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
+      , labelValueSteps = [1, 2, 5]
+      , stepBase = range.toExponential().split("e")
+      , stepExponent = parseInt(stepBase[1])
+      ;
+
+    stepBase = closestElement(stepBase[0], labelValueSteps);
+    var labels = getLabels(getAxeSetup(stepBase, stepExponent));
+
+    // First time 
+    if (labels.length == 0) {
+      axis.scale(range/height);
+      zeroLevel = height - axis.max()/axis.scale();
+      labels = labels;
+
+      // Set Positions for labels
+      for (var i=0, len=labels.length; i<len; i++) {
+        var label = labels[i]
+          , prev
+          ;
+        if (label.value() < 0)
+          prev = labels[i+1];
+        else if (label.value > 0)
+          prev = labels[i-1];
+        else if (label.value == 0) {
+          label.startAt(chart.getBase()).moveTo(false, chart.getBase());
+          continue;
+        }
+        label.startAt(chart.getBase() - prev.value/VPP).moveTo(false, chart.getBase() - label.value()/axis.scale());
+      }
+    }
+    // On update
+    // else {
+    //   axis.newConfig.VPP = range/height;
+    //   axis.newConfig.zeroLevel = height - axis.dataMax/axis.newConfig.VPP;
+    //   axis.newConfig.labels = labels;
+
+    //   forEach(labels, function (label) {
+    //     // Move to updated position
+    //     label.savePosition().moveTo(false, chart.getGridProperties()["bottom"] - axis.newConfig.zeroLevel - label.value/axis.newConfig.VPP)
+    //   });
+
+    //   forEach(axis.newConfig.labels, function (label) {
+    //     // Render to old position and move to new
+    //     label.startAt(chart.getGridProperties()["bottom"] - zeroLevel - label.value/VPP).moveTo(false,chart.getGridProperties()["bottom"]- axis.newConfig.zeroLevel - label.value/axis.newConfig.VPP);
+    //   });
+
+    //   VPP = axis.newConfig.VPP;
+    //   zeroLevel = axis.newConfig.zeroLevel;
+    // }
+  }
+
+  function getLabels (setup) {
+    var labels = []
+      , lefts = setup.labelCount
+      , step = setup.valueStep
+      , currLabel = 0
+      , labelData = {
+        label: 0,
+        value: 0
+      }
+      ;
+
+    labels.push(new Chartmander.components.label(labelData, "axis"));
+
+    while ( -(axis.min() - currLabel) > step) {
+      currLabel = currLabel - step;
+      labelData = {
+        label: currLabel,
+        value: currLabel
+      }
+      labels.splice(0, 0, new Chartmander.components.label(labelData, "axis"));
+    }
+
+    currLabel = 0;
+
+    while ( (axis.max() - currLabel) > step) {
+      currLabel = currLabel + step;
+      labelData = {
+        label: currLabel,
+        value: currLabel
+      }
+      labels.push(new Chartmander.components.label(labelData, "axis"))
+    }
+
+    return labels;
+  }
+
+  function getAxeSetup (base, exponent, stop) {
+    var currIndex = indexOf.call(labelValueSteps, base)
+      , newIndex
+      , newExponent
+      , currLabelValueStep = Math.pow(10, exponent)*base
+      , currLabelCount = range/currLabelValueStep
+      ;
+
+    if (stop)
+      return {
+        valueStep: currLabelValueStep,
+        labelCount: Math.floor(currLabelCount)
+      };
+
+    // Debug
+    // console.log("curr Index ", currIndex, " exponent", exponent, " currLabelValueStep ", currLabelValueStep, " labelCount ", currLabelCount, " maxLabelCount ", maxLabelCount )
+    
+    if (currLabelCount < maxLabelCount) {
+      // Maybe there is space for more labels...
+      newIndex = (currIndex - 1 <= -1) ? 2 : (currIndex - 1);
+      newExponent = (newIndex == 2) ? (exponent - 1) : exponent;
+
+      return getAxeSetup(labelValueSteps[newIndex], newExponent);
+    }
+    else {
+      // Too far, return previous and stop
+      newIndex = (currIndex + 1 >=  3) ? 0 : (currIndex + 1);
+      newExponent = (newIndex == 0) ? (exponent + 1) : exponent;
+
+      return getAxeSetup(labelValueSteps[newIndex], newExponent, true);
+    }
+  }
+
+  drawInto = function (chart, _perc_) {
+    var ctx = chart.ctx
+      , grid = chart.grid
+      ;
+
+    ctx.save();
+    ctx.textAlign = "right";
+    ctx.fillStyle = chart.fontColor();
+    ctx.font = chart.font();
+    ctx.globalAlpha = opacity;
+    forEach(axis.labels(), function (label) {
+      var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
+      label.updatePosition(_perc_);
+      ctx.fillText(labelValue + " " + unit, grid.left() - margin, label.y());
+    });
+    // if (axis.newConfig.labels.length > 0) {
+    //   ctx.save();
+    //   ctx.globalAlpha = axis.newConfig.opacity;
+    //   forEach(axis.newConfig.labels, function (label) {
+    //     var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
+    //     label.updatePosition(_perc_);
+    //     ctx.fillText(labelValue + " " + axis.unit(), grid.left - margin, label.getY());
+    //   });
+    //   ctx.restore();
+
+    //   axis.fadeIn("new");
+    //   axis.fadeOut("current");
+    //   if (axis.newConfig.opacity == 1) {
+    //     // axis.config=axis.newConfig;
+    //     labels = axis.newConfig.labels;
+    //     opacity = axis.newConfig.opacity;
+
+    //     // Reset values for next update
+    //     axis.newConfig.labels = [];
+    //     axis.newConfig.opacity = 0;
+    //   }
+    // }
+    // else {
+    //   axis.fadeIn("current");
+    // }
+    ctx.restore();
+  }
+
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  axis.unit = function (_) {
+    if(!arguments.length) return unit;
+    unit = _;
+    return axis;
+  }
+
+  return axis;
 }
 
 Chartmander.components.element = function (data, title) {
@@ -836,6 +1535,10 @@ Chartmander.components.element = function (data, title) {
         y: 0
       }
     ;
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
 
   element.label = function (_) {
     if(!arguments.length) return label;
@@ -982,6 +1685,114 @@ Chartmander.components.slice = function (data, title) {
   }
 
   return slice;
+};
+
+Chartmander.components.bar = function (data, title) {
+
+  var bar = Chartmander.components.element(data, title);
+
+  var base = {
+        from: 0,
+        to:   0,
+        now:  0
+      }
+      ;
+
+  drawInto = function (chart, set) {
+    var ctx = chart.ctx
+      , style = set.style
+      ;
+
+    if (isHovered(chart)) {
+      ctx.save();
+      ctx.fillStyle = style.hoverColor();
+      // ctx.strokeStyle = style.onHover.strokeColor;
+      // chart.tooltip.addItem({
+      //   "set": set.title
+      //   "label": bar.label,
+      //   "value": bar.value,
+      //   "color": style.normal.color
+      // });
+    }
+
+    ctx.fillRect(bar.x(), bar.getBase(), chart.barWidth(), bar.y());
+    // if (style.normal.stroke > 0)
+      // ctx.strokeRect(bar.x(), bar.getBase(), chart.barWidth(), bar.y());
+
+    // if (hover) {
+    //   if (style.onHover.stroke > 0)
+    //     ctx.strokeRect(bar.x(), bar.getBase(), cfg.barWidth, bar.y());
+    //   ctx.restore();
+    // }
+
+    // if (chart.displayValue()) {
+    //   ctx.save();
+    //   ctx.fillStyle = tinycolor.darken(set.color(), 30).toHex();
+    //   ctx.translate(bar.x(), chart.getBase() - 20);
+    //   ctx.rotate(-Math.PI/2);
+    //   ctx.fillText(bar.value/1000, 0, 15);
+    //   ctx.restore();
+    // }
+
+  }
+
+  isHovered = function (chart) {
+    var x = chart.mouse("x")
+      , y = chart.mouse("y")
+      , cfg = chart.config
+      , hovered = false
+      , yRange = [bar.getBase(), bar.getBase()+bar.y()].sort(function(a,b){return a-b})
+      ;
+
+    if (x >= bar.x() && x <= bar.x()+cfg.barWidth && y >= yRange[0] && y<= yRange[1]) {
+      hovered = true;
+    }
+
+    return hovered;
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  bar.drawInto = drawInto;
+
+  bar.updatePositionBase = function (_perc_) {
+    var baseDelta = base.from - base.to;
+    base.now = base.from - baseDelta*_perc_;
+  }
+
+  bar.saveBase = function (_) {
+    if (!arguments.length) {
+      base.from = bar.getBase();
+    }
+    else {
+      base.from = _;
+    }
+    return bar;
+  }
+
+  bar.moveBase = function (_) {
+    base.to = _;
+    return bar;
+  }
+
+  bar.getBase = function () {
+    return base.now;
+  }
+
+  return bar;
+};
+Chartmander.components.label = function() {
+
+	var label = Chartmander.components.element();
+
+  label.startAt = function (val) {
+    label.state.from.y = val;
+    return label;
+  } 
+
+  return label;
 };
 
 })();
