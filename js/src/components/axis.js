@@ -7,83 +7,14 @@ Chartmander.components.axis = function () {
     , dataMin = 0
     , dataMax = 0
     , scale = 1
+    , delta = 0
     , format = ""
-    , opacity = 0
-    ;
-
-  // RECALC/DRAW X axis specific.......
-
-  // recalc = function (chart, type) {
-
-  //   var range = dataMax - dataMin
-  //     , steps = [
-  //       {
-  //         "days": 1,
-  //         "label": "days"
-  //       },
-  //       {
-  //         "days": 7,
-  //         "label": "weeks"
-  //       },
-  //       {
-  //         "days": 30,
-  //         "label": "months"
-  //       },
-  //       {
-  //         "days": 365,
-  //         "label": "years"
-  //       }
-  //     ]
-  //     , dayMSec = 60*60*24*1000
-  //     , daysInRange = range/dayMSec
-  //     , startDate = moment(dataMin)
-  //     , stepIndex = steps.length
-  //     , labelCount = 0
-  //     ;
-
-  //   TPP(range/chart.getGridProperties().width);
-  //   labels = [];
-
-  //   while (labelCount < 1) {
-  //     stepIndex--;
-  //     labelCount = daysInRange/steps[stepIndex].days;
-  //   }
-  //   labelsCount = Math.round(labelCount);
-
-  //   for (var i = 0; i < labelCount; i++) {
-  //     var label = moment(startDate).add(steps[stepIndex].label, i);
-  //     labels.push(label.valueOf());
-  //   }
-
-  //   return axis;
-  // }
-
-  // drawInto = function (chart) {
-  //   var ctx = chart.ctx
-  //     , topOffset = chart.grid.config().bottom + 25
-  //     ;
-
-  //   ctx.save();
-  //   ctx.fillStyle = chart.fontColor();
-  //   ctx.font = chart.font();
-  //   forEach(labels, function (label) {
-  //     var leftOffset = chart.getGridProperties().left + (label-chart.xAxis.dataMin)/chart.xAxis.TPP();
-      
-  //   })
-  //   each(function (label) {
-  //       ;
-  //     ctx.fillText(moment(label).format(axis.dateFormat()), leftOffset, topOffset);
-  //   });
-  //   ctx.restore();
-  // }
-
-  each = function (action) {
-    forEach(labels, action);
-  }
+    , opacity = 0;
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
+
 
   axis.min = function (_) {
     if (!arguments.length) return dataMin;
@@ -109,10 +40,18 @@ Chartmander.components.axis = function () {
     return axis;
   }
 
+  axis.each = function (action) {
+    forEach(labels, action);
+  }
+
   axis.labels = function (_) {
     if (!arguments.length) return labels;
     labels = _;
     return axis;
+  }
+
+  axis.getLabel = function (index) {
+    return labels[index];
   }
 
   axis.opacity = function () {
@@ -129,6 +68,12 @@ Chartmander.components.axis = function () {
     opacity -= .05;
     if (opacity < 0)
       opacity = 0;
+  }
+
+  axis.delta = function (_) {
+    if (!arguments.length) return delta;
+    delta = _;
+    return axis;
   }
 
   return axis;

@@ -44,11 +44,11 @@ Chartmander.models.chart = function (canvasID) {
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   }
 
-  clear = function () {
+  var clear = function () {
     ctx.clearRect(0, 0, width, height);
   };
 
-  draw = function (drawComponents, finished) {
+  var draw = function (drawComponents, finished) {
     var easingFunction = easings[easing]
       , animationIncrement = 1/animationSteps
       , _perc_
@@ -71,13 +71,6 @@ Chartmander.models.chart = function (canvasID) {
       drawComponents(_perc_);
       // tip.removeItems();
 
-      // if (chart.xAxis)
-      //   chart.xAxis.drawInto(chart);
-      // if (chart.yAxis)
-      //   chart.yAxis.drawInto(chart, _perc_);
-      // if (chart.grid)
-      //   chart.grid.drawInto(chart, _perc_);
-
       // if (cfg.type === "line") {
       //   chart.itemsInHoverRange = [];
       //   chart.updatePoints(_perc_);
@@ -98,13 +91,6 @@ Chartmander.models.chart = function (canvasID) {
       //     tip.recalc(chart.ctx);
       //   }
       //   tip.drawInto(chart);
-      // }
-
-      // if (cfg.title) {
-      //   ctx.save();
-      //   ctx.font = "18px Arial";
-      //   ctx.fillText(cfg.title, chart.getGridProperties().left, chart.getGridProperties().top/2);
-      //   ctx.restore();
       // }
 
       // if (cfg.legend) {
@@ -132,10 +118,7 @@ Chartmander.models.chart = function (canvasID) {
         console.log("Animation Finished.")
       }
     }
-    // Global paint settings
-    // ctx.textBaseline = "middle";
-    // ctx.font = config.font;
-    // First paint
+    // Ignite
     requestAnimationFrame(loop);
   }
 
@@ -200,17 +183,6 @@ Chartmander.models.chart = function (canvasID) {
     return chart;
   }
 
-  // this.getGridProperties = function () {
-  //   return chart.grid.config.properties;
-  // }
-
-  // chart.getBase = function () {
-  //   if(chart.config.type === "pie")
-  //     return "TODO";
-  //   else 
-  //     return chart.getGridProperties()["bottom"] - chart.yAxis.config.zeroLevel;
-  // }
-
   chart.elementCount = function () {
     var total = 0;
     forEach(datasets, function (set) {
@@ -272,12 +244,6 @@ Chartmander.models.chart = function (canvasID) {
     font = _;
     return chart;
   }
-
-  // this.crossColor = function (_) {
-  //   this.crosshair.color = _;
-  //   return chart;
-  // }
-
 
   return chart;
 }

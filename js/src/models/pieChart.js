@@ -1,8 +1,8 @@
 Chartmander.models.pieChart = function (canvas) {
 
-  var pie = new Chartmander.models.chart(canvas)
+  var chart = new Chartmander.models.chart(canvas)
     , type = "pie"
-    , center = { x: pie.width()/2, y: pie.height()/2 }
+    , center = { x: chart.width()/2, y: chart.height()/2 }
     , radius = Math.min.apply(null, [center.x, center.y])
     , innerRadius = .6
     , rotateAnimation = true
@@ -17,8 +17,8 @@ Chartmander.models.pieChart = function (canvas) {
       , sliceEnd
       ;
 
-    forEach(pie.datasets(), function (set) {
-      // There is always one element inside of dataset in Pie pie
+    forEach(chart.datasets(), function (set) {
+      // There is always one element inside of dataset in chart chart
 
       console.log(set.els()[0].value())
       slice = set.getElement(0);
@@ -34,43 +34,43 @@ Chartmander.models.pieChart = function (canvas) {
   }
   
   var drawSlices = function (_perc_) {
-    pie.ctx.save();
-    forEach(pie.datasets(), function (set) {
+    chart.ctx.save();
+    forEach(chart.datasets(), function (set) {
       // console.log(set.getElement(0).value())
       var slice = set.getElement(0);
-      pie.ctx.fillStyle = set.color();
+      chart.ctx.fillStyle = set.color();
       slice.updatePosition(rotateAnimation ? _perc_ : 1);
-      slice.drawInto(pie, set);
+      slice.drawInto(chart, set);
     });
-    pie.ctx.restore();
+    chart.ctx.restore();
   }
 
 
   var render =  function (data) {
-    if (pie.setsCount() == 0) {
-      pie.datasets(getDatasetFrom(data, type, pie.colors()));
+    if (chart.setsCount() == 0) {
+      chart.datasets(getDatasetFrom(data, type, chart.colors()));
       recalcSlices(false);
-      pie.draw(drawComponents, false);
+      chart.draw(drawComponents, false);
     }
     else {
       update(data);
       recalcSlices(true);
-      pie.completed(0);
-      pie.draw(drawComponents, false)
+      chart.completed(0);
+      chart.draw(drawComponents, false)
     }
   }
 
   var update = function (data) {
     var i = 0;
-    forEach(pie.datasets(), function (set) {
-      set.merge(data[i], pie);
+    forEach(chart.datasets(), function (set) {
+      set.merge(data[i], chart);
       i++;
     });
   }
 
   var getDataSum = function () {
     var total = 0;
-    forEach(pie.datasets(), function (set) {
+    forEach(chart.datasets(), function (set) {
       set.each(function (e) {
         total += e.value();
       });
@@ -87,7 +87,7 @@ Chartmander.models.pieChart = function (canvas) {
   }
 
   var drawFull = function () {
-    pie.draw(drawComponents, true);
+    chart.draw(drawComponents, true);
   }
 
 
@@ -95,32 +95,32 @@ Chartmander.models.pieChart = function (canvas) {
   // Public Methods & Variables
   ///////////////////////////////
 
-  pie.render = render;
-  pie.drawFull = drawFull;
+  chart.render = render;
+  chart.drawFull = drawFull;
 
-  pie.center = function (_) {
+  chart.center = function (_) {
     if(!arguments.length) return center
     center.x = typeof _.x != 'undefined' ? _.x : center.x;
     center.y = typeof _.y != 'undefined' ? _.y : center.y;
-    return pie;
+    return chart;
   }
 
-  pie.innerRadius = function (_) {
+  chart.innerRadius = function (_) {
     if(!arguments.length) return innerRadius;
     innerRadius = _;
-    return pie;
+    return chart;
   }
 
-  pie.radius = function (_) {
+  chart.radius = function (_) {
     if(!arguments.length) return radius;
     radius = _;
   }
 
-  pie.startAngle = function (_) {
+  chart.startAngle = function (_) {
     if(!arguments.length) return startAngle;
     startAngle = _;
-    return pie;
+    return chart;
   }
 
-  return pie;
+  return chart;
 };

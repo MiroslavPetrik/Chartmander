@@ -1,6 +1,6 @@
 Chartmander.components.bar = function (data, title) {
 
-  var bar = Chartmander.components.element(data, title);
+  var bar = new Chartmander.components.element(data, title);
 
   var base = {
         from: 0,
@@ -10,13 +10,11 @@ Chartmander.components.bar = function (data, title) {
       ;
 
   drawInto = function (chart, set) {
-    var ctx = chart.ctx
-      , style = set.style
-      ;
+    var ctx = chart.ctx;
 
     if (isHovered(chart)) {
       ctx.save();
-      ctx.fillStyle = style.hoverColor();
+      ctx.fillStyle = set.hoverColor();
       // ctx.strokeStyle = style.onHover.strokeColor;
       // chart.tooltip.addItem({
       //   "set": set.title
@@ -26,7 +24,7 @@ Chartmander.components.bar = function (data, title) {
       // });
     }
 
-    ctx.fillRect(bar.x(), bar.getBase(), chart.barWidth(), bar.y());
+    ctx.fillRect(bar.x(), bar.base(), chart.barWidth(), bar.y());
     // if (style.normal.stroke > 0)
       // ctx.strokeRect(bar.x(), bar.getBase(), chart.barWidth(), bar.y());
 
@@ -52,7 +50,7 @@ Chartmander.components.bar = function (data, title) {
       , y = chart.mouse("y")
       , cfg = chart.config
       , hovered = false
-      , yRange = [bar.getBase(), bar.getBase()+bar.y()].sort(function(a,b){return a-b})
+      , yRange = [bar.base(), bar.base()+bar.y()].sort(function(a,b){return a-b})
       ;
 
     if (x >= bar.x() && x <= bar.x()+cfg.barWidth && y >= yRange[0] && y<= yRange[1]) {
@@ -75,7 +73,7 @@ Chartmander.components.bar = function (data, title) {
 
   bar.saveBase = function (_) {
     if (!arguments.length) {
-      base.from = bar.getBase();
+      base.from = bar.base();
     }
     else {
       base.from = _;
@@ -88,7 +86,7 @@ Chartmander.components.bar = function (data, title) {
     return bar;
   }
 
-  bar.getBase = function () {
+  bar.base = function () {
     return base.now;
   }
 

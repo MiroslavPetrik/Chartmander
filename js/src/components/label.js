@@ -1,9 +1,9 @@
-Chartmander.components.label = function() {
+Chartmander.components.label = function(data, title) {
 
-	var label = Chartmander.components.element();
+	var label = new Chartmander.components.element(data, title);
 
   label.startAt = function (val) {
-    label.state.from.y = val;
+    label.savePosition(0, val);
     return label;
   } 
 

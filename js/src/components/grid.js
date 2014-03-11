@@ -10,26 +10,28 @@ Chartmander.components.grid = function () {
     ;
 
   // Properties/margins
-  var top = 0
+  var width = 0
+    , height = 0
+    , top = 0
     , right = 0
     , bottom = 0
     , left = 0
-    , width = 0
-    , height = 0
     ;
 
-  calculateProperties = function (margin, config) {
-    grid.config.properties = {
-      top: margin.top,
-      right: config.width - margin.right,
-      bottom: config.height - margin.bottom,
-      left: margin.left,
-      width: (config.width - margin.right) - margin.left,
-      height: (config.height - margin.bottom) - margin.top
-    }
+  ///////////////////////
+  // Func
+  ///////////////////////
+
+  var adapt = function (w, h, margin) {
+    top = margin.top;
+    right = w - margin.right;
+    bottom = h - margin.bottom;
+    left = margin.left;
+    width = w - margin.right - margin.left;
+    height = h - margin.bottom - margin.top;
   }
 
-  drawInto = function (chart, _perc_) {
+  var drawInto = function (chart, _perc_) {
     var ctx = chart.ctx;
 
     ctx.strokeStyle = lineColor;
@@ -51,26 +53,10 @@ Chartmander.components.grid = function () {
       })
       ctx.restore();
     }
-    // if (chart.yAxis.newConfig.labels.length > 0) {
-    //   ctx.save();
-    //   ctx.globalAlpha = chart.yAxis.newConfig.opacity;
-    //   forEach(chart.yAxis.newConfig.labels, function (line) {
-    //     ctx.beginPath();
-    //     if (line.label == 0) {
-    //       ctx.save();
-    //       ctx.strokeStyle = "#999"; // TODO Axis Width and Color
-    //     }
-    //     ctx.moveTo(left, line.y());
-    //     ctx.lineTo(right, line.y());
-    //     ctx.stroke();
-    //     if (line.label()==0) ctx.restore();
-    //   })
-    //   ctx.restore();
-    // }
 
     if (verticalLines) {
       for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
-        var xOffset = grid.left() + i*(width / chart.xAxis.labels().length);
+        var xOffset = chart.grid.left() + i*(chart.grid.width() / chart.xAxis.labels().length);
 
         ctx.beginPath();
         ctx.moveTo(xOffset, top);
@@ -80,7 +66,7 @@ Chartmander.components.grid = function () {
     }
   }
 
-  hasInRangeX = function (point) {
+  var hasInRangeX = function (point) {
      return point.x() >= left && point.x() <= right;
   }
 
@@ -119,10 +105,24 @@ Chartmander.components.grid = function () {
   // Public Methods & Variables
   ///////////////////////////////
 
+  grid.adapt = adapt;
+  grid.drawInto = drawInto;
 
   grid.width = function (_) {
     if (!arguments.length) return width;
     width = _;
+    return grid;
+  }
+
+  grid.height = function (_) {
+    if (!arguments.length) return height;
+    height = _;
+    return grid;
+  }
+
+  grid.bottom = function (_) {
+    if (!arguments.length) return bottom;
+    bottom = _;
     return grid;
   }
 
