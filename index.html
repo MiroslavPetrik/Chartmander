@@ -54,30 +54,31 @@ title: Chartmander - HTML5 canvas charts
 </div>
 <script>
   
-  var dates = yearByMonths(1);
-
-  var barData = dataFactory(["Petrol"], dates, 100);
+  var introData = dataFactory(["Petrol"], yearByMonths(1), 100);
   
   // First Intro Chart  
-  var introChart = new Chartmander("chartmander-intro").Line(barData);
-  introChart
-  .colors(["#fff"])
-  .easingFunction("easeOutQuint")
-  .pointRadius(10)
-  .fontColor("#b3c8dd")
-  .font("14px Arial")
-  ;
+  Chartmander.addChart(function(){
+    var chart = Chartmander.models.lineChart("chartmander-intro");
+    chart
+      .colors(["#fff"])
+      .easing("easeOutQuint")
+      .pointRadius(10)
+      .fontColor("#b3c8dd")
+      .font("14px Arial")
 
-  setInterval(function (argument) {
-    introChart.update(dataFactory(["Petrol"], dates, Math.random()*100))
-  }, 3000);
+    chart.render(introData)
+  })
 
-  introChart.grid.lineColor("#eaf1f7").verticalLines(false)
+  // setInterval(function (argument) {
+  //   introChart.update(dataFactory(["Petrol"], dates, Math.random()*100))
+  // }, 3000);
+
+  // introChart.grid.lineColor("#eaf1f7").verticalLines(false)
 
   // Bar Charts
-  var barData2 = dataFactory(["Category 1", "Category 2", "Category 3"], dates, 450);
-  var bar = new Chartmander("bar1").Bar(barData);
-  var bar2 = new Chartmander("bar2").Bar(barData2);
+  // var barData2 = dataFactory(["Category 1", "Category 2", "Category 3"], dates, 450);
+  // var bar = new Chartmander("bar1").Bar(barData);
+  // var bar2 = new Chartmander("bar2").Bar(barData2);
 
   // bar2.datasetSpacing(1);
 

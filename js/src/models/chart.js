@@ -245,5 +245,11 @@ Chartmander.models.chart = function (canvasID) {
     return chart;
   }
 
+  chart.easing = function (_) {
+    if (!arguments.length) return easing;
+    easing = _;
+    return chart;
+  }
+
   return chart;
 }

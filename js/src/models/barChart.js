@@ -28,6 +28,7 @@ Chartmander.models.barChart = function (canvas) {
     ;
 
   var render =  function (data) {
+    console.log(Chartmander.charts)
     if (chart.setsCount() == 0) {
       var xrange = getRange(getArrayBy(data, "label"));
       var yrange = getRange(getArrayBy(data, "value"));

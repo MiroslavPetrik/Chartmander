@@ -521,6 +521,12 @@ Chartmander.models.chart = function (canvasID) {
     return chart;
   }
 
+  chart.easing = function (_) {
+    if (!arguments.length) return easing;
+    easing = _;
+    return chart;
+  }
+
   return chart;
 }
 
@@ -681,6 +687,7 @@ Chartmander.models.barChart = function (canvas) {
     ;
 
   var render =  function (data) {
+    console.log(Chartmander.charts)
     if (chart.setsCount() == 0) {
       var xrange = getRange(getArrayBy(data, "label"));
       var yrange = getRange(getArrayBy(data, "value"));
@@ -827,7 +834,7 @@ Chartmander.models.lineChart = function (canvas) {
     , pointRadius = 5
     , pointHoverRadius = 20
     , drawArea = true
-    , areaOpacity = .7
+    , areaOpacity = .5
     , mergeHover = true
     , xAxisVisible = true
     , yAxisVisible = true
@@ -1487,7 +1494,6 @@ Chartmander.components.xAxis = function () {
     }
 
     labelsCount = Math.round(labelCount);
-    console.log(labelCount)
     for (var i = 0; i < labelCount; i++) {
       var label = moment(startDate).add(steps[stepIndex].label, i);
       axis.labels().push(label.valueOf());

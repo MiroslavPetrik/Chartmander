@@ -10,6 +10,7 @@ title: Chartmander.js Examples
 <div class="container">
   <div class="row">
     <h1>Examples</h1>
+    <button class="btn btn-default" id="update">Update</button>
   </div>
 </div>
 <canvas id="baroFrajeris" width="800" height="400"></canvas>
@@ -28,6 +29,15 @@ title: Chartmander.js Examples
       chart.render(baroDato);
       return chart;
   });
+
+  $("#update").on('click', function () {
+    Chartmander.addChart(function(){
+      var chart = Chartmander.models.barChart("baroFrajeris");
+        // Data after settings
+        chart.render(baroDato);
+        return chart;
+    })
+  })
 
   // var angleStep = 2*Math.PI/100
   //  , currAngle = angleStep

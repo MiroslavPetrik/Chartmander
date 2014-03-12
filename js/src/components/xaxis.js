@@ -42,7 +42,6 @@ Chartmander.components.xAxis = function () {
     }
 
     labelsCount = Math.round(labelCount);
-    console.log(labelCount)
     for (var i = 0; i < labelCount; i++) {
       var label = moment(startDate).add(steps[stepIndex].label, i);
       axis.labels().push(label.valueOf());
