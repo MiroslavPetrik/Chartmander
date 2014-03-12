@@ -1,61 +1,61 @@
-Element.prototype.Point = function () {
+Chartmander.components.point = function (data, title) {
 
-  this.drawInto = function (chart, set) {
+  var point = new Chartmander.components.element(data, title);
 
-    var ctx = chart.ctx
-      , cfg = chart.config
-      , style = set.style
-      ;
+  var drawInto = function (chart, set) {
 
-    if (cfg.hovered) {
-      var hover = this.isHovered(cfg.mouse, cfg.pointHoverRadius, cfg.mergeHover);
+    var ctx = chart.ctx;
+
+    if (chart.hovered()) {
+      var hover = isHovered(chart.mouse(), chart.pointHoverRadius(), chart.mergeHover());
     }
 
     // Draw circle in normal state
     ctx.beginPath();
-    ctx.fillStyle = style.normal.color;
-    ctx.arc(this.getX(), this.getY(), cfg.pointRadius*(1-this.getState()), 0, Math.PI*2, false);
+    ctx.fillStyle = set.color();
+    ctx.arc(point.x(), point.y(), chart.pointRadius()*(1-point.getState()), 0, Math.PI*2, false);
     ctx.fill();
     // Stroke circle
-    if (style.normal.stroke) {
-      ctx.lineWidth = style.normal.stroke*(1-this.getState());
-      ctx.strokeStyle = style.normal.strokeColor;
-      ctx.stroke();
-    }
+    // if (style.normal.stroke) {
+    //   ctx.lineWidth = style.normal.stroke*(1-point.getState());
+    //   ctx.strokeStyle = style.normal.strokeColor;
+    //   ctx.stroke();
+    // }
 
-    if (this.getState() > 0) {
+    if (point.getState() > 0) {
       cfg.hoverNotFinished = true;
       ctx.save();
       ctx.beginPath();
-      ctx.fillStyle = style.onHover.color;
-      ctx.arc(this.getX(), this.getY(),10*this.getState(), 0, Math.PI*2, false);
+      ctx.fillStyle = style.hoverColor();
+      ctx.arc(point.x(), point.y(),10*point.getState(), 0, Math.PI*2, false);
       ctx.fill();
-      if (style.onHover.stroke > 0) {
-        ctx.lineWidth = style.onHover.stroke*this.getState();
-        ctx.strokeStyle = style.onHover.strokeColor;
-        ctx.stroke();
-      }
+      // if (style.onHover.stroke > 0) {
+      //   ctx.lineWidth = style.onHover.stroke*point.getState();
+      //   ctx.strokeStyle = style.onHover.strokeColor;
+      //   ctx.stroke();
+      // }
       ctx.restore();
     }
     //
-    if (cfg.hovered) {
+    if (chart.hovered()) {
       if (hover.was) {
-        chart.itemsInHoverRange.push({
-          "set": set.title,
-          "index": indexOf.call(set.elements, this),
-          "hoverDistance": hover.distance
-        });
-        return;
+        console.log("Handle hover")
+        // chart.itemsInHoverRange.push({
+        //   "set": set.title,
+        //   "index": indexOf.call(set.elements, point),
+        //   "hoverDistance": hover.distance
+        // });
+        // return;
       }
     }
-    this.animOut();
+    point.animOut();
   }
 
-  this.isHovered = function (mouse, hoverRadius, mergeHover) {
-    var distance = Math.abs(mouse.x - this.getX());
+  var isHovered = function (mouse, hoverRadius, mergeHover) {
+    var distance = Math.abs(mouse.x - point.x());
 
     if (!mergeHover) {
-      distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(mouse.y - this.getY(), 2));
+      distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(mouse.y - point.y(), 2));
     }
 
     return {
@@ -64,5 +64,11 @@ Element.prototype.Point = function () {
     };
   }
 
-  return this;
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  point.drawInto = drawInto;
+
+  return point;
 };

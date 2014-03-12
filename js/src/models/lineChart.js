@@ -2,7 +2,7 @@ Chartmander.models.lineChart = function (canvas) {
 
   var chart = new Chartmander.models.chart(canvas);
 
-  var type = "line";
+  var type = "line"
     , lineWidth = 2
     , pointRadius = 5
     , pointHoverRadius = 20
@@ -15,6 +15,9 @@ Chartmander.models.lineChart = function (canvas) {
 
   chart.margin({ top: 30, right: 50, bottom: 50, left: 50 });
 
+  // Shorthand for drawing functions
+  var ctx = chart.ctx;
+
   ///////////////////////////////////
   // Use components
   ///////////////////////////////////
@@ -23,17 +26,6 @@ Chartmander.models.lineChart = function (canvas) {
     , yAxis = new Chartmander.components.yAxis()
     , grid  = new Chartmander.components.grid()
     ;
-
-  // Construct
-  // chart.datasets = getDatasetFrom(data, type, colors);
-  // chart.xAxis = getAxesFrom(chart.datasets)[0];
-  // chart.itemsInHoverRange = [];
-
-  // var xValues = getArrayBy(data, "label")
-  // , yValues = getArrayBy(data, "value")
-  // , xRange = getRange(xValues)
-  // , yRange = getRange(yValues)
-  // Recalculation based on provided data
 
   var render =  function (data) {
     if (chart.setsCount() == 0) {
@@ -58,7 +50,7 @@ Chartmander.models.lineChart = function (canvas) {
   }
 
 
-  chart.recalcPoints = function () {
+  var recalcPoints = function () {
     var x, y;
 
     forEach(chart.datasets(), function (set) {
@@ -70,35 +62,35 @@ Chartmander.models.lineChart = function (canvas) {
     });
   }
 
-  chart.updatePoints = function (_perc_) {
-    forEach(chart.datasets, function (set) {
+  var updatePoints = function (_perc_) {
+    forEach(chart.datasets(), function (set) {
       set.each(function (point) {
         point.updatePosition(_perc_);
       })
     });
   }
 
-  chart.drawArea = function () {
+  var drawArea = function () {
     ctx.save();
 
-    forEach(chart.datasets, function (set) {
+    forEach(chart.datasets(), function (set) {
       ctx.fillStyle = set.color();
       ctx.globalAlpha = areaOpacity;
 
       ctx.beginPath();
-      ctx.moveTo(set.element(0).x(), chart.base());
-      ctx.lineTo(set.element(0).x(), set.element(0).y());
+      ctx.moveTo(set.getElement(0).x(), chart.base());
+      ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
       set.each(function (point) {
         ctx.lineTo(point.x(), point.y());
       });
-      ctx.lineTo(set.element("last").x(), chart.base());
+      ctx.lineTo(set.getElement("last").x(), chart.base());
       ctx.fill();
     });
 
     ctx.restore();
   }
 
-  chart.drawLines = function () {
+  var drawLines = function () {
     ctx.save();
     ctx.lineWidth = lineWidth;
     forEach(chart.datasets(), function (set) {
@@ -112,7 +104,7 @@ Chartmander.models.lineChart = function (canvas) {
     ctx.restore();
   }
 
-  chart.drawPoints = function () {
+  var drawPoints = function () {
     ctx.save();
     forEach(chart.datasets(), function (set) {
       var hoveredInThisSet = []
@@ -165,39 +157,60 @@ Chartmander.models.lineChart = function (canvas) {
     ctx.restore();
   }
 
-  chart.update = function (data) {
-    var i = 0
-      , xValues = getArrayBy(data, "label")
-      , yValues = getArrayBy(data, "value")
-      , xRange = getRange(xValues)
-      , yRange = getRange(yValues)
-      ;
+  // chart.update = function (data) {
+  //   var i = 0
+  //     , xValues = getArrayBy(data, "label")
+  //     , yValues = getArrayBy(data, "value")
+  //     , xRange = getRange(xValues)
+  //     , yRange = getRange(yValues)
+  //     ;
 
-    // Recalc Axes
-    chart.yAxis.dataMin = yRange.min;
-    chart.yAxis.dataMax = yRange.max;
-    chart.yAxis.recalc(chart);
+  //   // Recalc Axes
+  //   chart.yAxis.dataMin = yRange.min;
+  //   chart.yAxis.dataMax = yRange.max;
+  //   chart.yAxis.recalc(chart);
 
-    chart.xAxis.dataMin = xRange.min;
-    chart.xAxis.dataMax = xRange.max;
-    chart.xAxis.recalc(chart);
+  //   chart.xAxis.dataMin = xRange.min;
+  //   chart.xAxis.dataMax = xRange.max;
+  //   chart.xAxis.recalc(chart);
 
-    // Recalc sets
-    forEach(line.datasets, function (set) {
-      if (data[i] === undefined)
-        throw new Error("Missing dataset. Dataset count on update must match.")
-      set.merge(data[i], chart);
-      set.each(function (point) {
-        var x = chart.getGridProperties().left + (point.label - chart.xAxis.dataMin)/chart.xAxis.scale()
-          , y = chart.base() - point.value/chart.yAxis.scale();
+  //   // Recalc sets
+  //   forEach(line.datasets, function (set) {
+  //     if (data[i] === undefined)
+  //       throw new Error("Missing dataset. Dataset count on update must match.")
+  //     set.merge(data[i], chart);
+  //     set.each(function (point) {
+  //       var x = chart.getGridProperties().left + (point.label - chart.xAxis.dataMin)/chart.xAxis.scale()
+  //         , y = chart.base() - point.value/chart.yAxis.scale();
 
-        point.moveTo(x, y);
-      });
-      i++;
-    });
+  //       point.moveTo(x, y);
+  //     });
+  //     i++;
+  //   });
 
-    chart.animationCompleted = 0;
-    chart.draw();
+  //   chart.animationCompleted = 0;
+  //   chart.draw();
+  // }
+
+  var drawComponents = function (_perc_) {
+
+    grid.drawInto(chart, _perc_);
+
+    xAxis.fadeIn();
+    xAxis.drawInto(chart, _perc_);
+
+    yAxis.fadeIn();
+    yAxis.drawInto(chart, _perc_);
+
+    updatePoints(_perc_);
+    drawArea();
+    drawLines();
+    drawPoints();
+    
+  }
+
+  var drawFull = function () {
+    chart.draw(drawComponents, true);
   }
 
 
@@ -212,6 +225,10 @@ Chartmander.models.lineChart = function (canvas) {
   chart.render = render;
   chart.drawFull = drawFull;
 
+  chart.base = function (_) {
+    return grid.bottom() - yAxis.zeroLevel();
+  }
+
   chart.areaVisible = function (_) {
     if (!arguments.length) return drawArea;
     drawArea = _;
@@ -222,6 +239,24 @@ Chartmander.models.lineChart = function (canvas) {
     if (!arguments.length) return lineWidth;
     lineWidth = _;
     return chart;
+  }
+
+  chart.pointRadius = function (_) {
+    if (!arguments.length) return pointRadius;
+    pointRadius = _;
+    return chart;
+  }
+
+  chart.pointHoverRadius = function (_) {
+    if (!arguments.length) return pointHoverRadius;
+    pointHoverRadius = _;
+    return chart;
+  }
+
+  chart.mergeHover = function (_) {
+    if (!arguments.length) return mergeHover;
+    mergeHover = _;
+    return chart;    
   }
 
   return chart;

@@ -23,6 +23,7 @@
     // else
       Chartmander.charts.push(newChart)
 
+    return Chartmander;
   }
 
 

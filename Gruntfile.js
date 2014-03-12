@@ -8,6 +8,7 @@ module.exports = function (grunt) {
                     'js/src/models/chart.js',
                     'js/src/models/pieChart.js',
                     'js/src/models/barChart.js',
+                    'js/src/models/lineChart.js',
                     'js/src/components/dataset.js',
                     'js/src/components/grid.js',
                     'js/src/components/axis.js',
@@ -16,6 +17,7 @@ module.exports = function (grunt) {
                     'js/src/components/element.js',
                     'js/src/components/slice.js',
                     'js/src/components/bar.js',
+                    'js/src/components/point.js',
                     'js/src/components/label.js',
                     'js/src/end.js'
                 ],

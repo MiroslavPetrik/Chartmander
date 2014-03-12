@@ -23,6 +23,7 @@
     // else
       Chartmander.charts.push(newChart)
 
+    return Chartmander;
   }
 
 
@@ -667,6 +668,9 @@ Chartmander.models.barChart = function (canvas) {
 
   chart.margin({ top: 30, right: 40, bottom: 30, left: 100 });
 
+  // Shorthand for drawing functions
+  var ctx = chart.ctx;
+
   ///////////////////////////////////
   // Use components
   ///////////////////////////////////
@@ -718,9 +722,7 @@ Chartmander.models.barChart = function (canvas) {
   }
 
   var drawBars = function (_perc_) {
-    var counter = 0
-      , ctx = chart.ctx
-      ;
+    var counter = 0;
     ctx.save();
     forEach(chart.datasets(), function (set) {
       ctx.fillStyle = set.color();
@@ -779,6 +781,7 @@ Chartmander.models.barChart = function (canvas) {
     yAxis.fadeIn();
     yAxis.drawInto(chart, _perc_);
     drawBars(_perc_);
+
   }
 
   var drawFull = function () {
@@ -814,6 +817,270 @@ Chartmander.models.barChart = function (canvas) {
 
   return chart;
 }
+
+Chartmander.models.lineChart = function (canvas) {
+
+  var chart = new Chartmander.models.chart(canvas);
+
+  var type = "line"
+    , lineWidth = 2
+    , pointRadius = 5
+    , pointHoverRadius = 20
+    , drawArea = true
+    , areaOpacity = .7
+    , mergeHover = true
+    , xAxisVisible = true
+    , yAxisVisible = true
+    ;
+
+  chart.margin({ top: 30, right: 50, bottom: 50, left: 50 });
+
+  // Shorthand for drawing functions
+  var ctx = chart.ctx;
+
+  ///////////////////////////////////
+  // Use components
+  ///////////////////////////////////
+
+  var xAxis = new Chartmander.components.xAxis()
+    , yAxis = new Chartmander.components.yAxis()
+    , grid  = new Chartmander.components.grid()
+    ;
+
+  var render =  function (data) {
+    if (chart.setsCount() == 0) {
+      var xrange = getRange(getArrayBy(data, "label"));
+      var yrange = getRange(getArrayBy(data, "value"));
+
+      chart.datasets(getDatasetFrom(data, type, chart.colors()));
+      // grid before axes
+      grid.adapt(chart.width(), chart.height(), chart.margin());
+      // axes use grid height to calculate their scale
+      xAxis.adapt(chart, xrange);
+      yAxis.adapt(chart, yrange);
+      recalcPoints();
+      chart.draw(drawComponents, false);
+    }
+    else {
+      update(data);
+      recalcPoints(true);
+      chart.completed(0);
+      chart.draw(drawComponents, false)
+    }
+  }
+
+
+  var recalcPoints = function () {
+    var x, y;
+
+    forEach(chart.datasets(), function (set) {
+      set.each(function (point) {
+        x = Math.ceil(grid.left() + (point.label()-xAxis.min())/xAxis.scale());
+        y = chart.base()- point.value()/yAxis.scale();
+        point.savePosition(grid.width()/2, chart.base()).moveTo(x, y);
+      })
+    });
+  }
+
+  var updatePoints = function (_perc_) {
+    forEach(chart.datasets(), function (set) {
+      set.each(function (point) {
+        point.updatePosition(_perc_);
+      })
+    });
+  }
+
+  var drawArea = function () {
+    ctx.save();
+
+    forEach(chart.datasets(), function (set) {
+      ctx.fillStyle = set.color();
+      ctx.globalAlpha = areaOpacity;
+
+      ctx.beginPath();
+      ctx.moveTo(set.getElement(0).x(), chart.base());
+      ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
+      set.each(function (point) {
+        ctx.lineTo(point.x(), point.y());
+      });
+      ctx.lineTo(set.getElement("last").x(), chart.base());
+      ctx.fill();
+    });
+
+    ctx.restore();
+  }
+
+  var drawLines = function () {
+    ctx.save();
+    ctx.lineWidth = lineWidth;
+    forEach(chart.datasets(), function (set) {
+      ctx.strokeStyle = set.color();
+      ctx.beginPath();
+      set.each(function (point) {
+        ctx.lineTo(point.x(), point.y());
+      });
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  var drawPoints = function () {
+    ctx.save();
+    forEach(chart.datasets(), function (set) {
+      var hoveredInThisSet = []
+        , closestHovered
+        ;
+
+      ctx.strokeStyle = set.color();
+      ctx.fillStyle = set.color();
+
+      set.each(function (point) {
+        point.drawInto(chart, set);
+      });
+
+      // Get items only from current set
+      // forEach(chart.itemsInHoverRange, function (item) {
+      //   if (item.set == set.title) {
+      //     hoveredInThisSet.push(item);
+      //   }
+      // });
+
+      // Find closest hovered
+      // for (var i = 0, len = hoveredInThisSet.length; i < len; i++) {
+      //   if (i == 0) {
+      //     closestHovered = hoveredInThisSet[i];
+      //     continue;
+      //   }
+      //   if (hoveredInThisSet[i].hoverDistance < closestHovered.hoverDistance) {
+      //     closestHovered = hoveredInThisSet[i];
+      //   }
+      // }
+
+      // Control Hovered
+      // for (var i = 0, len = hoveredInThisSet.length; i < len; i++) {
+      //   if (hoveredInThisSet[i] === closestHovered) {
+      //     set.elements[closestHovered.index].animIn();
+      //     chart.tooltip.addItem({
+      //         set: set.title,
+      //         label: set.elements[closestHovered.index].label,
+      //         value: set.elements[closestHovered.index].value,
+      //         color: set.style.normal.color
+      //       })
+      //     if (set.elements[closestHovered.index].isAnimated()){
+      //       hoverNotFinished = true;
+      //     }
+      //   } else {
+      //     set.elements[hoveredInThisSet[i].index].animOut();
+      //   }
+      // }
+    });
+    ctx.restore();
+  }
+
+  // chart.update = function (data) {
+  //   var i = 0
+  //     , xValues = getArrayBy(data, "label")
+  //     , yValues = getArrayBy(data, "value")
+  //     , xRange = getRange(xValues)
+  //     , yRange = getRange(yValues)
+  //     ;
+
+  //   // Recalc Axes
+  //   chart.yAxis.dataMin = yRange.min;
+  //   chart.yAxis.dataMax = yRange.max;
+  //   chart.yAxis.recalc(chart);
+
+  //   chart.xAxis.dataMin = xRange.min;
+  //   chart.xAxis.dataMax = xRange.max;
+  //   chart.xAxis.recalc(chart);
+
+  //   // Recalc sets
+  //   forEach(line.datasets, function (set) {
+  //     if (data[i] === undefined)
+  //       throw new Error("Missing dataset. Dataset count on update must match.")
+  //     set.merge(data[i], chart);
+  //     set.each(function (point) {
+  //       var x = chart.getGridProperties().left + (point.label - chart.xAxis.dataMin)/chart.xAxis.scale()
+  //         , y = chart.base() - point.value/chart.yAxis.scale();
+
+  //       point.moveTo(x, y);
+  //     });
+  //     i++;
+  //   });
+
+  //   chart.animationCompleted = 0;
+  //   chart.draw();
+  // }
+
+  var drawComponents = function (_perc_) {
+
+    grid.drawInto(chart, _perc_);
+
+    xAxis.fadeIn();
+    xAxis.drawInto(chart, _perc_);
+
+    yAxis.fadeIn();
+    yAxis.drawInto(chart, _perc_);
+
+    updatePoints(_perc_);
+    drawArea();
+    drawLines();
+    drawPoints();
+    
+  }
+
+  var drawFull = function () {
+    chart.draw(drawComponents, true);
+  }
+
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+  chart.grid = grid;
+
+  chart.render = render;
+  chart.drawFull = drawFull;
+
+  chart.base = function (_) {
+    return grid.bottom() - yAxis.zeroLevel();
+  }
+
+  chart.areaVisible = function (_) {
+    if (!arguments.length) return drawArea;
+    drawArea = _;
+    return chart;
+  }
+
+  chart.lineWidth = function (_) {
+    if (!arguments.length) return lineWidth;
+    lineWidth = _;
+    return chart;
+  }
+
+  chart.pointRadius = function (_) {
+    if (!arguments.length) return pointRadius;
+    pointRadius = _;
+    return chart;
+  }
+
+  chart.pointHoverRadius = function (_) {
+    if (!arguments.length) return pointHoverRadius;
+    pointHoverRadius = _;
+    return chart;
+  }
+
+  chart.mergeHover = function (_) {
+    if (!arguments.length) return mergeHover;
+    mergeHover = _;
+    return chart;    
+  }
+
+  return chart;
+};
 
 Chartmander.components.dataset = function (set, color, type) {
 
@@ -1718,6 +1985,81 @@ Chartmander.components.bar = function (data, title) {
 
   return bar;
 };
+Chartmander.components.point = function (data, title) {
+
+  var point = new Chartmander.components.element(data, title);
+
+  var drawInto = function (chart, set) {
+
+    var ctx = chart.ctx;
+
+    if (chart.hovered()) {
+      var hover = isHovered(chart.mouse(), chart.pointHoverRadius(), chart.mergeHover());
+    }
+
+    // Draw circle in normal state
+    ctx.beginPath();
+    ctx.fillStyle = set.color();
+    ctx.arc(point.x(), point.y(), chart.pointRadius()*(1-point.getState()), 0, Math.PI*2, false);
+    ctx.fill();
+    // Stroke circle
+    // if (style.normal.stroke) {
+    //   ctx.lineWidth = style.normal.stroke*(1-point.getState());
+    //   ctx.strokeStyle = style.normal.strokeColor;
+    //   ctx.stroke();
+    // }
+
+    if (point.getState() > 0) {
+      cfg.hoverNotFinished = true;
+      ctx.save();
+      ctx.beginPath();
+      ctx.fillStyle = style.hoverColor();
+      ctx.arc(point.x(), point.y(),10*point.getState(), 0, Math.PI*2, false);
+      ctx.fill();
+      // if (style.onHover.stroke > 0) {
+      //   ctx.lineWidth = style.onHover.stroke*point.getState();
+      //   ctx.strokeStyle = style.onHover.strokeColor;
+      //   ctx.stroke();
+      // }
+      ctx.restore();
+    }
+    //
+    if (chart.hovered()) {
+      if (hover.was) {
+        console.log("Handle hover")
+        // chart.itemsInHoverRange.push({
+        //   "set": set.title,
+        //   "index": indexOf.call(set.elements, point),
+        //   "hoverDistance": hover.distance
+        // });
+        // return;
+      }
+    }
+    point.animOut();
+  }
+
+  var isHovered = function (mouse, hoverRadius, mergeHover) {
+    var distance = Math.abs(mouse.x - point.x());
+
+    if (!mergeHover) {
+      distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(mouse.y - point.y(), 2));
+    }
+
+    return {
+      "was": distance < hoverRadius,
+      "distance": distance
+    };
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  point.drawInto = drawInto;
+
+  return point;
+};
+
 Chartmander.components.label = function(data, title) {
 
 	var label = new Chartmander.components.element(data, title);

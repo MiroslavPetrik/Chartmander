@@ -15,6 +15,9 @@ Chartmander.models.barChart = function (canvas) {
 
   chart.margin({ top: 30, right: 40, bottom: 30, left: 100 });
 
+  // Shorthand for drawing functions
+  var ctx = chart.ctx;
+
   ///////////////////////////////////
   // Use components
   ///////////////////////////////////
@@ -66,9 +69,7 @@ Chartmander.models.barChart = function (canvas) {
   }
 
   var drawBars = function (_perc_) {
-    var counter = 0
-      , ctx = chart.ctx
-      ;
+    var counter = 0;
     ctx.save();
     forEach(chart.datasets(), function (set) {
       ctx.fillStyle = set.color();
@@ -127,6 +128,7 @@ Chartmander.models.barChart = function (canvas) {
     yAxis.fadeIn();
     yAxis.drawInto(chart, _perc_);
     drawBars(_perc_);
+
   }
 
   var drawFull = function () {
