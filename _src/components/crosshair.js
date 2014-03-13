@@ -10,7 +10,6 @@ Chartmander.components.crosshair = function () {
     , lineWidth = 1
     ;
 
-
   var drawInto = function (chart) {
     var ctx = chart.ctx;
 
@@ -18,9 +17,9 @@ Chartmander.components.crosshair = function () {
     ctx.strokeStyle = color;
     ctx.lineWidth = lineWidth;
 
-    if (chart.grid.hasInRangeX(chart.config.mouse)) {
+    if (chart.grid.hovered(chart.mouse())) {
       x = chart.mouse().x;
-      if (sticky && chart.itemsInHoverRange.length > 0) {
+      if (sticky && chart.itemsInHoverRange().length > 0) {
         var availablePoints = [];
 
         forEach(chart.hoveredItems, function (point) {
@@ -43,6 +42,20 @@ Chartmander.components.crosshair = function () {
   // Public Methods & Variables
   ///////////////////////////////
 
+  crosshair.drawInto = drawInto;
+
+
+  crosshair.x = function (_) {
+    if(!arguments.length) return x;
+    x = _;
+    return crosshair;
+  }
+
+  crosshair.y = function (_) {
+    if(!arguments.length) return y;
+    y = _;
+    return crosshair;
+  }
 
   return crosshair;
 }

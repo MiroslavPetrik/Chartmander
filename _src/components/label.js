@@ -1,4 +1,4 @@
-Chartmander.components.label = function(data, title) {
+Chartmander.components.label = function (data, title) {
 
 	var label = new Chartmander.components.element(data, title);
 

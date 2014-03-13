@@ -67,8 +67,8 @@ Chartmander.components.grid = function () {
     }
   }
 
-  var hasInRangeX = function (point) {
-     return point.x() >= left && point.x() <= right;
+  var hovered = function (mouse) {
+     return mouse.x >= left && mouse.x <= right && mouse.y >= top && mouse.y <= bottom;
   }
 
   ///////////////////////////////

@@ -19,19 +19,21 @@ Chartmander.models.chart = function (canvasID) {
     // , onAnimationCompleted = null
     , mouse = { x: 0, y: 0 }
     , hoverNotFinished = false
+    , hoveredItems = []
+    , itemsInHoverRange = []
     ;
 
   // var tip = Chartmander.components.tooltip();
 
   canvas.addEventListener("mouseenter", handleEnter, false);
-  canvas.addEventListener("mousemove", handleHover, false);
+  canvas.addEventListener("mousemove",  handleHover, false);
   canvas.addEventListener("mouseleave", handleLeave, false);
 
   if (window.devicePixelRatio) {
-    ctx.canvas.style.width = width + "px";
+    ctx.canvas.style.width  =  width + "px";
     ctx.canvas.style.height = height + "px";
-    ctx.canvas.height = height * window.devicePixelRatio;
-    ctx.canvas.width = width * window.devicePixelRatio;
+    ctx.canvas.height       = height * window.devicePixelRatio;
+    ctx.canvas.width        = width  * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   }
 
@@ -203,6 +205,17 @@ Chartmander.models.chart = function (canvasID) {
   chart.easing = function (_) {
     if (!arguments.length) return easing;
     easing = _;
+    return chart;
+  
+  chart.hoveredItems = function (_) {
+    if (!arguments.length) return hoveredItems;
+    hoveredItems = _;
+    return chart;
+  }
+
+  chart.itemsInHoverRange = function (_) {
+    if (!arguments.length) return itemsInHoverRange;
+    itemsInHoverRange = _;
     return chart;
   }
 

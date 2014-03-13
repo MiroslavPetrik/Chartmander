@@ -4,22 +4,22 @@ module.exports = function (grunt) {
         concat: {
             js: {
                 src: [
-                    'js/src/Chartmander.js',
-                    'js/src/models/chart.js',
-                    'js/src/models/pieChart.js',
-                    'js/src/models/barChart.js',
-                    'js/src/models/lineChart.js',
-                    'js/src/components/dataset.js',
-                    'js/src/components/grid.js',
-                    'js/src/components/axis.js',
-                    'js/src/components/xaxis.js',
-                    'js/src/components/yaxis.js',
-                    'js/src/components/element.js',
-                    'js/src/components/slice.js',
-                    'js/src/components/bar.js',
-                    'js/src/components/point.js',
-                    'js/src/components/label.js',
-                    'js/src/end.js'
+                    '_src/core.js',
+                    '_src/models/chart.js',
+                    // '_src/models/pieChart.js',
+                    // '_src/models/barChart.js',
+                    // '_src/models/lineChart.js',
+                    // '_src/components/dataset.js',
+                    // '_src/components/grid.js',
+                    // '_src/components/axis.js',
+                    // '_src/components/xaxis.js',
+                    // '_src/components/yaxis.js',
+                    // '_src/components/element.js',
+                    // '_src/components/slice.js',
+                    // '_src/components/bar.js',
+                    // '_src/components/point.js',
+                    // '_src/components/label.js',
+                    '_src/end.js'
                 ],
                 dest: 'js/Chartmander.js'
             }
@@ -36,7 +36,7 @@ module.exports = function (grunt) {
         },
         watch: {
             scripts: {
-                files: ['js/src/*.js', 'js/src/models/*.js', 'js/src/components/*.js'],
+                files: ['_src/*.js', '_src/models/*.js', '_src/components/*.js'],
                 tasks: ['concat']
             }
         }

@@ -5,14 +5,14 @@ Chartmander.components.tooltip = function (items) {
   var items = []
     , margin = 20
     , padding = 10
-    , backgroundColor = "rgba(46, 59, 66, .8)"
+    , backgroundColor = "rgba(46,59,66,.8)"
     , width = 100
     , height = 0
-    , dateFormat = "MMMM Do YYYY"
+    , dateFormat = "MMMM DD YYYY"
     , fontSize = 12
     , lineHeight = 1.5
     , iconSize = 10
-    , fontColor = "#FFFFFF"
+    , fontColor = "#fff"
     , isAnimated = false
     , animationCompleted = 0
     , current = { // Position
@@ -35,13 +35,13 @@ Chartmander.components.tooltip = function (items) {
     if (chart.type() == "bar")
       leftOffset = chart.mouse().x;
 
-    if (tip.hasItems()) {
-      tip.fadeIn();
+    if (items.length > 0) {
+      tooltip.fadeIn();
 
       ctx.save();
       // Draw Tooltip body
-      ctx.globalAlpha = tip.getState();
-      ctx.fillStyle = tip.backgroundColor();
+      ctx.globalAlpha = animationCompleted;
+      ctx.fillStyle = backgroundColor;
       ctx.fillRect(leftOffset, topOffset, width + padding*2, height + padding*2);
 
       // Draw Tooltip items
@@ -50,17 +50,22 @@ Chartmander.components.tooltip = function (items) {
       topOffset += padding;
       ctx.textBaseline = "top";
       // Tooltip header
-      ctx.fillText(moment(tip.items[0].label).format(tip.dateFormat()), leftOffset, topOffset);
+      ctx.fillText(moment(items[0].label).format(dateFormat), leftOffset, topOffset);
       topOffset += lineHeight;
-      forEach(tip.items, function (item) {
+      forEach(items, function (item) {
         ctx.fillText(item.set + " " + item.value, leftOffset, topOffset);
         topOffset += lineHeight;
       });
       ctx.restore();
     } else {
-      tip.fadeOut();
+      tooltip.fadeOut();
     }
   }
+
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
 
   tooltip.addItem = function (item) {
     items.push(item);
@@ -68,10 +73,6 @@ Chartmander.components.tooltip = function (items) {
 
   tooltip.hasItems = function () {
     return items.length > 0;
-  }
-
-  tooltip.removeItems = function () {
-    items = [];
   }
 
   tooltip.recalc = function (ctx) {
@@ -87,7 +88,6 @@ Chartmander.components.tooltip = function (items) {
       height += lineHeight;
     });
   }
-
 
   tooltip.fadeOut = function () {
       animationCompleted -= .05;
@@ -127,7 +127,6 @@ Chartmander.components.tooltip = function (items) {
     if (!arguments.length) return dateFormat;
     dateFormat = _;
     return tooltip;
-
   }
 
   return tooltip;

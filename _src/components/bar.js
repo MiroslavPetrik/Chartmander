@@ -7,7 +7,7 @@ Chartmander.components.bar = function (data, title) {
         to:   0,
         now:  0
       }
-      ;
+    ;
 
   var drawInto = function (chart, set) {
     var ctx = chart.ctx;

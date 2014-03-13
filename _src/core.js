@@ -6,11 +6,11 @@
 
   var Chartmander = window.Chartmander || {};
   window.Chartmander = Chartmander;
-  Chartmander.version = '0.1.1';
-  Chartmander.models = Chartmander.models || {};
-  Chartmander.components = Chartmander.components || {};
 
-  Chartmander.charts = []; // Store all rendered charts
+  Chartmander.version    = '0.1.1';
+  Chartmander.models     = Chartmander.models     || {};
+  Chartmander.components = Chartmander.components || {};
+  Chartmander.charts     = []; // Store all rendered charts
 
   Chartmander.addChart = function (callback) {
     var newChart = callback()
@@ -158,15 +158,15 @@
     }
   }
 
-  var requestAnimationFrame = (function(){
-    return  window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.oRequestAnimationFrame ||
-        window.msRequestAnimationFrame ||
-        function(callback) {
-          window.setTimeout(callback, 1000 / 60);
-        };
+  var requestAnimationFrame = (function () {
+    return  window.requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            window.oRequestAnimationFrame      ||
+            window.msRequestAnimationFrame     ||
+            function(callback) {
+              window.setTimeout(callback, 1000 / 60);
+            };
   })();
 
   function closestElement (element, array) {
