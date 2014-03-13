@@ -6,7 +6,8 @@ Chartmander.components.yAxis = function (min, max) {
     , abbr = false
     , margin = 10 // Offset from grid
     , zeroLevel = 0
-    , labelSteps = [1, 2, 5];
+    , labelSteps = [1, 2, 5]
+    ;
 
 
   // maybe rename to generate ... racalc is about scale - put it inside of adapt method 
@@ -125,31 +126,6 @@ Chartmander.components.yAxis = function (min, max) {
       label.updatePosition(_perc_);
       ctx.fillText(label.label().toString() + " " + unit, grid.left() - margin, label.y());
     });
-    // if (axis.newConfig.labels.length > 0) {
-    //   ctx.save();
-    //   ctx.globalAlpha = axis.newConfig.opacity;
-    //   forEach(axis.newConfig.labels, function (label) {
-    //     var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
-    //     label.updatePosition(_perc_);
-    //     ctx.fillText(labelValue + " " + axis.unit(), grid.left - margin, label.getY());
-    //   });
-    //   ctx.restore();
-
-    //   axis.fadeIn("new");
-    //   axis.fadeOut("current");
-    //   if (axis.newConfig.opacity == 1) {
-    //     // axis.config=axis.newConfig;
-    //     labels = axis.newConfig.labels;
-    //     opacity = axis.newConfig.opacity;
-
-    //     // Reset values for next update
-    //     axis.newConfig.labels = [];
-    //     axis.newConfig.opacity = 0;
-    //   }
-    // }
-    // else {
-    //   axis.fadeIn("current");
-    // }
     ctx.restore();
   }
 

@@ -62,61 +62,54 @@ Chartmander.models.lineChart = function (canvas) {
     });
   }
 
-  var updatePoints = function (_perc_) {
-    forEach(chart.datasets(), function (set) {
-      set.each(function (point) {
-        point.updatePosition(_perc_);
-      })
+  var updatePoints = function (set, _perc_) {
+    set.each(function (point) {
+      point.updatePosition(_perc_);
     });
   }
 
-  var drawArea = function () {
+  var drawArea = function (set) {
     ctx.save();
 
-    forEach(chart.datasets(), function (set) {
-      ctx.fillStyle = set.color();
-      ctx.globalAlpha = areaOpacity;
+    ctx.fillStyle = set.color();
+    ctx.globalAlpha = areaOpacity;
 
-      ctx.beginPath();
-      ctx.moveTo(set.getElement(0).x(), chart.base());
-      ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
-      set.each(function (point) {
-        ctx.lineTo(point.x(), point.y());
-      });
-      ctx.lineTo(set.getElement("last").x(), chart.base());
-      ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(set.getElement(0).x(), chart.base());
+    ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
+    set.each(function (point) {
+      ctx.lineTo(point.x(), point.y());
     });
+    ctx.lineTo(set.getElement("last").x(), chart.base());
+    ctx.fill();
 
     ctx.restore();
   }
 
-  var drawLines = function () {
+  var drawLines = function (set) {
     ctx.save();
     ctx.lineWidth = lineWidth;
-    forEach(chart.datasets(), function (set) {
-      ctx.strokeStyle = set.color();
-      ctx.beginPath();
-      set.each(function (point) {
-        ctx.lineTo(point.x(), point.y());
-      });
-      ctx.stroke();
+    ctx.strokeStyle = set.color();
+    ctx.beginPath();
+    set.each(function (point) {
+      ctx.lineTo(point.x(), point.y());
     });
+    ctx.stroke();
     ctx.restore();
   }
 
-  var drawPoints = function () {
+  var drawPoints = function (set) {
     ctx.save();
-    forEach(chart.datasets(), function (set) {
-      var hoveredInThisSet = []
-        , closestHovered
-        ;
+    var hoveredInThisSet = []
+      , closestHovered
+      ;
 
-      ctx.strokeStyle = set.color();
-      ctx.fillStyle = set.color();
+    ctx.strokeStyle = set.color();
+    ctx.fillStyle = set.color();
 
-      set.each(function (point) {
-        point.drawInto(chart, set);
-      });
+    set.each(function (point) {
+      point.drawInto(chart, set);
+    });
 
       // Get items only from current set
       // forEach(chart.itemsInHoverRange, function (item) {
@@ -153,7 +146,6 @@ Chartmander.models.lineChart = function (canvas) {
       //     set.elements[hoveredInThisSet[i].index].animOut();
       //   }
       // }
-    });
     ctx.restore();
   }
 
@@ -196,17 +188,22 @@ Chartmander.models.lineChart = function (canvas) {
 
     grid.drawInto(chart, _perc_);
 
-    xAxis.fadeIn();
-    xAxis.drawInto(chart, _perc_);
+    if (xAxisVisible) {
+      xAxis.fadeIn();
+      xAxis.drawInto(chart, _perc_);
+    }
 
-    yAxis.fadeIn();
-    yAxis.drawInto(chart, _perc_);
+    if (yAxisVisible) {
+      yAxis.fadeIn();
+      yAxis.drawInto(chart, _perc_);
+    }
 
-    updatePoints(_perc_);
-    drawArea();
-    drawLines();
-    drawPoints();
-    
+    forEach(chart.datasets(), function (set) {
+      updatePoints(set, _perc_);
+      drawArea(set);
+      drawLines(set);
+      drawPoints(set);
+    });
   }
 
   var drawFull = function () {
@@ -257,6 +254,18 @@ Chartmander.models.lineChart = function (canvas) {
     if (!arguments.length) return mergeHover;
     mergeHover = _;
     return chart;    
+  }
+
+  chart.showXAxis = function (_) {
+    if (!arguments.length) return xAxisVisible;
+    xAxisVisible = _;
+    return chart;
+  }
+
+  chart.showYAxis = function (_) {
+    if (!arguments.length) return yAxisVisible;
+    yAxisVisible = _;
+    return chart;
   }
 
   return chart;

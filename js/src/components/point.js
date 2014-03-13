@@ -12,7 +12,6 @@ Chartmander.components.point = function (data, title) {
 
     // Draw circle in normal state
     ctx.beginPath();
-    ctx.fillStyle = set.color();
     ctx.arc(point.x(), point.y(), chart.pointRadius()*(1-point.getState()), 0, Math.PI*2, false);
     ctx.fill();
     // Stroke circle
@@ -26,7 +25,7 @@ Chartmander.components.point = function (data, title) {
       cfg.hoverNotFinished = true;
       ctx.save();
       ctx.beginPath();
-      ctx.fillStyle = style.hoverColor();
+      ctx.fillStyle = set.hoverColor();
       ctx.arc(point.x(), point.y(),10*point.getState(), 0, Math.PI*2, false);
       ctx.fill();
       // if (style.onHover.stroke > 0) {
@@ -37,16 +36,14 @@ Chartmander.components.point = function (data, title) {
       ctx.restore();
     }
     //
-    if (chart.hovered()) {
-      if (hover.was) {
-        console.log("Handle hover")
-        // chart.itemsInHoverRange.push({
-        //   "set": set.title,
-        //   "index": indexOf.call(set.elements, point),
-        //   "hoverDistance": hover.distance
-        // });
-        // return;
-      }
+    if (chart.hovered() && hover.was) {
+      console.log("Handle hover")
+      // chart.itemsInHoverRange.push({
+      //   "set": set.title,
+      //   "index": indexOf.call(set.elements, point),
+      //   "hoverDistance": hover.distance
+      // });
+      // return;
     }
     point.animOut();
   }

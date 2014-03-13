@@ -28,7 +28,6 @@ Chartmander.models.barChart = function (canvas) {
     ;
 
   var render =  function (data) {
-    console.log(Chartmander.charts)
     if (chart.setsCount() == 0) {
       var xrange = getRange(getArrayBy(data, "label"));
       var yrange = getRange(getArrayBy(data, "value"));
@@ -77,7 +76,6 @@ Chartmander.models.barChart = function (canvas) {
       // ctx.lineWidth = set.style.normal.stroke;
       // ctx.strokeStyle = set.style.normal.strokeColor;
       set.each(function (bar) {
-        // console.log(bar.value())
         bar.updatePosition(_perc_);
         bar.updatePositionBase(_perc_);
         bar.drawInto(chart, set);
@@ -123,13 +121,17 @@ Chartmander.models.barChart = function (canvas) {
 
     grid.drawInto(chart, _perc_);
 
-    xAxis.fadeIn();
-    xAxis.drawInto(chart, _perc_);
+    if (xAxisVisible) {
+      xAxis.fadeIn();
+      xAxis.drawInto(chart, _perc_);
+    }
 
-    yAxis.fadeIn();
-    yAxis.drawInto(chart, _perc_);
+    if (yAxisVisible) {
+      yAxis.fadeIn();
+      yAxis.drawInto(chart, _perc_);
+    }
+
     drawBars(_perc_);
-
   }
 
   var drawFull = function () {
@@ -163,5 +165,17 @@ Chartmander.models.barChart = function (canvas) {
     return chart;
   }
 
+  chart.showXAxis = function (_) {
+    if (!arguments.length) return xAxisVisible;
+    xAxisVisible = _;
+    return chart;
+  }
+
+  chart.showYAxis = function (_) {
+    if (!arguments.length) return yAxisVisible;
+    yAxisVisible = _;
+    return chart;
+  }
+  
   return chart;
 }

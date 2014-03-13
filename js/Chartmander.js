@@ -299,15 +299,6 @@ Chartmander.models.chart = function (canvasID) {
 
   // var tip = Chartmander.components.tooltip();
 
-  // this.crosshair = {
-  //   x: null,
-  //   y: null,
-  //   visible: true,
-  //   sticky: true,
-  //   color: "#555",
-  //   lineWidth: 1
-  // };
-
   canvas.addEventListener("mouseenter", handleEnter, false);
   canvas.addEventListener("mousemove", handleHover, false);
   canvas.addEventListener("mouseleave", handleLeave, false);
@@ -346,21 +337,6 @@ Chartmander.models.chart = function (canvasID) {
 
       drawComponents(_perc_);
       // tip.removeItems();
-
-      // if (cfg.type === "line") {
-      //   chart.itemsInHoverRange = [];
-      //   chart.updatePoints(_perc_);
-      //   if (cfg.drawArea) {
-      //     chart.drawArea(_perc_);
-      //   }
-      //   chart.drawLines();
-      //   chart.grid.drawCrosshairInto(chart);
-      //   chart.drawPoints();
-      // } else if (cfg.type === "bar") {
-      //   chart.drawBars(_perc_);
-      // } else if (cfg.type === "pie") {
-      //   chart.drawSlices(_perc_);
-      // }
 
       // if (tip) {
       //   if (tip.hasItems()) {
@@ -467,27 +443,6 @@ Chartmander.models.chart = function (canvasID) {
     return total;
   }
 
-  // this.title = function (_) {
-  //   if(!arguments.length) return this.config.title;
-  //   this.config.title = _;
-  //   return this;
-  // }
-
-  // this.showXAxis = function (_) {
-  //   this.config.xAxisVisible = _;
-  //   return chart;
-  // }
-
-  // this.showYAxis = function (_) {
-  //   this.config.yAxisVisible = _;
-  //   return chart;
-  // }
-
-  // line char
-  // this.pointRadius = function (_) {
-  //   this.config.pointRadius = _;
-  //   return chart;
-  // }
   chart.margin = function (_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -687,7 +642,6 @@ Chartmander.models.barChart = function (canvas) {
     ;
 
   var render =  function (data) {
-    console.log(Chartmander.charts)
     if (chart.setsCount() == 0) {
       var xrange = getRange(getArrayBy(data, "label"));
       var yrange = getRange(getArrayBy(data, "value"));
@@ -736,7 +690,6 @@ Chartmander.models.barChart = function (canvas) {
       // ctx.lineWidth = set.style.normal.stroke;
       // ctx.strokeStyle = set.style.normal.strokeColor;
       set.each(function (bar) {
-        // console.log(bar.value())
         bar.updatePosition(_perc_);
         bar.updatePositionBase(_perc_);
         bar.drawInto(chart, set);
@@ -782,13 +735,17 @@ Chartmander.models.barChart = function (canvas) {
 
     grid.drawInto(chart, _perc_);
 
-    xAxis.fadeIn();
-    xAxis.drawInto(chart, _perc_);
+    if (xAxisVisible) {
+      xAxis.fadeIn();
+      xAxis.drawInto(chart, _perc_);
+    }
 
-    yAxis.fadeIn();
-    yAxis.drawInto(chart, _perc_);
+    if (yAxisVisible) {
+      yAxis.fadeIn();
+      yAxis.drawInto(chart, _perc_);
+    }
+
     drawBars(_perc_);
-
   }
 
   var drawFull = function () {
@@ -822,6 +779,18 @@ Chartmander.models.barChart = function (canvas) {
     return chart;
   }
 
+  chart.showXAxis = function (_) {
+    if (!arguments.length) return xAxisVisible;
+    xAxisVisible = _;
+    return chart;
+  }
+
+  chart.showYAxis = function (_) {
+    if (!arguments.length) return yAxisVisible;
+    yAxisVisible = _;
+    return chart;
+  }
+  
   return chart;
 }
 
@@ -889,61 +858,54 @@ Chartmander.models.lineChart = function (canvas) {
     });
   }
 
-  var updatePoints = function (_perc_) {
-    forEach(chart.datasets(), function (set) {
-      set.each(function (point) {
-        point.updatePosition(_perc_);
-      })
+  var updatePoints = function (set, _perc_) {
+    set.each(function (point) {
+      point.updatePosition(_perc_);
     });
   }
 
-  var drawArea = function () {
+  var drawArea = function (set) {
     ctx.save();
 
-    forEach(chart.datasets(), function (set) {
-      ctx.fillStyle = set.color();
-      ctx.globalAlpha = areaOpacity;
+    ctx.fillStyle = set.color();
+    ctx.globalAlpha = areaOpacity;
 
-      ctx.beginPath();
-      ctx.moveTo(set.getElement(0).x(), chart.base());
-      ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
-      set.each(function (point) {
-        ctx.lineTo(point.x(), point.y());
-      });
-      ctx.lineTo(set.getElement("last").x(), chart.base());
-      ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(set.getElement(0).x(), chart.base());
+    ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
+    set.each(function (point) {
+      ctx.lineTo(point.x(), point.y());
     });
+    ctx.lineTo(set.getElement("last").x(), chart.base());
+    ctx.fill();
 
     ctx.restore();
   }
 
-  var drawLines = function () {
+  var drawLines = function (set) {
     ctx.save();
     ctx.lineWidth = lineWidth;
-    forEach(chart.datasets(), function (set) {
-      ctx.strokeStyle = set.color();
-      ctx.beginPath();
-      set.each(function (point) {
-        ctx.lineTo(point.x(), point.y());
-      });
-      ctx.stroke();
+    ctx.strokeStyle = set.color();
+    ctx.beginPath();
+    set.each(function (point) {
+      ctx.lineTo(point.x(), point.y());
     });
+    ctx.stroke();
     ctx.restore();
   }
 
-  var drawPoints = function () {
+  var drawPoints = function (set) {
     ctx.save();
-    forEach(chart.datasets(), function (set) {
-      var hoveredInThisSet = []
-        , closestHovered
-        ;
+    var hoveredInThisSet = []
+      , closestHovered
+      ;
 
-      ctx.strokeStyle = set.color();
-      ctx.fillStyle = set.color();
+    ctx.strokeStyle = set.color();
+    ctx.fillStyle = set.color();
 
-      set.each(function (point) {
-        point.drawInto(chart, set);
-      });
+    set.each(function (point) {
+      point.drawInto(chart, set);
+    });
 
       // Get items only from current set
       // forEach(chart.itemsInHoverRange, function (item) {
@@ -980,7 +942,6 @@ Chartmander.models.lineChart = function (canvas) {
       //     set.elements[hoveredInThisSet[i].index].animOut();
       //   }
       // }
-    });
     ctx.restore();
   }
 
@@ -1023,17 +984,22 @@ Chartmander.models.lineChart = function (canvas) {
 
     grid.drawInto(chart, _perc_);
 
-    xAxis.fadeIn();
-    xAxis.drawInto(chart, _perc_);
+    if (xAxisVisible) {
+      xAxis.fadeIn();
+      xAxis.drawInto(chart, _perc_);
+    }
 
-    yAxis.fadeIn();
-    yAxis.drawInto(chart, _perc_);
+    if (yAxisVisible) {
+      yAxis.fadeIn();
+      yAxis.drawInto(chart, _perc_);
+    }
 
-    updatePoints(_perc_);
-    drawArea();
-    drawLines();
-    drawPoints();
-    
+    forEach(chart.datasets(), function (set) {
+      updatePoints(set, _perc_);
+      drawArea(set);
+      drawLines(set);
+      drawPoints(set);
+    });
   }
 
   var drawFull = function () {
@@ -1084,6 +1050,18 @@ Chartmander.models.lineChart = function (canvas) {
     if (!arguments.length) return mergeHover;
     mergeHover = _;
     return chart;    
+  }
+
+  chart.showXAxis = function (_) {
+    if (!arguments.length) return xAxisVisible;
+    xAxisVisible = _;
+    return chart;
+  }
+
+  chart.showYAxis = function (_) {
+    if (!arguments.length) return yAxisVisible;
+    yAxisVisible = _;
+    return chart;
   }
 
   return chart;
@@ -1454,6 +1432,9 @@ Chartmander.components.xAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
+    // Default config
+    axis.format("MM/YYYY");
+
   // rename to timeAxis ?
   // make another numberAxis and category
   // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
@@ -1522,6 +1503,7 @@ Chartmander.components.xAxis = function () {
   axis.drawInto = drawInto;
 
   axis.adapt = function (chart, range) {
+    // Apply values required for label recalculation
     axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
     recalc(chart);
     return axis;
@@ -1538,7 +1520,8 @@ Chartmander.components.yAxis = function (min, max) {
     , abbr = false
     , margin = 10 // Offset from grid
     , zeroLevel = 0
-    , labelSteps = [1, 2, 5];
+    , labelSteps = [1, 2, 5]
+    ;
 
 
   // maybe rename to generate ... racalc is about scale - put it inside of adapt method 
@@ -1657,31 +1640,6 @@ Chartmander.components.yAxis = function (min, max) {
       label.updatePosition(_perc_);
       ctx.fillText(label.label().toString() + " " + unit, grid.left() - margin, label.y());
     });
-    // if (axis.newConfig.labels.length > 0) {
-    //   ctx.save();
-    //   ctx.globalAlpha = axis.newConfig.opacity;
-    //   forEach(axis.newConfig.labels, function (label) {
-    //     var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
-    //     label.updatePosition(_perc_);
-    //     ctx.fillText(labelValue + " " + axis.unit(), grid.left - margin, label.getY());
-    //   });
-    //   ctx.restore();
-
-    //   axis.fadeIn("new");
-    //   axis.fadeOut("current");
-    //   if (axis.newConfig.opacity == 1) {
-    //     // axis.config=axis.newConfig;
-    //     labels = axis.newConfig.labels;
-    //     opacity = axis.newConfig.opacity;
-
-    //     // Reset values for next update
-    //     axis.newConfig.labels = [];
-    //     axis.newConfig.opacity = 0;
-    //   }
-    // }
-    // else {
-    //   axis.fadeIn("current");
-    // }
     ctx.restore();
   }
 
@@ -1908,11 +1866,11 @@ Chartmander.components.bar = function (data, title) {
       }
       ;
 
-  drawInto = function (chart, set) {
+  var drawInto = function (chart, set) {
     var ctx = chart.ctx;
 
-    if (isHovered(chart)) {
-      ctx.save();
+    ctx.save();
+    if (chart.hovered() && isHovered(chart)) {
       ctx.fillStyle = set.hoverColor();
       // ctx.strokeStyle = style.onHover.strokeColor;
       // chart.tooltip.addItem({
@@ -1924,6 +1882,7 @@ Chartmander.components.bar = function (data, title) {
     }
 
     ctx.fillRect(bar.x(), bar.base(), chart.barWidth(), bar.y());
+    ctx.restore();
     // if (style.normal.stroke > 0)
       // ctx.strokeRect(bar.x(), bar.getBase(), chart.barWidth(), bar.y());
 
@@ -1944,15 +1903,14 @@ Chartmander.components.bar = function (data, title) {
 
   }
 
-  isHovered = function (chart) {
-    var x = chart.mouse("x")
-      , y = chart.mouse("y")
-      , cfg = chart.config
+  var isHovered = function (chart) {
+    var x = chart.mouse().x
+      , y = chart.mouse().y
       , hovered = false
       , yRange = [bar.base(), bar.base()+bar.y()].sort(function(a,b){return a-b})
       ;
 
-    if (x >= bar.x() && x <= bar.x()+cfg.barWidth && y >= yRange[0] && y<= yRange[1]) {
+    if (x >= bar.x() && x <= bar.x()+chart.barWidth() && y >= yRange[0] && y<= yRange[1]) {
       hovered = true;
     }
 
@@ -1991,6 +1949,7 @@ Chartmander.components.bar = function (data, title) {
 
   return bar;
 };
+
 Chartmander.components.point = function (data, title) {
 
   var point = new Chartmander.components.element(data, title);
@@ -2005,7 +1964,6 @@ Chartmander.components.point = function (data, title) {
 
     // Draw circle in normal state
     ctx.beginPath();
-    ctx.fillStyle = set.color();
     ctx.arc(point.x(), point.y(), chart.pointRadius()*(1-point.getState()), 0, Math.PI*2, false);
     ctx.fill();
     // Stroke circle
@@ -2019,7 +1977,7 @@ Chartmander.components.point = function (data, title) {
       cfg.hoverNotFinished = true;
       ctx.save();
       ctx.beginPath();
-      ctx.fillStyle = style.hoverColor();
+      ctx.fillStyle = set.hoverColor();
       ctx.arc(point.x(), point.y(),10*point.getState(), 0, Math.PI*2, false);
       ctx.fill();
       // if (style.onHover.stroke > 0) {
@@ -2030,16 +1988,14 @@ Chartmander.components.point = function (data, title) {
       ctx.restore();
     }
     //
-    if (chart.hovered()) {
-      if (hover.was) {
-        console.log("Handle hover")
-        // chart.itemsInHoverRange.push({
-        //   "set": set.title,
-        //   "index": indexOf.call(set.elements, point),
-        //   "hoverDistance": hover.distance
-        // });
-        // return;
-      }
+    if (chart.hovered() && hover.was) {
+      console.log("Handle hover")
+      // chart.itemsInHoverRange.push({
+      //   "set": set.title,
+      //   "index": indexOf.call(set.elements, point),
+      //   "hoverDistance": hover.distance
+      // });
+      // return;
     }
     point.animOut();
   }

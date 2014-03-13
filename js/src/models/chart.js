@@ -23,15 +23,6 @@ Chartmander.models.chart = function (canvasID) {
 
   // var tip = Chartmander.components.tooltip();
 
-  // this.crosshair = {
-  //   x: null,
-  //   y: null,
-  //   visible: true,
-  //   sticky: true,
-  //   color: "#555",
-  //   lineWidth: 1
-  // };
-
   canvas.addEventListener("mouseenter", handleEnter, false);
   canvas.addEventListener("mousemove", handleHover, false);
   canvas.addEventListener("mouseleave", handleLeave, false);
@@ -70,21 +61,6 @@ Chartmander.models.chart = function (canvasID) {
 
       drawComponents(_perc_);
       // tip.removeItems();
-
-      // if (cfg.type === "line") {
-      //   chart.itemsInHoverRange = [];
-      //   chart.updatePoints(_perc_);
-      //   if (cfg.drawArea) {
-      //     chart.drawArea(_perc_);
-      //   }
-      //   chart.drawLines();
-      //   chart.grid.drawCrosshairInto(chart);
-      //   chart.drawPoints();
-      // } else if (cfg.type === "bar") {
-      //   chart.drawBars(_perc_);
-      // } else if (cfg.type === "pie") {
-      //   chart.drawSlices(_perc_);
-      // }
 
       // if (tip) {
       //   if (tip.hasItems()) {
@@ -191,27 +167,6 @@ Chartmander.models.chart = function (canvasID) {
     return total;
   }
 
-  // this.title = function (_) {
-  //   if(!arguments.length) return this.config.title;
-  //   this.config.title = _;
-  //   return this;
-  // }
-
-  // this.showXAxis = function (_) {
-  //   this.config.xAxisVisible = _;
-  //   return chart;
-  // }
-
-  // this.showYAxis = function (_) {
-  //   this.config.yAxisVisible = _;
-  //   return chart;
-  // }
-
-  // line char
-  // this.pointRadius = function (_) {
-  //   this.config.pointRadius = _;
-  //   return chart;
-  // }
   chart.margin = function (_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;

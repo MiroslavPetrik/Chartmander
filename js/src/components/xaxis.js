@@ -2,6 +2,9 @@ Chartmander.components.xAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
+    // Default config
+    axis.format("MM/YYYY");
+
   // rename to timeAxis ?
   // make another numberAxis and category
   // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
@@ -70,6 +73,7 @@ Chartmander.components.xAxis = function () {
   axis.drawInto = drawInto;
 
   axis.adapt = function (chart, range) {
+    // Apply values required for label recalculation
     axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
     recalc(chart);
     return axis;
