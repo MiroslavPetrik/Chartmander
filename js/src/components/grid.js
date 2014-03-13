@@ -1,7 +1,8 @@
 Chartmander.components.grid = function () {
 
-  var grid = this
-    , horizontalLines = true
+  var grid = this;
+
+  var horizontalLines = true
     , verticalLines = true
     , lineColor = "#DBDFE5"
     , lineWidth = 1
@@ -69,37 +70,6 @@ Chartmander.components.grid = function () {
   var hasInRangeX = function (point) {
      return point.x() >= left && point.x() <= right;
   }
-
-  // grid.drawCrosshairInto = function (chart) {
-
-  //   var crosshair = chart.crosshair;
-
-  //   if (crosshair.visible && chart.config.hovered) {
-  //     chart.ctx.save();
-  //     chart.ctx.strokeStyle = crosshair.color;
-  //     chart.ctx.lineWidth = crosshair.lineWidth;
-
-  //     if (chart.grid.hasInRangeX(chart.config.mouse)) {
-  //       crosshair.x = chart.getMouse("x");
-  //       if (crosshair.sticky && chart.itemsInHoverRange.length > 0) {
-  //         var availablePoints = [];
-
-  //         forEach(chart.hoveredItems, function (point) {
-  //           availablePoints.push(point.position.x);
-  //         })
-  //         crosshair.x = closestElement(crosshair.x, availablePoints);
-  //       }
-  //     }
-  //     else
-  //       return;
-
-  //     chart.ctx.beginPath();
-  //     chart.ctx.moveTo(crosshair.x, grid.config.properties.top);
-  //     chart.ctx.lineTo(crosshair.x, grid.config.properties.bottom);
-  //     chart.ctx.stroke();
-  //     chart.ctx.restore();
-  //   }
-  // }
 
   ///////////////////////////////
   // Public Methods & Variables

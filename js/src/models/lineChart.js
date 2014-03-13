@@ -25,6 +25,7 @@ Chartmander.models.lineChart = function (canvas) {
   var xAxis = new Chartmander.components.xAxis()
     , yAxis = new Chartmander.components.yAxis()
     , grid  = new Chartmander.components.grid()
+    , crosshair = new Chartmander.components.crosshair()
     ;
 
   var render =  function (data) {

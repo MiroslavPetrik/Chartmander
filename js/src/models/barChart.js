@@ -176,6 +176,11 @@ Chartmander.models.barChart = function (canvas) {
     yAxisVisible = _;
     return chart;
   }
-  
+
+  // Faux
+  chart.type = function (_) {
+    return type;
+  }
+
   return chart;
 }
