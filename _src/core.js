@@ -4,6 +4,8 @@
 
 (function(){
 
+  "use strict";
+
   var Chartmander = window.Chartmander || {};
   window.Chartmander = Chartmander;
 
@@ -13,7 +15,7 @@
   Chartmander.charts     = []; // Store all rendered charts
 
   Chartmander.addChart = function (callback) {
-    var newChart = callback()
+    var newChart = callback();
     //   , alreadyRendered = false;
     // forEach(Chartmander.charts, function (chart) {
       
@@ -21,10 +23,10 @@
     // if (alreadyRendered) 
       
     // else
-      Chartmander.charts.push(newChart)
+      Chartmander.charts.push(newChart);
 
     return Chartmander;
-  }
+  };
 
 
   var easings = {
@@ -230,29 +232,6 @@
     }
   }
 
-  function getAxesFrom (datasets) {
-    var xLabels = []
-      , yLowest = 0
-      , yHighest = 0
-      ;
-
-    // Labels filter
-    forEach(datasets, function (set) {
-      set.each(function (bar) {
-        if(indexOf.call(xLabels, bar.label) === -1 )
-          xLabels.push(bar.label);
-
-        if(bar.value > yHighest)
-          yHighest = bar.value;
-
-        if(bar.value < yLowest)
-          yLowest = bar.value
-      })
-    })
-
-    return [new xAxis(xLabels), new yAxis([yLowest, yHighest])];
-  }
-
   var indexOf = function (element) {
     if (typeof Array.prototype.indexOf === 'function') {
       indexOf = Array.prototype.indexOf;
@@ -272,4 +251,4 @@
     }
 
     return indexOf.call(this, element);
-  };
+  }

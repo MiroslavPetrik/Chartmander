@@ -1,5 +1,5 @@
 Chartmander.models.chart = function (canvasID) {
-
+  
   var chart = this;
 
   var canvas = document.getElementById(canvasID)
@@ -23,6 +23,7 @@ Chartmander.models.chart = function (canvasID) {
     , itemsInHoverRange = []
     ;
 
+  // tooltip for each chart?
   // var tip = Chartmander.components.tooltip();
 
   canvas.addEventListener("mouseenter", handleEnter, false);
@@ -36,10 +37,6 @@ Chartmander.models.chart = function (canvasID) {
     ctx.canvas.width        = width  * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   }
-
-  var clear = function () {
-    ctx.clearRect(0, 0, width, height);
-  };
 
   var draw = function (drawComponents, finished) {
     var easingFunction = easings[easing]
@@ -59,32 +56,10 @@ Chartmander.models.chart = function (canvasID) {
 
       _perc_ = easingFunction(animationCompleted);
       hoverNotFinished = false;
-      clear();
+      ctx.clearRect(0, 0, width, height);
 
       drawComponents(_perc_);
       // tip.removeItems();
-
-      // if (tip) {
-      //   if (tip.hasItems()) {
-      //     tip.recalc(chart.ctx);
-      //   }
-      //   tip.drawInto(chart);
-      // }
-
-      // if (cfg.legend) {
-      //   ctx.save();
-      //   // ctx.font = "18px Arial";
-      //   var legendWidth = 100, counter = 0;
-      //   forEach(chart.datasets, function (set) {
-      //     var left = chart.getGridProperties().width-200+counter*legendWidth
-      //     ctx.fillStyle = set.style.color;
-      //     ctx.fillRect(left-15, chart.getGridProperties().top/2-5, 10, 10);
-      //     ctx.fillStyle = "#000";
-      //     ctx.fillText(set.title, left, chart.getGridProperties().top/2);
-      //     counter++;
-      //   });
-      //   ctx.restore();
-      // }
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
 
@@ -102,6 +77,7 @@ Chartmander.models.chart = function (canvasID) {
 
   function handleHover (event) {
     var rect = canvas.getBoundingClientRect();
+
     mouse.x = event.clientX - rect.left;
     mouse.y = event.clientY - rect.top;
     // Allow repaint on hover only if chart and tooltip are done with self-repaint
@@ -132,34 +108,34 @@ Chartmander.models.chart = function (canvasID) {
 
   chart.width = function () {
     return width;
-  }
+  };
 
   chart.height = function () {
     return height;
-  }
+  };
 
   chart.mouse = function (_) {
     if(!arguments.length) return mouse;
     mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
     mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
     return chart;
-  }
+  };
 
   chart.completed = function (_) {
     if(!arguments.length) return animationCompleted;
     animationCompleted = _;
     return chart;
-  }
+  };
 
   chart.setsCount = function () {
     return datasets.length;
-  }
+  };
 
   chart.datasets = function (_) {
     if(!arguments.length) return datasets;
     datasets = _;
     return chart;
-  }
+  };
 
   chart.elementCount = function () {
     var total = 0;
@@ -167,7 +143,7 @@ Chartmander.models.chart = function (canvasID) {
       total += set.elementCount();
     });
     return total;
-  }
+  };
 
   chart.margin = function (_) {
     if (!arguments.length) return margin;
@@ -176,48 +152,49 @@ Chartmander.models.chart = function (canvasID) {
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     return chart;
-  }
+  };
 
   chart.colors = function (_) {
     if(!arguments.length) return colors;
     colors = _;
     return chart;
-  }
+  };
 
   chart.fontColor = function (_) {
     if (!arguments.length) return fontColor;
     fontColor = _;
     return chart;
-  }
+  };
 
   chart.hovered = function (_) {
     if (!arguments.length) return hovered;
     hovered = _;
     return chart;
-  }
+  };
 
   chart.font = function (_) {
     if (!arguments.length) return font;
     font = _;
     return chart;
-  }
+  };
 
   chart.easing = function (_) {
     if (!arguments.length) return easing;
     easing = _;
     return chart;
-  
+  };
+
   chart.hoveredItems = function (_) {
     if (!arguments.length) return hoveredItems;
     hoveredItems = _;
     return chart;
-  }
+  };
 
   chart.itemsInHoverRange = function (_) {
     if (!arguments.length) return itemsInHoverRange;
     itemsInHoverRange = _;
     return chart;
-  }
+  };
 
   return chart;
-}
+};

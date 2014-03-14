@@ -76,49 +76,56 @@ Chartmander.components.grid = function () {
   ///////////////////////////////
 
   grid.adapt = adapt;
+  grid.hovered = hovered;
   grid.drawInto = drawInto;
 
   grid.width = function (_) {
     if (!arguments.length) return width;
     width = _;
     return grid;
-  }
+  };
 
   grid.height = function (_) {
     if (!arguments.length) return height;
     height = _;
     return grid;
-  }
+  };
 
   grid.bottom = function (_) {
     if (!arguments.length) return bottom;
     bottom = _;
     return grid;
-  }
+  };
 
   grid.left = function (_) {
     if (!arguments.length) return left;
     left = _;
     return grid;
-  }
+  };
+
+  grid.top = function (_) {
+    if (!arguments.length) return top;
+    top = _;
+    return grid;
+  };
 
   grid.lineColor = function (_) {
     if (!arguments.length) return lineColor;
     lineColor = _;
     return grid;
-  }
+  };
 
   grid.horizontalLines = function (_) {
     if (!arguments.length) return horizontalLines;
     horizontalLines = _;
     return grid;
-  }
+  };
 
   grid.verticalLines = function (_) {
     if (!arguments.length) return verticalLines;
     verticalLines = _;
     return grid;
-  }
+  };
 
   return grid;
 }

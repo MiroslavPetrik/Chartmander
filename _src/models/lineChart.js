@@ -189,7 +189,6 @@ Chartmander.models.lineChart = function (canvas) {
   var drawComponents = function (_perc_) {
 
     grid.drawInto(chart, _perc_);
-    crosshair.drawInto(chart);
 
     if (xAxisVisible) {
       xAxis.fadeIn();
@@ -199,6 +198,10 @@ Chartmander.models.lineChart = function (canvas) {
     if (yAxisVisible) {
       yAxis.fadeIn();
       yAxis.drawInto(chart, _perc_);
+    }
+
+    if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse()) ) {
+      crosshair.drawInto(chart);
     }
 
     forEach(chart.datasets(), function (set) {

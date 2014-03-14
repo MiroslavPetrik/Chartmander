@@ -34,7 +34,8 @@ Chartmander.components.xAxis = function () {
       , startDate = moment(axis.min())
       , stepIndex = steps.length
       , labelCount = 0
-      , labels = [];
+      , labels = []
+      ;
 
     // Time per pixel
     axis.scale(axis.delta()/chart.grid.width());
@@ -44,7 +45,7 @@ Chartmander.components.xAxis = function () {
       labelCount = daysInRange/steps[stepIndex].days;
     }
 
-    labelsCount = Math.round(labelCount);
+    labelCount = Math.round(labelCount);
     for (var i = 0; i < labelCount; i++) {
       var label = moment(startDate).add(steps[stepIndex].label, i);
       axis.labels().push(label.valueOf());

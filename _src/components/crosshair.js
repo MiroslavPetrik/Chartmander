@@ -17,19 +17,17 @@ Chartmander.components.crosshair = function () {
     ctx.strokeStyle = color;
     ctx.lineWidth = lineWidth;
 
-    if (chart.grid.hovered(chart.mouse())) {
-      x = chart.mouse().x;
-      if (sticky && chart.itemsInHoverRange().length > 0) {
-        var availablePoints = [];
+    x = chart.mouse().x;
 
-        forEach(chart.hoveredItems, function (point) {
-          availablePoints.push(point.position.x);
-        })
-        x = closestElement(x, availablePoints);
-      }
+    if (sticky && chart.itemsInHoverRange().length > 0) {
+      var availablePoints = [];
+
+      forEach(chart.hoveredItems(), function (point) {
+        availablePoints.push(point.position.x);
+      });
+      // Find 'where-to-stick' position
+      x = closestElement(x, availablePoints);
     }
-    else
-      return;
 
     chart.ctx.beginPath();
     chart.ctx.moveTo(x, chart.grid.top());
@@ -49,13 +47,31 @@ Chartmander.components.crosshair = function () {
     if(!arguments.length) return x;
     x = _;
     return crosshair;
-  }
+  };
 
   crosshair.y = function (_) {
     if(!arguments.length) return y;
     y = _;
     return crosshair;
-  }
+  };
+
+  crosshair.visible = function (_) {
+    if(!arguments.length) return visible;
+    visible = _;
+    return crosshair;
+  };
+
+  crosshair.sticky = function (_) {
+    if(!arguments.length) return sticky;
+    sticky = _;
+    return crosshair;
+  };
+
+  crosshair.color = function (_) {
+    if(!arguments.length) return color;
+    color = _;
+    return crosshair;
+  };
 
   return crosshair;
 }

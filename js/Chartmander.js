@@ -4,6 +4,8 @@
 
 (function(){
 
+  "use strict";
+
   var Chartmander = window.Chartmander || {};
   window.Chartmander = Chartmander;
 
@@ -13,7 +15,7 @@
   Chartmander.charts     = []; // Store all rendered charts
 
   Chartmander.addChart = function (callback) {
-    var newChart = callback()
+    var newChart = callback();
     //   , alreadyRendered = false;
     // forEach(Chartmander.charts, function (chart) {
       
@@ -21,10 +23,10 @@
     // if (alreadyRendered) 
       
     // else
-      Chartmander.charts.push(newChart)
+      Chartmander.charts.push(newChart);
 
     return Chartmander;
-  }
+  };
 
 
   var easings = {
@@ -230,29 +232,6 @@
     }
   }
 
-  function getAxesFrom (datasets) {
-    var xLabels = []
-      , yLowest = 0
-      , yHighest = 0
-      ;
-
-    // Labels filter
-    forEach(datasets, function (set) {
-      set.each(function (bar) {
-        if(indexOf.call(xLabels, bar.label) === -1 )
-          xLabels.push(bar.label);
-
-        if(bar.value > yHighest)
-          yHighest = bar.value;
-
-        if(bar.value < yLowest)
-          yLowest = bar.value
-      })
-    })
-
-    return [new xAxis(xLabels), new yAxis([yLowest, yHighest])];
-  }
-
   var indexOf = function (element) {
     if (typeof Array.prototype.indexOf === 'function') {
       indexOf = Array.prototype.indexOf;
@@ -272,10 +251,10 @@
     }
 
     return indexOf.call(this, element);
-  };
+  }
 
 Chartmander.models.chart = function (canvasID) {
-
+  
   var chart = this;
 
   var canvas = document.getElementById(canvasID)
@@ -299,6 +278,7 @@ Chartmander.models.chart = function (canvasID) {
     , itemsInHoverRange = []
     ;
 
+  // tooltip for each chart?
   // var tip = Chartmander.components.tooltip();
 
   canvas.addEventListener("mouseenter", handleEnter, false);
@@ -312,10 +292,6 @@ Chartmander.models.chart = function (canvasID) {
     ctx.canvas.width        = width  * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   }
-
-  var clear = function () {
-    ctx.clearRect(0, 0, width, height);
-  };
 
   var draw = function (drawComponents, finished) {
     var easingFunction = easings[easing]
@@ -335,32 +311,10 @@ Chartmander.models.chart = function (canvasID) {
 
       _perc_ = easingFunction(animationCompleted);
       hoverNotFinished = false;
-      clear();
+      ctx.clearRect(0, 0, width, height);
 
       drawComponents(_perc_);
       // tip.removeItems();
-
-      // if (tip) {
-      //   if (tip.hasItems()) {
-      //     tip.recalc(chart.ctx);
-      //   }
-      //   tip.drawInto(chart);
-      // }
-
-      // if (cfg.legend) {
-      //   ctx.save();
-      //   // ctx.font = "18px Arial";
-      //   var legendWidth = 100, counter = 0;
-      //   forEach(chart.datasets, function (set) {
-      //     var left = chart.getGridProperties().width-200+counter*legendWidth
-      //     ctx.fillStyle = set.style.color;
-      //     ctx.fillRect(left-15, chart.getGridProperties().top/2-5, 10, 10);
-      //     ctx.fillStyle = "#000";
-      //     ctx.fillText(set.title, left, chart.getGridProperties().top/2);
-      //     counter++;
-      //   });
-      //   ctx.restore();
-      // }
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
 
@@ -378,6 +332,7 @@ Chartmander.models.chart = function (canvasID) {
 
   function handleHover (event) {
     var rect = canvas.getBoundingClientRect();
+
     mouse.x = event.clientX - rect.left;
     mouse.y = event.clientY - rect.top;
     // Allow repaint on hover only if chart and tooltip are done with self-repaint
@@ -408,34 +363,34 @@ Chartmander.models.chart = function (canvasID) {
 
   chart.width = function () {
     return width;
-  }
+  };
 
   chart.height = function () {
     return height;
-  }
+  };
 
   chart.mouse = function (_) {
     if(!arguments.length) return mouse;
     mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
     mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
     return chart;
-  }
+  };
 
   chart.completed = function (_) {
     if(!arguments.length) return animationCompleted;
     animationCompleted = _;
     return chart;
-  }
+  };
 
   chart.setsCount = function () {
     return datasets.length;
-  }
+  };
 
   chart.datasets = function (_) {
     if(!arguments.length) return datasets;
     datasets = _;
     return chart;
-  }
+  };
 
   chart.elementCount = function () {
     var total = 0;
@@ -443,7 +398,7 @@ Chartmander.models.chart = function (canvasID) {
       total += set.elementCount();
     });
     return total;
-  }
+  };
 
   chart.margin = function (_) {
     if (!arguments.length) return margin;
@@ -452,51 +407,52 @@ Chartmander.models.chart = function (canvasID) {
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     return chart;
-  }
+  };
 
   chart.colors = function (_) {
     if(!arguments.length) return colors;
     colors = _;
     return chart;
-  }
+  };
 
   chart.fontColor = function (_) {
     if (!arguments.length) return fontColor;
     fontColor = _;
     return chart;
-  }
+  };
 
   chart.hovered = function (_) {
     if (!arguments.length) return hovered;
     hovered = _;
     return chart;
-  }
+  };
 
   chart.font = function (_) {
     if (!arguments.length) return font;
     font = _;
     return chart;
-  }
+  };
 
   chart.easing = function (_) {
     if (!arguments.length) return easing;
     easing = _;
     return chart;
-  
+  };
+
   chart.hoveredItems = function (_) {
     if (!arguments.length) return hoveredItems;
     hoveredItems = _;
     return chart;
-  }
+  };
 
   chart.itemsInHoverRange = function (_) {
     if (!arguments.length) return itemsInHoverRange;
     itemsInHoverRange = _;
     return chart;
-  }
+  };
 
   return chart;
-}
+};
 
 Chartmander.models.pieChart = function (canvas) {
 
@@ -1003,7 +959,6 @@ Chartmander.models.lineChart = function (canvas) {
   var drawComponents = function (_perc_) {
 
     grid.drawInto(chart, _perc_);
-    crosshair.drawInto(chart);
 
     if (xAxisVisible) {
       xAxis.fadeIn();
@@ -1013,6 +968,10 @@ Chartmander.models.lineChart = function (canvas) {
     if (yAxisVisible) {
       yAxis.fadeIn();
       yAxis.drawInto(chart, _perc_);
+    }
+
+    if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse()) ) {
+      crosshair.drawInto(chart);
     }
 
     forEach(chart.datasets(), function (set) {
@@ -1291,49 +1250,56 @@ Chartmander.components.grid = function () {
   ///////////////////////////////
 
   grid.adapt = adapt;
+  grid.hovered = hovered;
   grid.drawInto = drawInto;
 
   grid.width = function (_) {
     if (!arguments.length) return width;
     width = _;
     return grid;
-  }
+  };
 
   grid.height = function (_) {
     if (!arguments.length) return height;
     height = _;
     return grid;
-  }
+  };
 
   grid.bottom = function (_) {
     if (!arguments.length) return bottom;
     bottom = _;
     return grid;
-  }
+  };
 
   grid.left = function (_) {
     if (!arguments.length) return left;
     left = _;
     return grid;
-  }
+  };
+
+  grid.top = function (_) {
+    if (!arguments.length) return top;
+    top = _;
+    return grid;
+  };
 
   grid.lineColor = function (_) {
     if (!arguments.length) return lineColor;
     lineColor = _;
     return grid;
-  }
+  };
 
   grid.horizontalLines = function (_) {
     if (!arguments.length) return horizontalLines;
     horizontalLines = _;
     return grid;
-  }
+  };
 
   grid.verticalLines = function (_) {
     if (!arguments.length) return verticalLines;
     verticalLines = _;
     return grid;
-  }
+  };
 
   return grid;
 }
@@ -1455,7 +1421,8 @@ Chartmander.components.xAxis = function () {
       , startDate = moment(axis.min())
       , stepIndex = steps.length
       , labelCount = 0
-      , labels = [];
+      , labels = []
+      ;
 
     // Time per pixel
     axis.scale(axis.delta()/chart.grid.width());
@@ -1465,7 +1432,7 @@ Chartmander.components.xAxis = function () {
       labelCount = daysInRange/steps[stepIndex].days;
     }
 
-    labelsCount = Math.round(labelCount);
+    labelCount = Math.round(labelCount);
     for (var i = 0; i < labelCount; i++) {
       var label = moment(startDate).add(steps[stepIndex].label, i);
       axis.labels().push(label.valueOf());
@@ -2024,5 +1991,217 @@ Chartmander.components.label = function (data, title) {
 
   return label;
 };
+
+Chartmander.components.crosshair = function () {
+
+  var crosshair = this;
+
+  var x = null
+    , y = null
+    , visible = true
+    , sticky = true
+    , color = "#555"
+    , lineWidth = 1
+    ;
+
+  var drawInto = function (chart) {
+    var ctx = chart.ctx;
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+
+    x = chart.mouse().x;
+
+    if (sticky && chart.itemsInHoverRange().length > 0) {
+      var availablePoints = [];
+
+      forEach(chart.hoveredItems(), function (point) {
+        availablePoints.push(point.position.x);
+      });
+      // Find 'where-to-stick' position
+      x = closestElement(x, availablePoints);
+    }
+
+    chart.ctx.beginPath();
+    chart.ctx.moveTo(x, chart.grid.top());
+    chart.ctx.lineTo(x, chart.grid.bottom());
+    chart.ctx.stroke();
+    chart.ctx.restore();
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  crosshair.drawInto = drawInto;
+
+
+  crosshair.x = function (_) {
+    if(!arguments.length) return x;
+    x = _;
+    return crosshair;
+  };
+
+  crosshair.y = function (_) {
+    if(!arguments.length) return y;
+    y = _;
+    return crosshair;
+  };
+
+  crosshair.visible = function (_) {
+    if(!arguments.length) return visible;
+    visible = _;
+    return crosshair;
+  };
+
+  crosshair.sticky = function (_) {
+    if(!arguments.length) return sticky;
+    sticky = _;
+    return crosshair;
+  };
+
+  crosshair.color = function (_) {
+    if(!arguments.length) return color;
+    color = _;
+    return crosshair;
+  };
+
+  return crosshair;
+}
+
+Chartmander.components.tooltip = function (items) {
+
+  var tooltip = this;
+
+  var items = []
+    , margin = 20
+    , padding = 10
+    , backgroundColor = "rgba(46,59,66,.8)"
+    , width = 100
+    , height = 0
+    , dateFormat = "MMMM DD YYYY"
+    , fontSize = 12
+    , lineHeight = 1.5
+    , iconSize = 10
+    , fontColor = "#fff"
+    , isAnimated = false
+    , animationCompleted = 0
+    , current = { // Position
+        x: 0,
+        y: 0
+      }
+    , desired = {
+        x: 0,
+        y: 0
+      }
+    ;
+
+  var drawInto = function (chart) {
+    var ctx = chart.ctx
+      , topOffset = chart.mouse().y
+      , leftOffset = chart.crosshair.x() + margin
+      , lineHeight = fontSize*lineHeight
+      ;
+
+    if (chart.type() == "bar")
+      leftOffset = chart.mouse().x;
+
+    if (items.length > 0) {
+      tooltip.fadeIn();
+
+      ctx.save();
+      // Draw Tooltip body
+      ctx.globalAlpha = animationCompleted;
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(leftOffset, topOffset, width + padding*2, height + padding*2);
+
+      // Draw Tooltip items
+      ctx.fillStyle = fontColor;
+      leftOffset += padding;
+      topOffset += padding;
+      ctx.textBaseline = "top";
+      // Tooltip header
+      ctx.fillText(moment(items[0].label).format(dateFormat), leftOffset, topOffset);
+      topOffset += lineHeight;
+      forEach(items, function (item) {
+        ctx.fillText(item.set + " " + item.value, leftOffset, topOffset);
+        topOffset += lineHeight;
+      });
+      ctx.restore();
+    } else {
+      tooltip.fadeOut();
+    }
+  }
+
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  tooltip.addItem = function (item) {
+    items.push(item);
+  }
+
+  tooltip.hasItems = function () {
+    return items.length > 0;
+  }
+
+  tooltip.recalc = function (ctx) {
+    var lineWidth = 0;
+
+    height += fontSize*lineHeight;
+    width = ctx.measureText(moment(items[0].label).format(dateFormat)).width
+
+    forEach(items, function (item) {
+      lineWidth = ctx.measureText(item.set).width + ctx.measureText(item.value).width;
+      if (lineWidth > width)
+        width = lineWidth;
+      height += lineHeight;
+    });
+  }
+
+  tooltip.fadeOut = function () {
+      animationCompleted -= .05;
+
+      if (tip.getState() <= 0) {
+        tip.isAnimated(false);
+        animationCompleted = 0;
+      }
+  } 
+
+  tooltip.fadeIn = function () {
+      animationCompleted += .05;
+
+      if (tip.getState() >= 1) {
+        tip.isAnimated(false);
+        animationCompleted = 1;
+      }
+  }
+
+  tooltip.getState = function () {
+    return animationCompleted;
+  }
+
+  tooltip.isAnimated = function (_) {
+    if(!arguments.length) return isAnimated
+    isAnimated = _;
+  }
+
+  // User methods
+  tooltip.backgroundColor = function (_) {
+    if (!arguments.length) return backgroundColor;
+    backgroundColor = _;
+    return tooltip;
+  }
+
+  tooltip.dateFormat = function (_) {
+    if (!arguments.length) return dateFormat;
+    dateFormat = _;
+    return tooltip;
+  }
+
+  return tooltip;
+}
 
 })();

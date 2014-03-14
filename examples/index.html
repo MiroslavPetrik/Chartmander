@@ -19,19 +19,19 @@ title: Chartmander.js Examples
 
   var baroDato = dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300);
 
-  // Chartmander.addChart(function(){
-  //   var chart = Chartmander.models.barChart("baroFrajeris");
-  //     // Data after settings
-  //     chart
-  //       .render(baroDato);
-  //     return chart;
-  // }).addChart(function(){
-  //   var chart = Chartmander.models.lineChart("pirat");
-  //     chart
-  //       .colors(["yellow", "orange"])
-  //       .render(baroDato);
-  //     return chart;
-  // });
+  Chartmander.addChart(function(){
+    var chart = Chartmander.models.barChart("baroFrajeris");
+      // Data after settings
+      chart
+        .render(baroDato);
+      return chart;
+  }).addChart(function(){
+    var chart = Chartmander.models.lineChart("pirat");
+      chart
+        .colors(["yellow", "orange"])
+        .render(baroDato);
+      return chart;
+  });
 
   // $("#update").on('click', function () {
   //   Chartmander.addChart(function(){
