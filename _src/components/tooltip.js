@@ -1,6 +1,6 @@
 Chartmander.components.tooltip = function (items) {
 
-  var tooltip = this;
+  var tooltip = new Chartmander.components.animatedPart();
 
   var items = []
     , margin = 20
@@ -69,11 +69,11 @@ Chartmander.components.tooltip = function (items) {
 
   tooltip.addItem = function (item) {
     items.push(item);
-  }
+  };
 
   tooltip.hasItems = function () {
     return items.length > 0;
-  }
+  };
 
   tooltip.recalc = function (ctx) {
     var lineWidth = 0;
@@ -87,7 +87,7 @@ Chartmander.components.tooltip = function (items) {
         width = lineWidth;
       height += lineHeight;
     });
-  }
+  };
 
   tooltip.fadeOut = function () {
       animationCompleted -= .05;
@@ -96,7 +96,7 @@ Chartmander.components.tooltip = function (items) {
         tip.isAnimated(false);
         animationCompleted = 0;
       }
-  } 
+  };
 
   tooltip.fadeIn = function () {
       animationCompleted += .05;
@@ -105,29 +105,29 @@ Chartmander.components.tooltip = function (items) {
         tip.isAnimated(false);
         animationCompleted = 1;
       }
-  }
+  };
 
   tooltip.getState = function () {
     return animationCompleted;
-  }
+  };
 
   tooltip.isAnimated = function (_) {
     if(!arguments.length) return isAnimated
     isAnimated = _;
-  }
+  };
 
   // User methods
   tooltip.backgroundColor = function (_) {
     if (!arguments.length) return backgroundColor;
     backgroundColor = _;
     return tooltip;
-  }
+  };
 
   tooltip.dateFormat = function (_) {
     if (!arguments.length) return dateFormat;
     dateFormat = _;
     return tooltip;
-  }
+  };
 
   return tooltip;
 }

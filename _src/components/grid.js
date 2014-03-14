@@ -42,13 +42,14 @@ Chartmander.components.grid = function () {
       ctx.save();
       ctx.globalAlpha = chart.yAxis.opacity();
       forEach(chart.yAxis.labels(), function (line) {
+        var y = Math.ceil(line.y());
         ctx.beginPath();
         if (line.label() == 0) {
           ctx.save();
           ctx.strokeStyle = "#999"; // TODO Axis Width and Color
         }
-        ctx.moveTo(left, line.y());
-        ctx.lineTo(right, line.y());
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
         ctx.stroke();
         if (line.label==0) ctx.restore();
       })
@@ -57,7 +58,7 @@ Chartmander.components.grid = function () {
 
     if (verticalLines) {
       for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
-        var xOffset = chart.grid.left() + i*(chart.grid.width() / chart.xAxis.labels().length);
+        var xOffset = Math.ceil( chart.grid.left() + i*(chart.grid.width() / chart.xAxis.labels().length) );
 
         ctx.beginPath();
         ctx.moveTo(xOffset, top);

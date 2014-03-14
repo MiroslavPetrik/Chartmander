@@ -9,6 +9,7 @@ module.exports = function (grunt) {
                     '_src/models/pieChart.js',
                     '_src/models/barChart.js',
                     '_src/models/lineChart.js',
+                    '_src/components/animatedPart.js',
                     '_src/components/dataset.js',
                     '_src/components/grid.js',
                     '_src/components/axis.js',

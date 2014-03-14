@@ -1,4 +1,4 @@
-Chartmander.components.yAxis = function (min, max) {
+Chartmander.components.yAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
@@ -9,9 +9,7 @@ Chartmander.components.yAxis = function (min, max) {
     , labelSteps = [1, 2, 5]
     ;
 
-
-  // maybe rename to generate ... racalc is about scale - put it inside of adapt method 
-
+  // generate?
   var recalc = function (chart) {
 
     var height = chart.grid.height()
@@ -140,25 +138,25 @@ Chartmander.components.yAxis = function (min, max) {
     if(!arguments.length) return unit;
     unit = _;
     return axis;
-  }
+  };
 
   axis.zeroLevel = function (_) {
     if(!arguments.length) return zeroLevel;
     zeroLevel = _;
     return axis;
-  }
+  };
 
   axis.margin = function (_) {
     if(!arguments.length) return margin;
     margin = _;
     return axis;
-  }
+  };
 
   axis.adapt = function (chart, range) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
     recalc(chart);
     return axis;
-  }
+  };
 
   return axis;
 }

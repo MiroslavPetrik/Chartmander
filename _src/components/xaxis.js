@@ -78,7 +78,7 @@ Chartmander.components.xAxis = function () {
     axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
     recalc(chart);
     return axis;
-  }
+  };
 
   return axis;
 }

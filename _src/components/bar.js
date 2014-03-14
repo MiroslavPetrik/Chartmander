@@ -69,7 +69,7 @@ Chartmander.components.bar = function (data, title) {
   bar.updatePositionBase = function (_perc_) {
     var baseDelta = base.from - base.to;
     base.now = base.from - baseDelta*_perc_;
-  }
+  };
 
   bar.saveBase = function (_) {
     if (!arguments.length) {
@@ -79,16 +79,16 @@ Chartmander.components.bar = function (data, title) {
       base.from = _;
     }
     return bar;
-  }
+  };
 
   bar.moveBase = function (_) {
     base.to = _;
     return bar;
-  }
+  };
 
   bar.base = function () {
     return base.now;
-  }
+  };
 
   return bar;
 };

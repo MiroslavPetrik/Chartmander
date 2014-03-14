@@ -1,12 +1,10 @@
 Chartmander.components.element = function (data, title) {
 
-  var element = this;
+  var element = new Chartmander.components.animatedPart();
 
   var set = title
     , label = data.label
     , value = data.value
-    , isAnimated = false
-    , animationCompleted = 0 // normal => 0, hover => 1
     // , pendingDelete: false,
     // Actual position
     , now = {
@@ -33,25 +31,25 @@ Chartmander.components.element = function (data, title) {
     if(!arguments.length) return label;
     label = _;
     return element;
-  }
+  };
 
   element.value = function (_) {
     if(!arguments.length) return value;
     value = _;
     return element;
-  }
+  };
 
   element.x = function (_) {
     if(!arguments.length) return now.x;
     now.x = _;
     return element;
-  }
+  };
 
   element.y = function (_) {
     if(!arguments.length) return now.y;
     now.y = _;
     return element;
-  }
+  };
 
   element.moveTo = function (x, y) {
     if (x!=false)
@@ -59,7 +57,7 @@ Chartmander.components.element = function (data, title) {
     if(y!=false)
       to.y = y;
     return element;
-  }
+  };
 
   element.updatePosition = function (_perc_) {
     var deltaX = from.x - to.x
@@ -68,7 +66,7 @@ Chartmander.components.element = function (data, title) {
     now.x = from.x - deltaX*_perc_;
     now.y = from.y - deltaY*_perc_;
     // console.log(now.x, now.y)
-  }
+  };
 
   element.savePosition = function (x, y) {
     if (!arguments.length) {
@@ -79,35 +77,7 @@ Chartmander.components.element = function (data, title) {
       from.y = y;
     }
     return element;
-  }
-  
-  element.isAnimated = function (_) {
-    if(!arguments.length) return isAnimated;
-    isAnimated = _;
-    return element;
-  }
-
-  element.getState = function () {
-    return animationCompleted;
-  }
-
-  element.animIn = function () {
-    isAnimated = true;
-    animationCompleted += .07;
-    if (animationCompleted >= 1) {
-      isAnimated = false;
-      animationCompleted = 1;
-    }
-  }
-
-  element.animOut = function () {
-    isAnimated = true;
-    animationCompleted -= .07;
-    if (animationCompleted <= 0) {
-      isAnimated = false;
-      animationCompleted = 0;
-    }
-  }
+  };
 
   // this.resetPosition = function (chart, yStart) {
   //   if(!isNaN(yStart))

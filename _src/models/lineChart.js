@@ -191,12 +191,12 @@ Chartmander.models.lineChart = function (canvas) {
     grid.drawInto(chart, _perc_);
 
     if (xAxisVisible) {
-      xAxis.fadeIn();
+      xAxis.animIn();
       xAxis.drawInto(chart, _perc_);
     }
 
     if (yAxisVisible) {
-      yAxis.fadeIn();
+      yAxis.animIn();
       yAxis.drawInto(chart, _perc_);
     }
 

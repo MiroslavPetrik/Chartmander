@@ -13,7 +13,7 @@ Chartmander.models.barChart = function (canvas) {
     , yAxisVisible = true
     ;
 
-  chart.margin({ top: 30, right: 40, bottom: 30, left: 100 });
+  chart.margin({ top: 30, right: 40, bottom: 30, left: 70 });
 
   // Shorthand for drawing functions
   var ctx = chart.ctx;
@@ -122,12 +122,12 @@ Chartmander.models.barChart = function (canvas) {
     grid.drawInto(chart, _perc_);
 
     if (xAxisVisible) {
-      xAxis.fadeIn();
+      xAxis.animIn();
       xAxis.drawInto(chart, _perc_);
     }
 
     if (yAxisVisible) {
-      yAxis.fadeIn();
+      yAxis.animIn();
       yAxis.drawInto(chart, _perc_);
     }
 
@@ -151,36 +151,36 @@ Chartmander.models.barChart = function (canvas) {
 
   chart.base = function (_) {
     return grid.bottom() - yAxis.zeroLevel();
-  }
+  };
 
   chart.barWidth = function (_) {
     if(!arguments.length) return barWidth; // Internal
     maxBarWidth = _; // User defined
     return chart;
-  }
+  };
 
   chart.datasetSpacing = function (_) {
     if(!arguments.length) return datasetSpacing;
     datasetSpacing = _;
     return chart;
-  }
+  };
 
   chart.showXAxis = function (_) {
     if (!arguments.length) return xAxisVisible;
     xAxisVisible = _;
     return chart;
-  }
+  };
 
   chart.showYAxis = function (_) {
     if (!arguments.length) return yAxisVisible;
     yAxisVisible = _;
     return chart;
-  }
+  };
 
   // Faux
   chart.type = function (_) {
     return type;
-  }
+  };
 
   return chart;
 }
