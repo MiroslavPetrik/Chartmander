@@ -2,18 +2,18 @@ Chartmander.models.lineChart = function (canvas) {
 
   var chart = new Chartmander.models.chart(canvas);
 
-  var type = "line"
-    , lineWidth = 2
+  var lineWidth = 2
     , pointRadius = 5
     , pointHoverRadius = 20
     , drawArea = true
-    , areaOpacity = .5
+    , areaOpacity = .33
     , mergeHover = true
     , xAxisVisible = true
     , yAxisVisible = true
+    , hoveredItems = []
     ;
 
-  chart.margin({ top: 30, right: 50, bottom: 50, left: 50 });
+  chart.type("line").margin({ top: 30, right: 50, bottom: 50, left: 50 })
 
   // Shorthand for drawing functions
   var ctx = chart.ctx;
@@ -33,7 +33,7 @@ Chartmander.models.lineChart = function (canvas) {
       var xrange = getRange(getArrayBy(data, "label"));
       var yrange = getRange(getArrayBy(data, "value"));
 
-      chart.datasets(getDatasetFrom(data, type, chart.colors()));
+      chart.datasets(getDatasetFrom(data, chart.type(), chart.colors()));
       // grid before axes
       grid.adapt(chart.width(), chart.height(), chart.margin());
       // axes use grid height to calculate their scale
@@ -49,7 +49,6 @@ Chartmander.models.lineChart = function (canvas) {
       chart.draw(drawComponents, false)
     }
   }
-
 
   var recalcPoints = function () {
     var x, y;
@@ -100,54 +99,47 @@ Chartmander.models.lineChart = function (canvas) {
   }
 
   var drawPoints = function (set) {
-    var hoveredInThisSet = []
-      , closestHovered
-      ;
-
     ctx.save();
-
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
 
+    // Hovered points selected during drawing
     set.each(function (point) {
       point.drawInto(chart, set);
     });
 
-    // Get items only from current set
-    forEach(chart.itemsInHoverRange(), function (item) {
-      if (item.set == set.title) {
-        hoveredInThisSet.push(item);
-      }
-    });
+    // With high-density data there can be more hovered points
+    // We need to find the one with the lowest distance from mouse
 
-    // Find closest hovered
-    for (var i = 0, len = hoveredInThisSet.length; i < len; i++) {
-      if (i == 0) {
-        closestHovered = hoveredInThisSet[i];
-        continue;
-      }
-      if (hoveredInThisSet[i].hoverDistance < closestHovered.hoverDistance) {
-        closestHovered = hoveredInThisSet[i];
-      }
-    }
+    if (hoveredItems.length > 0) {
+      var closestHovered = hoveredItems[0];
 
-    // Control Hovered
-    for (var i = 0, len = hoveredInThisSet.length; i < len; i++) {
-      if (hoveredInThisSet[i] === closestHovered) {
-        set.getElement(closestHovered.index).animIn();
-        chart.tooltip.addItem({
-            "set":   set.title,
-            "label": set.getElement(closestHovered.index).label(),
-            "value": set.getElement(closestHovered.index).value(),
+      for (var i = 1, len = hoveredItems.length; i < len; i++) {
+        if (hoveredItems[i].distance < closestHovered.distance)
+          closestHovered = hoveredItems[i];
+      }
+
+      // for (var i = 0, len = hoveredItems.length; i < len; i++) {
+        // if (hoveredItems[i] === closestHovered) {
+          closestHovered = set.getElement(closestHovered.index);
+
+          closestHovered.animIn();
+          chart.tooltip.addItem({
+            "set"  : set.title(),
+            "label": closestHovered.label(),
+            "value": closestHovered.value(),
+            "x"    : closestHovered.x(),
             "color": set.color()
-          })
-        if (set.elements[closestHovered.index].isAnimated()){
-          hoverNotFinished = true;
-        }
-      } else {
-        set.elements[hoveredInThisSet[i].index].animOut();
-      }
+          });
+          // if (set.getElement(closestHovered.index).isAnimated()){
+            // chart.hoverNotFinished(true);
+          // }
+        // } else {
+        //   set.getElement(hoveredItems[i].index).animOut();
+        // }
+      // }
     }
+
     ctx.restore();
   }
 
@@ -191,13 +183,13 @@ Chartmander.models.lineChart = function (canvas) {
     grid.drawInto(chart, _perc_);
 
     if (xAxisVisible) {
-      xAxis.animIn();
-      xAxis.drawInto(chart, _perc_);
+      xAxis.animIn()
+           .drawInto(chart, _perc_);
     }
 
     if (yAxisVisible) {
-      yAxis.animIn();
-      yAxis.drawInto(chart, _perc_);
+      yAxis.animIn()
+           .drawInto(chart, _perc_);
     }
 
     if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse()) ) {
@@ -205,6 +197,7 @@ Chartmander.models.lineChart = function (canvas) {
     }
 
     forEach(chart.datasets(), function (set) {
+      hoveredItems = [];
       updatePoints(set, _perc_);
       drawArea(set);
       drawLines(set);
@@ -224,6 +217,7 @@ Chartmander.models.lineChart = function (canvas) {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.grid = grid;
+  chart.crosshair = crosshair;
 
   chart.render = render;
   chart.drawFull = drawFull;
@@ -273,6 +267,17 @@ Chartmander.models.lineChart = function (canvas) {
     yAxisVisible = _;
     return chart;
   }
+
+  chart.hoveredItems = function (_) {
+    if (!arguments.length) return hoveredItems;
+    hoveredItems = _;
+    return chart;
+  };
+
+  chart.addHoveredItem = function (_) {
+    hoveredItems.push(_);
+    return chart;
+  };
 
   return chart;
 };

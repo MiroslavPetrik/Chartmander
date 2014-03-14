@@ -19,14 +19,8 @@ Chartmander.components.crosshair = function () {
 
     x = chart.mouse().x;
 
-    if (sticky && chart.itemsInHoverRange().length > 0) {
-      var availablePoints = [];
-
-      forEach(chart.hoveredItems(), function (point) {
-        availablePoints.push(point.position.x);
-      });
-      // Find 'where-to-stick' position
-      x = closestElement(x, availablePoints);
+    if (sticky && chart.tooltip.hasItems()) {
+      x = chart.tooltip.items()[0].x
     }
 
     chart.ctx.beginPath();

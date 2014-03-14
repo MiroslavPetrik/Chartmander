@@ -125,6 +125,7 @@ Chartmander.components.yAxis = function () {
       ctx.fillText(label.label().toString() + " " + unit, grid.left() - margin, label.y());
     });
     ctx.restore();
+    return axis;
   }
 
 

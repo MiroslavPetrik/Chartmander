@@ -11,7 +11,7 @@ Chartmander.components.dataset = function (set, color, type) {
     , hover = {
         color: tinycolor.lighten(color, 15).toHex(),
         strokeColor: tinycolor.darken(color, 20).toHex()
-    }
+      }
     ;
 
 
@@ -42,7 +42,11 @@ Chartmander.components.dataset = function (set, color, type) {
 
   dataset.each = function (action) {
     forEach(elements, action);
-  }
+  };
+
+  dataset.title = function (action) {
+    return title;
+  };
 
   dataset.size = function () {
     var total = 0;
@@ -50,11 +54,11 @@ Chartmander.components.dataset = function (set, color, type) {
       total += element.value();
     })
     return total;
-  }
+  };
 
   dataset.elementCount = function () {
     return elements.length;
-  }
+  };
 
   // dataset.merge = function (newData, chart) {
   //   var newElements = newData.values
@@ -101,24 +105,23 @@ Chartmander.components.dataset = function (set, color, type) {
       return elements[elements.length-1];
     else
       return elements[index];
-  }
+  };
 
   dataset.els = function () {
     return elements;
-  }
-
+  };
 
   dataset.color = function (_) {
     if(!arguments.length) return normal.color;
     normal.color = _;
     return dataset;
-  }
+  };
 
   dataset.hoverColor = function (_) {
     if(!arguments.length) return hover.color;
     hover.color = _;
     return dataset;
-  }
+  };
 
   return dataset;
 }

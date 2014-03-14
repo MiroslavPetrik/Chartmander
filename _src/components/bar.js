@@ -1,6 +1,7 @@
 Chartmander.components.bar = function (data, title) {
 
-  var bar = new Chartmander.components.element(data, title);
+  var bar = new Chartmander.components.element();
+      bar.set(title).label(data.label).value(data.value);
 
   var base = {
         from: 0,
@@ -15,13 +16,13 @@ Chartmander.components.bar = function (data, title) {
     ctx.save();
     if (chart.hovered() && isHovered(chart)) {
       ctx.fillStyle = set.hoverColor();
-      // ctx.strokeStyle = style.onHover.strokeColor;
-      // chart.tooltip.addItem({
-      //   "set": set.title
-      //   "label": bar.label,
-      //   "value": bar.value,
-      //   "color": style.normal.color
-      // });
+      ctx.strokeStyle = set.color();
+      chart.tooltip.addItem({
+        "set"  : set.title(),
+        "label": bar.label(),
+        "value": bar.value(),
+        "color": set.color()
+      });
     }
 
     ctx.fillRect(bar.x(), bar.base(), chart.barWidth(), bar.y());
@@ -43,7 +44,7 @@ Chartmander.components.bar = function (data, title) {
     //   ctx.fillText(bar.value/1000, 0, 15);
     //   ctx.restore();
     // }
-
+    return bar;
   }
 
   var isHovered = function (chart) {
@@ -69,6 +70,7 @@ Chartmander.components.bar = function (data, title) {
   bar.updatePositionBase = function (_perc_) {
     var baseDelta = base.from - base.to;
     base.now = base.from - baseDelta*_perc_;
+    return bar;
   };
 
   bar.saveBase = function (_) {

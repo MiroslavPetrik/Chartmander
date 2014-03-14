@@ -30,6 +30,7 @@ Chartmander.components.animatedPart = function () {
       // isAnimated = false;
       animationCompleted = 1;
     }
+    return part;
   };
 
   part.animOut = function () {
@@ -39,6 +40,7 @@ Chartmander.components.animatedPart = function () {
       isAnimated = false;
       animationCompleted = 0;
     }
+    return part;
   };
 
   part.speed = function () {

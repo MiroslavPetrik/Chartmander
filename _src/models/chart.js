@@ -2,12 +2,14 @@ Chartmander.models.chart = function (canvasID) {
   
   var chart = this;
 
-  var canvas = document.getElementById(canvasID)
+  var type = ""
+    , canvas = document.getElementById(canvasID)
     , ctx = canvas.getContext('2d')
     , datasets = []
     , width = ctx.canvas.width
     , height = ctx.canvas.height
     , margin = { top: 0, right: 0, bottom: 0, left: 0 }
+    , mouse = { x: 0, y: 0 }
     , colors = ["blue", "green", "red"]
     , font = "13px Arial, sans-serif"
     , fontColor = "#555"
@@ -15,16 +17,19 @@ Chartmander.models.chart = function (canvasID) {
     , hovered = false
     , animationSteps = 100
     , animationCompleted = 0
-    , easing = "easeOutCubic"
+    , easing = "easeInQuint"
     // , onAnimationCompleted = null
-    , mouse = { x: 0, y: 0 }
-    , hoverNotFinished = false
-    , hoveredItems = []
-    , itemsInHoverRange = []
     ;
 
-  // tooltip for each chart?
-  // var tip = Chartmander.components.tooltip();
+  ///////////////////////////////////
+  // Use Components
+  ///////////////////////////////////
+
+  var tooltip = new Chartmander.components.tooltip();
+
+  ///////////////////////////////////
+  // Interaction Setup
+  ///////////////////////////////////
 
   canvas.addEventListener("mouseenter", handleEnter, false);
   canvas.addEventListener("mousemove",  handleHover, false);
@@ -36,43 +41,6 @@ Chartmander.models.chart = function (canvasID) {
     ctx.canvas.height       = height * window.devicePixelRatio;
     ctx.canvas.width        = width  * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  }
-
-  var draw = function (drawComponents, finished) {
-    var easingFunction = easings[easing]
-      , animationIncrement = 1/animationSteps
-      , _perc_
-      ;
-
-    animationCompleted = animate ? 0 : 1;
-
-    function loop () {
-
-      if (finished) {
-        animationCompleted = 1;
-      } else if (animationCompleted < 1) {
-        animationCompleted += animationIncrement;
-      }
-
-      _perc_ = easingFunction(animationCompleted);
-      hoverNotFinished = false;
-      ctx.clearRect(0, 0, width, height);
-
-      drawComponents(_perc_);
-      // tip.removeItems();
-
-      // Request self-repaint if chart or tooltip or data element has not finished animating yet
-
-      // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
-      if (animationCompleted < 1 || hoverNotFinished ) {
-        requestAnimationFrame(loop);
-      }
-      else {
-        console.log("Animation Finished.")
-      }
-    }
-    // Ignite
-    requestAnimationFrame(loop);
   }
 
   function handleHover (event) {
@@ -99,12 +67,65 @@ Chartmander.models.chart = function (canvasID) {
       chart.drawFull();
   }
 
+  ///////////////////////////////////
+  // The Loop
+  ///////////////////////////////////
+
+  var draw = function (drawComponents, finished) {
+    var easingFunction = easings[easing]
+      , animationIncrement = 1/animationSteps
+      , _perc_
+      ;
+
+    animationCompleted = animate ? 0 : 1;
+
+    function loop () {
+
+      if (finished) {
+        animationCompleted = 1;
+      } else if (animationCompleted < 1) {
+        animationCompleted += animationIncrement;
+      }
+
+      _perc_ = easingFunction(animationCompleted);
+      // hoverNotFinished = false;
+      ctx.clearRect(0, 0, width, height);
+      tooltip.flush();
+
+      drawComponents(_perc_);
+
+      if (hovered && tooltip.hasItems()) {
+        tooltip.recalc(ctx);
+        tooltip.drawInto(chart);
+      }
+
+      // Request self-repaint if chart or tooltip or data element has not finished animating yet
+
+      // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
+      if (animationCompleted < 1) {
+        requestAnimationFrame(loop);
+      }
+      else {
+        console.log("Animation Finished.");
+      }
+    }
+    // Ignite
+    requestAnimationFrame(loop);
+  }
+
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
+  chart.tooltip = tooltip;
   chart.draw = draw;
   chart.ctx = ctx;
+
+  chart.type = function (_) {
+    if(!arguments.length) return type;
+    type = _;
+    return chart;
+  };
 
   chart.width = function () {
     return width;
@@ -181,18 +202,6 @@ Chartmander.models.chart = function (canvasID) {
   chart.easing = function (_) {
     if (!arguments.length) return easing;
     easing = _;
-    return chart;
-  };
-
-  chart.hoveredItems = function (_) {
-    if (!arguments.length) return hoveredItems;
-    hoveredItems = _;
-    return chart;
-  };
-
-  chart.itemsInHoverRange = function (_) {
-    if (!arguments.length) return itemsInHoverRange;
-    itemsInHoverRange = _;
     return chart;
   };
 

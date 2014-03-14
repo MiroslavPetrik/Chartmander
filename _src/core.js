@@ -1,6 +1,12 @@
-// Chartmander v0.1.1
-// https://github.com/11th/Chartmander
-// Copyright (c) 2014 Miroslav Petrik, MIT License
+// ==================================================
+// Chartmander.js - Interactive Canvas Charts
+// --------------------------------------------------
+// Version   : 0.1.1
+// Homepage  : 11th.github.io/Chartmander/
+// GitHub    : github.com/11th/Chartmander
+// Copyright : (c) 2014 Miroslav Petrik, MIT License
+// Contact   : miroslavpetrik@outlook.com
+// ==================================================
 
 (function(){
 
@@ -27,7 +33,6 @@
 
     return Chartmander;
   };
-
 
   var easings = {
     linear : function (t){

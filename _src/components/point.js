@@ -1,15 +1,13 @@
 Chartmander.components.point = function (data, title) {
 
-  var point = new Chartmander.components.element(data, title);
+  var point = new Chartmander.components.element();
+      point.set(title).label(data.label).value(data.value);
 
   var drawInto = function (chart, set) {
-
     var ctx = chart.ctx;
-
     if (chart.hovered()) {
       var hover = isHovered(chart.mouse(), chart.pointHoverRadius(), chart.mergeHover());
     }
-
     // Draw circle in normal state
     ctx.beginPath();
     ctx.arc(point.x(), point.y(), chart.pointRadius()*(1-point.getState()), 0, Math.PI*2, false);
@@ -22,7 +20,6 @@ Chartmander.components.point = function (data, title) {
     // }
 
     if (point.getState() > 0) {
-      cfg.hoverNotFinished = true;
       ctx.save();
       ctx.beginPath();
       ctx.fillStyle = set.hoverColor();
@@ -35,15 +32,13 @@ Chartmander.components.point = function (data, title) {
       // }
       ctx.restore();
     }
-    //
+
     if (chart.hovered() && hover.was) {
-      console.log("Handle hover")
-      // chart.itemsInHoverRange.push({
-      //   "set": set.title,
-      //   "index": indexOf.call(set.elements, point),
-      //   "hoverDistance": hover.distance
-      // });
-      // return;
+      chart.addHoveredItem({
+        "index"   : indexOf.call(set.els(), point),
+        "distance": hover.distance
+      });
+      return;
     }
     point.animOut();
   }

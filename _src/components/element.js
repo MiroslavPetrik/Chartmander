@@ -1,10 +1,10 @@
-Chartmander.components.element = function (data, title) {
+Chartmander.components.element = function () {
 
   var element = new Chartmander.components.animatedPart();
 
-  var set = title
-    , label = data.label
-    , value = data.value
+  var set = null
+    , label = null
+    , value = null
     // , pendingDelete: false,
     // Actual position
     , now = {
@@ -26,6 +26,12 @@ Chartmander.components.element = function (data, title) {
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
+
+  element.set = function (_) {
+    if(!arguments.length) return set;
+    set = _;
+    return element;
+  };
 
   element.label = function (_) {
     if(!arguments.length) return label;
@@ -65,7 +71,8 @@ Chartmander.components.element = function (data, title) {
       ;
     now.x = from.x - deltaX*_perc_;
     now.y = from.y - deltaY*_perc_;
-    // console.log(now.x, now.y)
+    
+    return element;
   };
 
   element.savePosition = function (x, y) {

@@ -2,8 +2,7 @@ Chartmander.models.barChart = function (canvas) {
 
   var chart = new Chartmander.models.chart(canvas);
 
-  var type = "bar"
-    , stacked = false
+  var stacked = false
     , maxBarWidth = 30
     , datasetSpacing = 0
     , barWidth = maxBarWidth
@@ -13,7 +12,7 @@ Chartmander.models.barChart = function (canvas) {
     , yAxisVisible = true
     ;
 
-  chart.margin({ top: 30, right: 40, bottom: 30, left: 70 });
+  chart.type("bar").margin({ top: 30, right: 40, bottom: 30, left: 70 });
 
   // Shorthand for drawing functions
   var ctx = chart.ctx;
@@ -22,9 +21,10 @@ Chartmander.models.barChart = function (canvas) {
   // Use components
   ///////////////////////////////////
 
-  var xAxis = new Chartmander.components.xAxis()
-    , yAxis = new Chartmander.components.yAxis()
-    , grid  = new Chartmander.components.grid()
+  var xAxis      = new Chartmander.components.xAxis()
+    , yAxis      = new Chartmander.components.yAxis()
+    , grid       = new Chartmander.components.grid()
+    , crosshair  = new Chartmander.components.crosshair()
     ;
 
   var render =  function (data) {
@@ -32,7 +32,7 @@ Chartmander.models.barChart = function (canvas) {
       var xrange = getRange(getArrayBy(data, "label"));
       var yrange = getRange(getArrayBy(data, "value"));
 
-      chart.datasets(getDatasetFrom(data, type, chart.colors()));
+      chart.datasets(getDatasetFrom(data, chart.type(), chart.colors()));
       // grid before axes
       grid.adapt(chart.width(), chart.height(), chart.margin());
       // axes use grid height to calculate their scale
@@ -76,10 +76,10 @@ Chartmander.models.barChart = function (canvas) {
       // ctx.lineWidth = set.style.normal.stroke;
       // ctx.strokeStyle = set.style.normal.strokeColor;
       set.each(function (bar) {
-        bar.updatePosition(_perc_);
-        bar.updatePositionBase(_perc_);
-        bar.drawInto(chart, set);
-      })
+        bar.updatePosition(_perc_)
+           .updatePositionBase(_perc_)
+           .drawInto(chart, set);
+      });
       counter++;
     })
     ctx.restore();
@@ -145,6 +145,7 @@ Chartmander.models.barChart = function (canvas) {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.grid = grid;
+  chart.crosshair = crosshair;
 
   chart.render = render;
   chart.drawFull = drawFull;
@@ -175,11 +176,6 @@ Chartmander.models.barChart = function (canvas) {
     if (!arguments.length) return yAxisVisible;
     yAxisVisible = _;
     return chart;
-  };
-
-  // Faux
-  chart.type = function (_) {
-    return type;
   };
 
   return chart;

@@ -1,7 +1,6 @@
 Chartmander.models.pieChart = function (canvas) {
 
   var chart = new Chartmander.models.chart(canvas)
-    , type = "pie"
     , center = { x: chart.width()/2, y: chart.height()/2 }
     , radius = Math.min.apply(null, [center.x, center.y])
     , innerRadius = .6
@@ -9,7 +8,7 @@ Chartmander.models.pieChart = function (canvas) {
     , startAngle = 0
     ;
 
-  // chart.tooltip = Chartmander.components.tooltip();
+  chart.type("pie");
 
   var recalcSlices = function (update) {
     var slice
@@ -39,8 +38,9 @@ Chartmander.models.pieChart = function (canvas) {
       // console.log(set.getElement(0).value())
       var slice = set.getElement(0);
       chart.ctx.fillStyle = set.color();
-      slice.updatePosition(rotateAnimation ? _perc_ : 1);
-      slice.drawInto(chart, set);
+      
+      slice.updatePosition(rotateAnimation ? _perc_ : 1)
+           .drawInto(chart, set);
     });
     chart.ctx.restore();
   }
@@ -48,7 +48,7 @@ Chartmander.models.pieChart = function (canvas) {
 
   var render =  function (data) {
     if (chart.setsCount() == 0) {
-      chart.datasets(getDatasetFrom(data, type, chart.colors()));
+      chart.datasets(getDatasetFrom(data, chart.type(), chart.colors()));
       recalcSlices(false);
       chart.draw(drawComponents, false);
     }

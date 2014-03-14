@@ -65,6 +65,7 @@ Chartmander.components.xAxis = function () {
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
     });
     ctx.restore();
+    return axis;
   }
 
   ///////////////////////////////

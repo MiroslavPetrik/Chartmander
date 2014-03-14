@@ -5,7 +5,8 @@ Chartmander.components.slice = function (data, title) {
   ** Slice uses X, Y methods but they refer to Start and End values
   */
 
-  var slice = new Chartmander.components.element(data, title);
+  var slice = new Chartmander.components.element();
+      slice.set(title).label(data.label).value(data.value);
 
   var sliceIsHovered = function (pie) {
     var x = pie.mouse().x - pie.center().x
