@@ -42,8 +42,9 @@ Chartmander.models.barChart = function (canvas) {
     }());
 
     if (chart.updated()) {
-      x0 = xAxis;
-      y0 = yAxis;
+      x0 = xAxis.copy();
+      y0 = yAxis.copy();
+      var oldScale = yAxis.scale();
     }
     // grid before axes
     grid.adapt(chart.width(), chart.height(), chart.margin());
@@ -51,6 +52,9 @@ Chartmander.models.barChart = function (canvas) {
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, yrange);
 
+    if (chart.updated()) {
+      console.log(yAxis.scale(), y0.scale(), oldScale)
+    }
     recalcBars();
     // chart.completed(0);
     chart.draw(drawComponents, false);
@@ -106,16 +110,16 @@ Chartmander.models.barChart = function (canvas) {
     if (xAxisVisible) {
       xAxis.animIn().drawInto(chart, _perc_);
       if (x0 && x0.getState() > 0) {
-        x0.animOut();
-        x0.drawInto(chart, _perc_);
+        // x0.animOut();
+        x0.drawInto(chart, 1-_perc_);
       } 
     }
 
     if (yAxisVisible) {
       yAxis.animIn().drawInto(chart, _perc_);
       if (y0 && y0.getState() > 0) {
-        y0.animOut();
-        y0.drawInto(chart, _perc_);
+        // y0.animOut();
+        y0.drawInto(chart, 1-_perc_);
       } 
     }
 

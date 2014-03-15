@@ -52,8 +52,8 @@
 
     if (model === "line")
       return new Chartmander.models.lineChart(id);
-    else
-      throw new Error("Unknown model of chart.")
+
+    throw new Error("Unknown model of chart.");
   };
 
   var easings = {
@@ -231,6 +231,19 @@
     }
   }
 
+  if (typeof Object.create != 'function') {
+    (function () {
+        var F = function () {};
+        Object.create = function (o) {
+            if (arguments.length > 1) { throw Error('Second argument not supported');}
+            if (o === null) { throw Error('Cannot set a null [[Prototype]]');}
+            if (typeof o != 'object') { throw TypeError('Argument must be an object');}
+            F.prototype = o;
+            return new F;
+        };
+    })();
+  }
+  
   var indexOf = function (element) {
     if (typeof Array.prototype.indexOf === 'function') {
       indexOf = Array.prototype.indexOf;
@@ -683,8 +696,9 @@ Chartmander.models.barChart = function (canvas) {
     }());
 
     if (chart.updated()) {
-      x0 = xAxis;
-      y0 = yAxis;
+      x0 = xAxis.copy();
+      y0 = yAxis.copy();
+      var oldScale = yAxis.scale();
     }
     // grid before axes
     grid.adapt(chart.width(), chart.height(), chart.margin());
@@ -692,6 +706,9 @@ Chartmander.models.barChart = function (canvas) {
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, yrange);
 
+    if (chart.updated()) {
+      console.log(yAxis.scale(), y0.scale(), oldScale)
+    }
     recalcBars();
     // chart.completed(0);
     chart.draw(drawComponents, false);
@@ -747,16 +764,16 @@ Chartmander.models.barChart = function (canvas) {
     if (xAxisVisible) {
       xAxis.animIn().drawInto(chart, _perc_);
       if (x0 && x0.getState() > 0) {
-        x0.animOut();
-        x0.drawInto(chart, _perc_);
+        // x0.animOut();
+        x0.drawInto(chart, 1-_perc_);
       } 
     }
 
     if (yAxisVisible) {
       yAxis.animIn().drawInto(chart, _perc_);
       if (y0 && y0.getState() > 0) {
-        y0.animOut();
-        y0.drawInto(chart, _perc_);
+        // y0.animOut();
+        y0.drawInto(chart, 1-_perc_);
       } 
     }
 
@@ -1417,6 +1434,10 @@ Chartmander.components.axis = function () {
     delta = _;
     return axis;
   };
+
+  axis.copy = function () {
+    return Object.create(axis);
+  }
 
   return axis;
 }

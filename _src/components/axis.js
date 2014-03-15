@@ -59,5 +59,9 @@ Chartmander.components.axis = function () {
     return axis;
   };
 
+  axis.copy = function () {
+    return Object.create(axis);
+  }
+
   return axis;
 }

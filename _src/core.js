@@ -52,8 +52,8 @@
 
     if (model === "line")
       return new Chartmander.models.lineChart(id);
-    else
-      throw new Error("Unknown model of chart.")
+
+    throw new Error("Unknown model of chart.");
   };
 
   var easings = {
@@ -231,6 +231,19 @@
     }
   }
 
+  if (typeof Object.create != 'function') {
+    (function () {
+        var F = function () {};
+        Object.create = function (o) {
+            if (arguments.length > 1) { throw Error('Second argument not supported');}
+            if (o === null) { throw Error('Cannot set a null [[Prototype]]');}
+            if (typeof o != 'object') { throw TypeError('Argument must be an object');}
+            F.prototype = o;
+            return new F;
+        };
+    })();
+  }
+  
   var indexOf = function (element) {
     if (typeof Array.prototype.indexOf === 'function') {
       indexOf = Array.prototype.indexOf;
