@@ -1,5 +1,5 @@
-<span style="text-align: center">
+<p align="center">
 Chartmander
 ===========
-</span>
+</p>
 Interactive and eye-catching HTML5 &lt;canvas> charts. Great for your new webapp or design mockup.
