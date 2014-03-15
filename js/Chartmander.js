@@ -525,7 +525,7 @@ Chartmander.models.pieChart = function (canvas) {
 
   chart.type("pie");
 
-  var recalcSlices = function (update) {
+  var recalcSlices = function () {
     var slice
       , sliceStart = 0
       , sliceEnd
@@ -533,11 +533,9 @@ Chartmander.models.pieChart = function (canvas) {
 
     forEach(chart.datasets(), function (set) {
       // There is always one element inside of dataset in pie chart
-
-      console.log(set.els()[0].value())
       slice = set.getElement(0);
       sliceEnd = sliceStart + getAngleOf(slice.value());
-      if (update) {
+      if (chart.updated()) {
         slice.savePosition();
       } else {
         slice.savePosition(0, 0);
@@ -550,7 +548,6 @@ Chartmander.models.pieChart = function (canvas) {
   var drawSlices = function (_perc_) {
     chart.ctx.save();
     forEach(chart.datasets(), function (set) {
-      // console.log(set.getElement(0).value())
       var slice = set.getElement(0);
       chart.ctx.fillStyle = set.color();
       
@@ -560,19 +557,21 @@ Chartmander.models.pieChart = function (canvas) {
     chart.ctx.restore();
   }
 
-
   var render =  function (data) {
-    if (chart.setsCount() === 0) {
-      chart.datasets(getDatasetFrom(data, chart.type(), chart.colors()));
-      recalcSlices(false);
-      chart.draw(drawComponents, false);
-    }
-    else {
-      update(data);
-      recalcSlices(true);
-      chart.completed(0);
-      chart.draw(drawComponents, false)
-    }
+    chart.parse(data, Chartmander.components.slice);
+    var xrange = getRange(getArrayBy(data, "label"));
+    var yrange = getRange(function(){
+      var values = [];
+      forEach(chart.datasets(), function (set) {
+        values.push(set.min());
+        values.push(set.max());
+      });
+      return values;
+    }());
+
+    recalcSlices();
+    // chart.completed(0);
+    chart.draw(drawComponents, false);
   }
 
   var update = function (data) {
@@ -693,11 +692,7 @@ Chartmander.models.barChart = function (canvas) {
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, yrange);
 
-    if (chart.updated()) {
-      recalcBars(true);
-    } else {
-      recalcBars(false);
-    }
+    recalcBars();
     // chart.completed(0);
     chart.draw(drawComponents, false);
   }

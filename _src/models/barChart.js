@@ -51,11 +51,7 @@ Chartmander.models.barChart = function (canvas) {
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, yrange);
 
-    if (chart.updated()) {
-      recalcBars(true);
-    } else {
-      recalcBars(false);
-    }
+    recalcBars();
     // chart.completed(0);
     chart.draw(drawComponents, false);
   }
