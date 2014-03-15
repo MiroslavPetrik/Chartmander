@@ -17,7 +17,7 @@ Chartmander.models.pieChart = function (canvas) {
       ;
 
     forEach(chart.datasets(), function (set) {
-      // There is always one element inside of dataset in chart chart
+      // There is always one element inside of dataset in pie chart
 
       console.log(set.els()[0].value())
       slice = set.getElement(0);
@@ -47,7 +47,7 @@ Chartmander.models.pieChart = function (canvas) {
 
 
   var render =  function (data) {
-    if (chart.setsCount() == 0) {
+    if (chart.setsCount() === 0) {
       chart.datasets(getDatasetFrom(data, chart.type(), chart.colors()));
       recalcSlices(false);
       chart.draw(drawComponents, false);
@@ -103,24 +103,24 @@ Chartmander.models.pieChart = function (canvas) {
     center.x = typeof _.x != 'undefined' ? _.x : center.x;
     center.y = typeof _.y != 'undefined' ? _.y : center.y;
     return chart;
-  }
+  };
 
   chart.innerRadius = function (_) {
     if(!arguments.length) return innerRadius;
     innerRadius = _;
     return chart;
-  }
+  };
 
   chart.radius = function (_) {
     if(!arguments.length) return radius;
     radius = _;
-  }
+  };
 
   chart.startAngle = function (_) {
     if(!arguments.length) return startAngle;
     startAngle = _;
     return chart;
-  }
+  };
 
   return chart;
 };

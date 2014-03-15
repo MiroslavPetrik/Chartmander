@@ -21,17 +21,37 @@
   Chartmander.charts     = []; // Store all rendered charts
 
   Chartmander.addChart = function (callback) {
-    var newChart = callback();
-    //   , alreadyRendered = false;
-    // forEach(Chartmander.charts, function (chart) {
-      
-    // });
-    // if (alreadyRendered) 
-      
-    // else
+    var newChart = callback()
+      , isUnique = true;
+
+    forEach(Chartmander.charts, function (chart) {
+      if (newChart.id() === chart.id())
+        isUnique = false;
+    });
+
+    if (isUnique)
       Chartmander.charts.push(newChart);
 
     return Chartmander;
+  };
+
+  Chartmander.select = function (id, model) {
+    // Check if chart already exists
+    for (var i=0, l=Chartmander.charts.length; i<l; i++) {
+      if (id === Chartmander.charts[i].id())
+        return Chartmander.charts[i]
+    }
+    // Provide new chart
+    if (model === "pie")
+      return new Chartmander.models.pieChart(id);
+
+    if (model === "bar")
+      return new Chartmander.models.barChart(id);
+
+    if (model === "line")
+      return new Chartmander.models.lineChart(id);
+    else
+      throw new Error("Unknown model of chart.")
   };
 
   var easings = {
@@ -188,44 +208,16 @@
     };
   }
 
-  function getDatasetFrom (data, type, colors) {
-    var index = 0
-      , color
-      , datasets = []
-      ;
-
-    if (data === undefined)
-      throw new Error("No data");
-      
-    forEach(data, function(set) {
-      // pick a color
-      if (colors[index] != undefined) {
-        color = tinycolor(colors[index]).toRgbString();
-      }
-      else {
-        var offset=1, indexCopy = index;
-        while(indexCopy/colors.length >= 1){
-          offset++;
-          indexCopy -= colors.length;
-        }
-        color = tinycolor.darken(colors[indexCopy], 5*offset).toRgbString();
-      }
-      datasets.push(new Chartmander.components.dataset(set, color, type));
-      index++;
-    });
-    return datasets;
-  }
-
   function getArrayBy (data, property, exclusiveEntry) {
     var result = []
-      , streamID = 0;
+      , i = 0;
 
     forEach(data, function (set) {
-      if (exclusiveEntry && streamID == 1) return result;
+      if (exclusiveEntry && i == 1) return result;
       result = result.concat(set.values.map(function (element) {
         return element[property];
       }));
-      streamID++;
+      i++;
     });
     return result;
   }

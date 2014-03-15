@@ -22,7 +22,7 @@ Chartmander.components.point = function (data, title) {
     if (point.getState() > 0) {
       ctx.save();
       ctx.beginPath();
-      ctx.fillStyle = set.hoverColor();
+      ctx.fillStyle = "red";
       ctx.arc(point.x(), point.y(),10*point.getState(), 0, Math.PI*2, false);
       ctx.fill();
       // if (style.onHover.stroke > 0) {

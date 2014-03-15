@@ -2,7 +2,8 @@ Chartmander.models.chart = function (canvasID) {
   
   var chart = this;
 
-  var type = ""
+  var id = canvasID // unique ID selector
+    , type = ""
     , canvas = document.getElementById(canvasID)
     , ctx = canvas.getContext('2d')
     , datasets = []
@@ -121,6 +122,13 @@ Chartmander.models.chart = function (canvasID) {
   chart.draw = draw;
   chart.ctx = ctx;
 
+  chart.id = function (_) {
+    // if(!arguments.length)
+      return id;
+    // id = _;
+    // return chart;
+  };
+
   chart.type = function (_) {
     if(!arguments.length) return type;
     type = _;
@@ -179,6 +187,14 @@ Chartmander.models.chart = function (canvasID) {
     if(!arguments.length) return colors;
     colors = _;
     return chart;
+  };
+
+  // FAUX
+  chart.color = function (i) {
+    if (colors[i] !== undefined)
+      return colors[i];
+    else
+      return "red";
   };
 
   chart.fontColor = function (_) {

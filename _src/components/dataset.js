@@ -1,9 +1,11 @@
-Chartmander.components.dataset = function (set, color, type) {
+Chartmander.components.dataset = function (data, color, element) {
 
   var dataset = this;
 
-  var title = set.title
-    , elements = getElements(type)
+  var title = data.title
+    , elements = []
+    , yMin = 0
+    , yMax = 0
     , normal = {
         color: tinycolor.lighten(color, 5).toHex(),
         strokeColor: tinycolor.darken(color, 10).toHex()
@@ -14,27 +16,13 @@ Chartmander.components.dataset = function (set, color, type) {
       }
     ;
 
+  forEach(data.values, function (el) {
+    elements.push(new element(el, data.title));
+  });
 
-  function getElements (type) {
-    var result = [];
-    switch (type) {
-      case "bar": forEach(set.values, function (bar) {
-              result.push(new Chartmander.components.bar(bar, set.title));
-            });
-            break;
-      case "pie": forEach(set.values, function (slice) {
-              result.push(new Chartmander.components.slice(slice, set.title));
-            });
-            break;
-      case "line": forEach(set.values, function (point) {
-              result.push(new Chartmander.components.point(point, set.title));
-            });
-            break;
-      default: return;
-    }
-    return result;
-  }
-
+  var yRange = getRange(getArrayBy(data, "value"));
+  yMin = yRange.min;
+  yMax = yRange.max;
 
   ///////////////////////////////
   // Public Methods & Variables
@@ -52,7 +40,7 @@ Chartmander.components.dataset = function (set, color, type) {
     var total = 0;
     dataset.each(function (element) {
       total += element.value();
-    })
+    });
     return total;
   };
 
@@ -114,6 +102,18 @@ Chartmander.components.dataset = function (set, color, type) {
   dataset.color = function (_) {
     if(!arguments.length) return normal.color;
     normal.color = _;
+    return dataset;
+  };
+
+  dataset.min = function (_) {
+    if(!arguments.length) return yMin;
+    yMin = _;
+    return dataset;
+  };
+
+  dataset.max = function (_) {
+    if(!arguments.length) return yMax;
+    yMax = _;
     return dataset;
   };
 

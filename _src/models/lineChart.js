@@ -2,15 +2,15 @@ Chartmander.models.lineChart = function (canvas) {
 
   var chart = new Chartmander.models.chart(canvas);
 
-  var lineWidth = 2
-    , pointRadius = 5
+  var lineWidth        = 2
+    , pointRadius      = 5
     , pointHoverRadius = 20
-    , drawArea = true
-    , areaOpacity = .33
-    , mergeHover = true
-    , xAxisVisible = true
-    , yAxisVisible = true
-    , hoveredItems = []
+    , drawArea         = true
+    , areaOpacity      = .33
+    , mergeHover       = true
+    , xAxisVisible     = true
+    , yAxisVisible     = true
+    , hoveredItems     = []
     ;
 
   chart.type("line").margin({ top: 30, right: 50, bottom: 50, left: 50 })
@@ -28,12 +28,29 @@ Chartmander.models.lineChart = function (canvas) {
     , crosshair = new Chartmander.components.crosshair()
     ;
 
+  var x0, y0;
+
   var render =  function (data) {
+    // Parse data
+    if (data === undefined)
+      throw new Error("No data specified for chart " + chart.id());
+
+    // New data
+    if (chart.setsCount() === 0) {
+      var datasets = [], i=0;
+      forEach(data, function (set) {
+        datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.point));
+        i++;
+      });
+    } else { // Update
+
+    }
+
     if (chart.setsCount() == 0) {
       var xrange = getRange(getArrayBy(data, "label"));
       var yrange = getRange(getArrayBy(data, "value"));
 
-      chart.datasets(getDatasetFrom(data, chart.type(), chart.colors()));
+      chart.datasets(datasets);
       // grid before axes
       grid.adapt(chart.width(), chart.height(), chart.margin());
       // axes use grid height to calculate their scale
@@ -52,7 +69,6 @@ Chartmander.models.lineChart = function (canvas) {
 
   var recalcPoints = function () {
     var x, y;
-
     forEach(chart.datasets(), function (set) {
       set.each(function (point) {
         x = Math.ceil(grid.left() + (point.label()-xAxis.min())/xAxis.scale());
@@ -70,10 +86,8 @@ Chartmander.models.lineChart = function (canvas) {
 
   var drawArea = function (set) {
     ctx.save();
-
     ctx.fillStyle = set.color();
     ctx.globalAlpha = areaOpacity;
-
     ctx.beginPath();
     ctx.moveTo(set.getElement(0).x(), chart.base());
     ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
@@ -82,7 +96,6 @@ Chartmander.models.lineChart = function (canvas) {
     });
     ctx.lineTo(set.getElement("last").x(), chart.base());
     ctx.fill();
-
     ctx.restore();
   }
 
@@ -102,8 +115,6 @@ Chartmander.models.lineChart = function (canvas) {
     ctx.save();
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
-
-    // Hovered points selected during drawing
     set.each(function (point) {
       point.drawInto(chart, set);
     });
@@ -118,26 +129,15 @@ Chartmander.models.lineChart = function (canvas) {
         if (hoveredItems[i].distance < closestHovered.distance)
           closestHovered = hoveredItems[i];
       }
-
-      // for (var i = 0, len = hoveredItems.length; i < len; i++) {
-        // if (hoveredItems[i] === closestHovered) {
-          closestHovered = set.getElement(closestHovered.index);
-
-          closestHovered.animIn();
-          chart.tooltip.addItem({
-            "set"  : set.title(),
-            "label": closestHovered.label(),
-            "value": closestHovered.value(),
-            "x"    : closestHovered.x(),
-            "color": set.color()
-          });
-          // if (set.getElement(closestHovered.index).isAnimated()){
-            // chart.hoverNotFinished(true);
-          // }
-        // } else {
-        //   set.getElement(hoveredItems[i].index).animOut();
-        // }
-      // }
+      closestHovered = set.getElement(closestHovered.index);
+      closestHovered.animIn();
+      chart.tooltip.addItem({
+        "set"  : set.title(),
+        "label": closestHovered.label(),
+        "value": closestHovered.value(),
+        "x"    : closestHovered.x(),
+        "color": set.color()
+      });
     }
 
     ctx.restore();
@@ -209,18 +209,17 @@ Chartmander.models.lineChart = function (canvas) {
     chart.draw(drawComponents, true);
   }
 
-
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
-  chart.xAxis = xAxis;
-  chart.yAxis = yAxis;
-  chart.grid = grid;
+  chart.xAxis     = xAxis;
+  chart.yAxis     = yAxis;
+  chart.grid      = grid;
   chart.crosshair = crosshair;
-
-  chart.render = render;
-  chart.drawFull = drawFull;
+  
+  chart.render    = render;
+  chart.drawFull  = drawFull;
 
   chart.base = function (_) {
     return grid.bottom() - yAxis.zeroLevel();

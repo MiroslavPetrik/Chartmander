@@ -2,14 +2,14 @@ Chartmander.models.barChart = function (canvas) {
 
   var chart = new Chartmander.models.chart(canvas);
 
-  var stacked = false
-    , maxBarWidth = 30
+  var stacked        = false
+    , maxBarWidth    = 30
     , datasetSpacing = 0
-    , barWidth = maxBarWidth
-    , groupWidth = 0
-    , groupOffset = 0
-    , xAxisVisible = true
-    , yAxisVisible = true
+    , barWidth       = maxBarWidth
+    , groupWidth     = 0
+    , groupOffset    = 0
+    , xAxisVisible   = true
+    , yAxisVisible   = true
     ;
 
   chart.type("bar").margin({ top: 30, right: 40, bottom: 30, left: 70 });
@@ -28,25 +28,43 @@ Chartmander.models.barChart = function (canvas) {
     ;
 
   var render =  function (data) {
-    if (chart.setsCount() == 0) {
-      var xrange = getRange(getArrayBy(data, "label"));
-      var yrange = getRange(getArrayBy(data, "value"));
+    // Parse data
+    if (data === undefined) {
+      throw new Error("No data specified for chart " + chart.id());
+    }
 
-      chart.datasets(getDatasetFrom(data, chart.type(), chart.colors()));
-      // grid before axes
-      grid.adapt(chart.width(), chart.height(), chart.margin());
-      // axes use grid height to calculate their scale
-      xAxis.adapt(chart, xrange);
-      yAxis.adapt(chart, yrange);
-      recalcBars();
-      chart.draw(drawComponents, false);
+    // First render, create new datasets
+    if (chart.setsCount() === 0) {
+      var datasets = [], i=0;
+      forEach(data, function (set) {
+        datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.bar));
+        i++;
+      });
+    } else { // Update
+      var i=0;
+      forEach(chart.datasets(), function (set) {
+        if (data[i] === undefined) {
+          throw new Error("Missing dataset. Dataset count on update must match.");
+        }
+        set.merge(data[i], chart);
+        i++;
+      });
     }
-    else {
-      update(data);
-      recalcBars(true);
-      chart.completed(0);
-      chart.draw(drawComponents, false)
-    }
+
+    var xrange = getRange(getArrayBy(data, "label"));
+    var yrange = getRange(getArrayBy(data, "value"));
+
+    chart.datasets(datasets);
+    // grid before axes
+    grid.adapt(chart.width(), chart.height(), chart.margin());
+    // axes use grid height to calculate their scale
+    xAxis.adapt(chart, xrange);
+    yAxis.adapt(chart, yrange);
+    recalcBars();
+    // update(data);
+    recalcBars(true);
+    chart.completed(0);
+    chart.draw(drawComponents, false)
   }
 
   var recalcBars = function () {

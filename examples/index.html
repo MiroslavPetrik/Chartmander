@@ -13,35 +13,35 @@ title: Chartmander.js Examples
     <button class="btn btn-default" id="update">Update</button>
   </div>
 </div>
-<canvas id="baroFrajeris" width="800" height="400"></canvas>
-<canvas id="pirat" width="800" height="400"></canvas>
+<canvas id="bar" width="800" height="400"></canvas>
+<canvas id="line" width="800" height="400"></canvas>
 <script>
 
-  var baroDato = dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300);
+  var testData = dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300);
 
   Chartmander.addChart(function(){
-    var chart = Chartmander.models.barChart("baroFrajeris");
+    var chart = Chartmander.select("bar", "bar");
       // Data after settings
       chart
-        .render(baroDato);
+        .colors(["yellow", "orange"])
+        .render(testData);
       return chart;
   }).addChart(function(){
-    var chart = Chartmander.models.lineChart("pirat");
+    var chart = Chartmander.select("line", "line");
       chart
-        .colors(["yellow", "orange"])
-        .render(baroDato);
+        .render(testData);
       return chart;
   });
 
-  // $("#update").on('click', function () {
-  //   Chartmander.addChart(function(){
-  //     var chart = Chartmander.models.barChart("baroFrajeris");
-  //       // Data after settings
-  //       chart
-  //         .render(baroDato);
-  //       return chart;
-  //   })
-  // })
+  $("#update").on('click', function () {
+    Chartmander.addChart(function(){
+      var chart = Chartmander.select("bar", "bar");
+        // Data after settings
+        chart
+          .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
+        return chart;
+    });
+  });
 
   // var angleStep = 2*Math.PI/100
   //  , currAngle = angleStep
