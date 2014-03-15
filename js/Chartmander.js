@@ -38,8 +38,10 @@
   Chartmander.select = function (id, model) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].id())
-        return Chartmander.charts[i]
+      if (id === Chartmander.charts[i].id()) {
+        // Do update...
+        return Chartmander.charts[i].updated(true);
+      }
     }
     // Provide new chart
     if (model === "pie")
@@ -271,6 +273,7 @@ Chartmander.models.chart = function (canvasID) {
     , animationSteps = 100
     , animationCompleted = 0
     , easing = "easeInQuint"
+    , updated = false
     // , onAnimationCompleted = null
     ;
 
@@ -370,7 +373,7 @@ Chartmander.models.chart = function (canvasID) {
   // Chart Update - Parse Data
   ///////////////////////////////////
 
-  var update = function (data, element) {
+  var parse = function (data, element) {
     if (data === undefined) {
       throw new Error("No data specified for chart " + id);
     }
@@ -399,7 +402,7 @@ Chartmander.models.chart = function (canvasID) {
 
   chart.tooltip = tooltip;
   chart.draw    = draw;
-  chart.update  = update;
+  chart.parse  = parse;
   chart.ctx     = ctx;
 
   chart.id = function (_) {
@@ -498,6 +501,12 @@ Chartmander.models.chart = function (canvasID) {
   chart.easing = function (_) {
     if (!arguments.length) return easing;
     easing = _;
+    return chart;
+  };
+  
+  chart.updated = function (_) {
+    if (!arguments.length) return updated;
+    updated = _;
     return chart;
   };
 
@@ -663,8 +672,7 @@ Chartmander.models.barChart = function (canvas) {
   var x0, y0;
 
   var render =  function (data) {
-    chart.update(data, Chartmander.components.bar);
-
+    chart.parse(data, Chartmander.components.bar);
     var xrange = getRange(getArrayBy(data, "label"));
     var yrange = getRange(function(){
       var values = [];
@@ -675,13 +683,17 @@ Chartmander.models.barChart = function (canvas) {
       return values;
     }());
 
+    if (chart.updated()) {
+      x0 = xAxis;
+      y0 = yAxis;
+    }
     // grid before axes
     grid.adapt(chart.width(), chart.height(), chart.margin());
     // axes use grid height to calculate their scale
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, yrange);
 
-    if (x0) {
+    if (chart.updated()) {
       recalcBars(true);
     } else {
       recalcBars(false);
@@ -708,7 +720,8 @@ Chartmander.models.barChart = function (canvas) {
         if (update) {
           bar.savePosition();
         } else {
-          bar.savePosition(grid.width()/2, 0);
+          bar.savePosition(x, 0);
+          // bar.savePosition(grid.width()/2, 0);
         }
         bar.moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
       });
@@ -734,17 +747,22 @@ Chartmander.models.barChart = function (canvas) {
   }
 
   var drawComponents = function (_perc_) {
-
     grid.drawInto(chart, _perc_);
 
     if (xAxisVisible) {
-      xAxis.animIn();
-      xAxis.drawInto(chart, _perc_);
+      xAxis.animIn().drawInto(chart, _perc_);
+      if (x0 && x0.getState() > 0) {
+        x0.animOut();
+        x0.drawInto(chart, _perc_);
+      } 
     }
 
     if (yAxisVisible) {
-      yAxis.animIn();
-      yAxis.drawInto(chart, _perc_);
+      yAxis.animIn().drawInto(chart, _perc_);
+      if (y0 && y0.getState() > 0) {
+        y0.animOut();
+        y0.drawInto(chart, _perc_);
+      } 
     }
 
     drawBars(_perc_);
@@ -830,7 +848,7 @@ Chartmander.models.lineChart = function (canvas) {
   var x0, y0;
 
   var render =  function (data) {
-    chart.update(data, Chartmander.components.point);
+    chart.parse(data, Chartmander.components.point);
 
     var xrange = getRange(getArrayBy(data, "label"));
     var yrange = getRange(function(){
@@ -929,43 +947,7 @@ Chartmander.models.lineChart = function (canvas) {
     ctx.restore();
   }
 
-  // chart.update = function (data) {
-  //   var i = 0
-  //     , xValues = getArrayBy(data, "label")
-  //     , yValues = getArrayBy(data, "value")
-  //     , xRange = getRange(xValues)
-  //     , yRange = getRange(yValues)
-  //     ;
-
-  //   // Recalc Axes
-  //   chart.yAxis.dataMin = yRange.min;
-  //   chart.yAxis.dataMax = yRange.max;
-  //   chart.yAxis.recalc(chart);
-
-  //   chart.xAxis.dataMin = xRange.min;
-  //   chart.xAxis.dataMax = xRange.max;
-  //   chart.xAxis.recalc(chart);
-
-  //   // Recalc sets
-  //   forEach(line.datasets, function (set) {
-  //     if (data[i] === undefined)
-  //       throw new Error("Missing dataset. Dataset count on update must match.")
-  //     set.merge(data[i], chart);
-  //     set.each(function (point) {
-  //       var x = chart.getGridProperties().left + (point.label - chart.xAxis.dataMin)/chart.xAxis.scale()
-  //         , y = chart.base() - point.value/chart.yAxis.scale();
-
-  //       point.moveTo(x, y);
-  //     });
-  //     i++;
-  //   });
-
-  //   chart.animationCompleted = 0;
-  //   chart.draw();
-  // }
-
   var drawComponents = function (_perc_) {
-
     grid.drawInto(chart, _perc_);
 
     if (xAxisVisible) {
@@ -1073,10 +1055,8 @@ Chartmander.components.animatedPart = function () {
 
   var isAnimated = false
     , animationCompleted = 0 // normal => 0, hover => 1
-    , speed = .05
+    , speed = .01
     ;
-
-    
 
   ///////////////////////////////
   // Public Methods & Variables
@@ -1106,7 +1086,7 @@ Chartmander.components.animatedPart = function () {
     // isAnimated = true;
     animationCompleted -= speed;
     if (animationCompleted <= 0) {
-      isAnimated = false;
+      // isAnimated = false;
       animationCompleted = 0;
     }
     return part;
@@ -1289,12 +1269,12 @@ Chartmander.components.grid = function () {
   var drawInto = function (chart, _perc_) {
     var ctx = chart.ctx;
 
+    ctx.save();
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = lineWidth;
+    ctx.globalAlpha = _perc_;
 
     if (horizontalLines) {
-      ctx.save();
-      ctx.globalAlpha = chart.yAxis.opacity();
       forEach(chart.yAxis.labels(), function (line) {
         var y = Math.ceil(line.y());
         ctx.beginPath();
@@ -1307,19 +1287,18 @@ Chartmander.components.grid = function () {
         ctx.stroke();
         if (line.label==0) ctx.restore();
       })
-      ctx.restore();
     }
 
     if (verticalLines) {
       for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
         var xOffset = Math.ceil( chart.grid.left() + i*(chart.grid.width() / chart.xAxis.labels().length) );
-
         ctx.beginPath();
         ctx.moveTo(xOffset, top);
         ctx.lineTo(xOffset, bottom);
         ctx.stroke();
       };
     }
+    ctx.restore();
   }
 
   var hovered = function (mouse) {
@@ -1401,10 +1380,6 @@ Chartmander.components.axis = function () {
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
-
-  axis.opacity = function () {
-    return axis.getState();
-  };
 
   axis.min = function (_) {
     if (!arguments.length) return dataMin;
@@ -1507,14 +1482,14 @@ Chartmander.components.xAxis = function () {
     }
   }
 
-  var drawInto = function (chart) {
+  var drawInto = function (chart, _perc_) {
     var ctx = chart.ctx
       , topOffset = chart.grid.bottom() + 25;
 
     ctx.save();
     ctx.fillStyle = chart.fontColor();
     ctx.font = chart.font();
-    ctx.globalAlpha = axis.opacity();
+    ctx.globalAlpha = _perc_;
     axis.each(function (label) {
       var leftOffset = chart.margin().left + (label-chart.xAxis.min())/chart.xAxis.scale();
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
@@ -1659,7 +1634,7 @@ Chartmander.components.yAxis = function () {
     ctx.textAlign = "right";
     ctx.fillStyle = chart.fontColor();
     ctx.font = chart.font();
-    ctx.globalAlpha = axis.opacity();
+    ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
       // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
@@ -1668,7 +1643,6 @@ Chartmander.components.yAxis = function () {
     ctx.restore();
     return axis;
   }
-
 
   ///////////////////////////////
   // Public Methods & Variables

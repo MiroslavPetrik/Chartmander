@@ -15,10 +15,6 @@ Chartmander.components.axis = function () {
   // Public Methods & Variables
   ///////////////////////////////
 
-  axis.opacity = function () {
-    return axis.getState();
-  };
-
   axis.min = function (_) {
     if (!arguments.length) return dataMin;
     dataMin = _;

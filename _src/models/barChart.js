@@ -30,8 +30,7 @@ Chartmander.models.barChart = function (canvas) {
   var x0, y0;
 
   var render =  function (data) {
-    chart.update(data, Chartmander.components.bar);
-
+    chart.parse(data, Chartmander.components.bar);
     var xrange = getRange(getArrayBy(data, "label"));
     var yrange = getRange(function(){
       var values = [];
@@ -42,13 +41,17 @@ Chartmander.models.barChart = function (canvas) {
       return values;
     }());
 
+    if (chart.updated()) {
+      x0 = xAxis;
+      y0 = yAxis;
+    }
     // grid before axes
     grid.adapt(chart.width(), chart.height(), chart.margin());
     // axes use grid height to calculate their scale
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, yrange);
 
-    if (x0) {
+    if (chart.updated()) {
       recalcBars(true);
     } else {
       recalcBars(false);
@@ -75,7 +78,8 @@ Chartmander.models.barChart = function (canvas) {
         if (update) {
           bar.savePosition();
         } else {
-          bar.savePosition(grid.width()/2, 0);
+          bar.savePosition(x, 0);
+          // bar.savePosition(grid.width()/2, 0);
         }
         bar.moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
       });
@@ -101,17 +105,22 @@ Chartmander.models.barChart = function (canvas) {
   }
 
   var drawComponents = function (_perc_) {
-
     grid.drawInto(chart, _perc_);
 
     if (xAxisVisible) {
-      xAxis.animIn();
-      xAxis.drawInto(chart, _perc_);
+      xAxis.animIn().drawInto(chart, _perc_);
+      if (x0 && x0.getState() > 0) {
+        x0.animOut();
+        x0.drawInto(chart, _perc_);
+      } 
     }
 
     if (yAxisVisible) {
-      yAxis.animIn();
-      yAxis.drawInto(chart, _perc_);
+      yAxis.animIn().drawInto(chart, _perc_);
+      if (y0 && y0.getState() > 0) {
+        y0.animOut();
+        y0.drawInto(chart, _perc_);
+      } 
     }
 
     drawBars(_perc_);

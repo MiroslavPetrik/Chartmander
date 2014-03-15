@@ -35,12 +35,12 @@ Chartmander.components.grid = function () {
   var drawInto = function (chart, _perc_) {
     var ctx = chart.ctx;
 
+    ctx.save();
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = lineWidth;
+    ctx.globalAlpha = _perc_;
 
     if (horizontalLines) {
-      ctx.save();
-      ctx.globalAlpha = chart.yAxis.opacity();
       forEach(chart.yAxis.labels(), function (line) {
         var y = Math.ceil(line.y());
         ctx.beginPath();
@@ -53,19 +53,18 @@ Chartmander.components.grid = function () {
         ctx.stroke();
         if (line.label==0) ctx.restore();
       })
-      ctx.restore();
     }
 
     if (verticalLines) {
       for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
         var xOffset = Math.ceil( chart.grid.left() + i*(chart.grid.width() / chart.xAxis.labels().length) );
-
         ctx.beginPath();
         ctx.moveTo(xOffset, top);
         ctx.lineTo(xOffset, bottom);
         ctx.stroke();
       };
     }
+    ctx.restore();
   }
 
   var hovered = function (mouse) {

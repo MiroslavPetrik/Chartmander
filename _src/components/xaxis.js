@@ -52,14 +52,14 @@ Chartmander.components.xAxis = function () {
     }
   }
 
-  var drawInto = function (chart) {
+  var drawInto = function (chart, _perc_) {
     var ctx = chart.ctx
       , topOffset = chart.grid.bottom() + 25;
 
     ctx.save();
     ctx.fillStyle = chart.fontColor();
     ctx.font = chart.font();
-    ctx.globalAlpha = axis.opacity();
+    ctx.globalAlpha = _perc_;
     axis.each(function (label) {
       var leftOffset = chart.margin().left + (label-chart.xAxis.min())/chart.xAxis.scale();
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);

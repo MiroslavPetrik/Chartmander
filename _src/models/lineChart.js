@@ -31,7 +31,7 @@ Chartmander.models.lineChart = function (canvas) {
   var x0, y0;
 
   var render =  function (data) {
-    chart.update(data, Chartmander.components.point);
+    chart.parse(data, Chartmander.components.point);
 
     var xrange = getRange(getArrayBy(data, "label"));
     var yrange = getRange(function(){
@@ -130,43 +130,7 @@ Chartmander.models.lineChart = function (canvas) {
     ctx.restore();
   }
 
-  // chart.update = function (data) {
-  //   var i = 0
-  //     , xValues = getArrayBy(data, "label")
-  //     , yValues = getArrayBy(data, "value")
-  //     , xRange = getRange(xValues)
-  //     , yRange = getRange(yValues)
-  //     ;
-
-  //   // Recalc Axes
-  //   chart.yAxis.dataMin = yRange.min;
-  //   chart.yAxis.dataMax = yRange.max;
-  //   chart.yAxis.recalc(chart);
-
-  //   chart.xAxis.dataMin = xRange.min;
-  //   chart.xAxis.dataMax = xRange.max;
-  //   chart.xAxis.recalc(chart);
-
-  //   // Recalc sets
-  //   forEach(line.datasets, function (set) {
-  //     if (data[i] === undefined)
-  //       throw new Error("Missing dataset. Dataset count on update must match.")
-  //     set.merge(data[i], chart);
-  //     set.each(function (point) {
-  //       var x = chart.getGridProperties().left + (point.label - chart.xAxis.dataMin)/chart.xAxis.scale()
-  //         , y = chart.base() - point.value/chart.yAxis.scale();
-
-  //       point.moveTo(x, y);
-  //     });
-  //     i++;
-  //   });
-
-  //   chart.animationCompleted = 0;
-  //   chart.draw();
-  // }
-
   var drawComponents = function (_perc_) {
-
     grid.drawInto(chart, _perc_);
 
     if (xAxisVisible) {

@@ -19,6 +19,7 @@ Chartmander.models.chart = function (canvasID) {
     , animationSteps = 100
     , animationCompleted = 0
     , easing = "easeInQuint"
+    , updated = false
     // , onAnimationCompleted = null
     ;
 
@@ -118,7 +119,7 @@ Chartmander.models.chart = function (canvasID) {
   // Chart Update - Parse Data
   ///////////////////////////////////
 
-  var update = function (data, element) {
+  var parse = function (data, element) {
     if (data === undefined) {
       throw new Error("No data specified for chart " + id);
     }
@@ -147,7 +148,7 @@ Chartmander.models.chart = function (canvasID) {
 
   chart.tooltip = tooltip;
   chart.draw    = draw;
-  chart.update  = update;
+  chart.parse  = parse;
   chart.ctx     = ctx;
 
   chart.id = function (_) {
@@ -246,6 +247,12 @@ Chartmander.models.chart = function (canvasID) {
   chart.easing = function (_) {
     if (!arguments.length) return easing;
     easing = _;
+    return chart;
+  };
+  
+  chart.updated = function (_) {
+    if (!arguments.length) return updated;
+    updated = _;
     return chart;
   };
 

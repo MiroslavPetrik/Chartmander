@@ -118,7 +118,7 @@ Chartmander.components.yAxis = function () {
     ctx.textAlign = "right";
     ctx.fillStyle = chart.fontColor();
     ctx.font = chart.font();
-    ctx.globalAlpha = axis.opacity();
+    ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
       // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
@@ -127,7 +127,6 @@ Chartmander.components.yAxis = function () {
     ctx.restore();
     return axis;
   }
-
 
   ///////////////////////////////
   // Public Methods & Variables

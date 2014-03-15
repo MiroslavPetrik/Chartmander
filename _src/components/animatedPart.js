@@ -4,10 +4,8 @@ Chartmander.components.animatedPart = function () {
 
   var isAnimated = false
     , animationCompleted = 0 // normal => 0, hover => 1
-    , speed = .05
+    , speed = .01
     ;
-
-    
 
   ///////////////////////////////
   // Public Methods & Variables
@@ -37,7 +35,7 @@ Chartmander.components.animatedPart = function () {
     // isAnimated = true;
     animationCompleted -= speed;
     if (animationCompleted <= 0) {
-      isAnimated = false;
+      // isAnimated = false;
       animationCompleted = 0;
     }
     return part;
