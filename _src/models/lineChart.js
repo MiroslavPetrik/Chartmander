@@ -31,39 +31,27 @@ Chartmander.models.lineChart = function (canvas) {
   var x0, y0;
 
   var render =  function (data) {
-    // // Parse data
-    // if (data === undefined)
-    //   throw new Error("No data specified for chart " + chart.id());
+    chart.update(data, Chartmander.components.point);
 
-    // // New data
-    // if (chart.setsCount() === 0) {
-    //   var datasets = [], i=0;
-    //   forEach(data, function (set) {
-    //     datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.point));
-    //     i++;
-    //   });
-    // } else { // Update
+    var xrange = getRange(getArrayBy(data, "label"));
+    var yrange = getRange(function(){
+      var values = [];
+      forEach(chart.datasets(), function (set) {
+        values.push(set.min());
+        values.push(set.max());
+      });
+      return values;
+    }());
 
-    // }
+    // grid before axes
+    grid.adapt(chart.width(), chart.height(), chart.margin());
+    // axes use grid height to calculate their scale
+    xAxis.adapt(chart, xrange);
+    yAxis.adapt(chart, yrange);
 
-    // if (chart.setsCount() == 0) {
-    //   var xrange = getRange(getArrayBy(data, "label"));
-    //   var yrange = getRange(getArrayBy(data, "value"));
-
-    //   chart.datasets(datasets);
-    //   // grid before axes
-    //   grid.adapt(chart.width(), chart.height(), chart.margin());
-    //   // axes use grid height to calculate their scale
-    //   xAxis.adapt(chart, xrange);
-    //   yAxis.adapt(chart, yrange);
-    //   recalcPoints();
-    //   chart.draw(drawComponents, false);
-    // }
-    // else {
-      update(data);
-      recalcPoints(true);
-      chart.completed(0);
-      chart.draw(drawComponents, false)
+    recalcPoints();
+    // chart.completed(0);
+    chart.draw(drawComponents, false);
   }
 
   var recalcPoints = function () {
@@ -73,7 +61,7 @@ Chartmander.models.lineChart = function (canvas) {
         x = Math.ceil(grid.left() + (point.label()-xAxis.min())/xAxis.scale());
         y = chart.base()- point.value()/yAxis.scale();
         point.savePosition(grid.width()/2, chart.base()).moveTo(x, y);
-      })
+      });
     });
   }
 

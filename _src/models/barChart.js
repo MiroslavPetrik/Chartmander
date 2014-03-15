@@ -3,9 +3,9 @@ Chartmander.models.barChart = function (canvas) {
   var chart = new Chartmander.models.chart(canvas);
 
   var stacked        = false
-    , maxBarWidth    = 30
+    , barWidth       = 0  // calculated so all sets can fit in chart
+    , userBarWidth   = 20 // used only if default barwidth is higher
     , datasetSpacing = 0
-    , barWidth       = maxBarWidth
     , groupWidth     = 0
     , groupOffset    = 0
     , xAxisVisible   = true
@@ -27,6 +27,8 @@ Chartmander.models.barChart = function (canvas) {
     , crosshair  = new Chartmander.components.crosshair()
     ;
 
+  var x0, y0;
+
   var render =  function (data) {
     chart.update(data, Chartmander.components.bar);
 
@@ -45,27 +47,39 @@ Chartmander.models.barChart = function (canvas) {
     // axes use grid height to calculate their scale
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, yrange);
-    recalcBars();
-    // update(data);
-    recalcBars(true);
-    chart.completed(0);
+
+    if (x0) {
+      recalcBars(true);
+    } else {
+      recalcBars(false);
+    }
+    // chart.completed(0);
     chart.draw(drawComponents, false);
+    x0 = xAxis;
+    y0 = yAxis;
   }
 
-  var recalcBars = function () {
+  var recalcBars = function (update) {
     var counter = 0, leftFix, x, y;
 
     barWidth = Math.floor( grid.width()/chart.elementCount() );
-    // leftFix = (barWidth*bars.setsCount())/2;
 
-    // faux
-    // yAxis.margin(leftFix + 10);
+    if (barWidth > userBarWidth) {
+      barWidth = userBarWidth;
+    }
+
+    // leftFix = (barWidth*bars.setsCount())/2;
 
     forEach(chart.datasets(), function (set) {
       set.each(function (bar) {
         x = grid.left() + (bar.label()-xAxis.min())/xAxis.scale() + counter*barWidth;
         y = -bar.value()/yAxis.scale();
-        bar.savePosition(grid.width()/2, 0).moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
+        if (update) {
+          bar.savePosition();
+        } else {
+          bar.savePosition(grid.width()/2, 0);
+        }
+        bar.moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
       });
       counter++;
     });
@@ -87,38 +101,6 @@ Chartmander.models.barChart = function (canvas) {
     })
     ctx.restore();
   }
-
- // var update = function (data) {
- //    var i = 0
- //      , xValues = getArrayBy(data, "label")
- //      , yValues = getArrayBy(data, "value")
- //      , xRange = getRange(xValues)
- //      , yRange = getRange(yValues)
- //      ;
-
- //    // Recalc Axeslo
-
- //    chart.yAxis.min(yRange.min).max(yRange.max);
- //    // chart.yAxis.recalc(chart);
- //    chart.xAxis.min(xRange.min).max(xRange.max);
- //    // chart.xAxis.recalc(chart);
-
- //    // Recalc sets
- //    forEach(bars.datasets(), function (set) {
- //      if (data[i] === undefined)
- //        throw new Error("Missing dataset. Dataset count on update must match.")
-
- //      set.merge(data[i], chart);
-
- //      set.each(function (bar) {
- //        bar.savePosition().moveTo(false, - bar.value()/yAxis.scale()).saveBase().moveBase(chart.base());
- //      });
- //      i++;
- //    });
-
- //    chart.completed(0);
- //    draw();
- //  }
 
   var drawComponents = function (_perc_) {
 
@@ -159,7 +141,7 @@ Chartmander.models.barChart = function (canvas) {
 
   chart.barWidth = function (_) {
     if(!arguments.length) return barWidth; // Internal
-    maxBarWidth = _; // User defined
+    userBarWidth = _; // User defined
     return chart;
   };
 

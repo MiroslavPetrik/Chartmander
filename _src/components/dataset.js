@@ -4,8 +4,8 @@ Chartmander.components.dataset = function (data, color, element) {
 
   var title = data.title
     , elements = []
-    , yMin = 0
-    , yMax = 0
+    , min = 0
+    , max = 0
     , normal = {
         color: tinycolor.lighten(color, 5).toHex(),
         strokeColor: tinycolor.darken(color, 10).toHex()
@@ -16,20 +16,19 @@ Chartmander.components.dataset = function (data, color, element) {
       }
     ;
 
-  forEach(data.values, function (el) {
-    elements.push(new element(el, data.title));
-  });
+  var getMaxMin = function () {
+    var yRange = getRange(function () {
+      var result = [];
+      forEach(elements, function (el) {
+        result.push(el.value());
+      });
+      return result;
+    }());
 
-  var yRange = getRange(function(){
-    var result = [];
-    forEach(data.values, function (el) {
-      result.push(el.value)
-    });
-    return result;
-  }());
+    min = yRange.min;
+    max = yRange.max;
+  }
 
-  yMin = yRange.min;
-  yMax = yRange.max;
 
   var merge = function (data, chart, element) {
     // Test equality of datastream
@@ -53,7 +52,18 @@ Chartmander.components.dataset = function (data, color, element) {
         elements[elements.length-j].delete();
       }
     }
+    getMaxMin();
   }
+
+  ///////////////////////////////
+  // Init
+  ///////////////////////////////
+
+  forEach(data.values, function (el) {
+    elements.push(new element(el, data.title));
+  });
+
+  getMaxMin();
 
   ///////////////////////////////
   // Public Methods & Variables
@@ -99,14 +109,14 @@ Chartmander.components.dataset = function (data, color, element) {
   };
 
   dataset.min = function (_) {
-    if(!arguments.length) return yMin;
-    yMin = _;
+    if(!arguments.length) return min;
+    min = _;
     return dataset;
   };
 
   dataset.max = function (_) {
-    if(!arguments.length) return yMax;
-    yMax = _;
+    if(!arguments.length) return max;
+    max = _;
     return dataset;
   };
 

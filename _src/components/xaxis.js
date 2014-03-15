@@ -2,16 +2,7 @@ Chartmander.components.xAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
-    // Default config
-    axis.format("MM/YYYY");
-
-  // rename to timeAxis ?
-  // make another numberAxis and category
-  // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
-
-  var recalc = function (chart) {
-
-    var steps = [
+  var steps = [
         {
           "days": 1,
           "label": "days"
@@ -29,14 +20,23 @@ Chartmander.components.xAxis = function () {
           "label": "years"
         }
       ]
-      , dayMSec = 60*60*24*1000
+    , dayMSec = 60*60*24*1000
+    ;
+    
+  axis.format("MM/YYYY");
+  // rename to timeAxis ?
+  // make another numberAxis and category
+  // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
+
+  var recalc = function (chart) {
+    var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec
-      , startDate = moment(axis.min())
       , stepIndex = steps.length
       , labelCount = 0
-      , labels = []
       ;
 
+    // clear labels
+    axis.labels([]);
     // Time per pixel
     axis.scale(axis.delta()/chart.grid.width());
 

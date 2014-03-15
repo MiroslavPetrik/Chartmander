@@ -636,9 +636,9 @@ Chartmander.models.barChart = function (canvas) {
   var chart = new Chartmander.models.chart(canvas);
 
   var stacked        = false
-    , maxBarWidth    = 30
+    , barWidth       = 0  // calculated so all sets can fit in chart
+    , userBarWidth   = 20 // used only if default barwidth is higher
     , datasetSpacing = 0
-    , barWidth       = maxBarWidth
     , groupWidth     = 0
     , groupOffset    = 0
     , xAxisVisible   = true
@@ -660,6 +660,8 @@ Chartmander.models.barChart = function (canvas) {
     , crosshair  = new Chartmander.components.crosshair()
     ;
 
+  var x0, y0;
+
   var render =  function (data) {
     chart.update(data, Chartmander.components.bar);
 
@@ -678,27 +680,39 @@ Chartmander.models.barChart = function (canvas) {
     // axes use grid height to calculate their scale
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, yrange);
-    recalcBars();
-    // update(data);
-    recalcBars(true);
-    chart.completed(0);
+
+    if (x0) {
+      recalcBars(true);
+    } else {
+      recalcBars(false);
+    }
+    // chart.completed(0);
     chart.draw(drawComponents, false);
+    x0 = xAxis;
+    y0 = yAxis;
   }
 
-  var recalcBars = function () {
+  var recalcBars = function (update) {
     var counter = 0, leftFix, x, y;
 
     barWidth = Math.floor( grid.width()/chart.elementCount() );
-    // leftFix = (barWidth*bars.setsCount())/2;
 
-    // faux
-    // yAxis.margin(leftFix + 10);
+    if (barWidth > userBarWidth) {
+      barWidth = userBarWidth;
+    }
+
+    // leftFix = (barWidth*bars.setsCount())/2;
 
     forEach(chart.datasets(), function (set) {
       set.each(function (bar) {
         x = grid.left() + (bar.label()-xAxis.min())/xAxis.scale() + counter*barWidth;
         y = -bar.value()/yAxis.scale();
-        bar.savePosition(grid.width()/2, 0).moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
+        if (update) {
+          bar.savePosition();
+        } else {
+          bar.savePosition(grid.width()/2, 0);
+        }
+        bar.moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
       });
       counter++;
     });
@@ -720,38 +734,6 @@ Chartmander.models.barChart = function (canvas) {
     })
     ctx.restore();
   }
-
- // var update = function (data) {
- //    var i = 0
- //      , xValues = getArrayBy(data, "label")
- //      , yValues = getArrayBy(data, "value")
- //      , xRange = getRange(xValues)
- //      , yRange = getRange(yValues)
- //      ;
-
- //    // Recalc Axeslo
-
- //    chart.yAxis.min(yRange.min).max(yRange.max);
- //    // chart.yAxis.recalc(chart);
- //    chart.xAxis.min(xRange.min).max(xRange.max);
- //    // chart.xAxis.recalc(chart);
-
- //    // Recalc sets
- //    forEach(bars.datasets(), function (set) {
- //      if (data[i] === undefined)
- //        throw new Error("Missing dataset. Dataset count on update must match.")
-
- //      set.merge(data[i], chart);
-
- //      set.each(function (bar) {
- //        bar.savePosition().moveTo(false, - bar.value()/yAxis.scale()).saveBase().moveBase(chart.base());
- //      });
- //      i++;
- //    });
-
- //    chart.completed(0);
- //    draw();
- //  }
 
   var drawComponents = function (_perc_) {
 
@@ -792,7 +774,7 @@ Chartmander.models.barChart = function (canvas) {
 
   chart.barWidth = function (_) {
     if(!arguments.length) return barWidth; // Internal
-    maxBarWidth = _; // User defined
+    userBarWidth = _; // User defined
     return chart;
   };
 
@@ -850,39 +832,27 @@ Chartmander.models.lineChart = function (canvas) {
   var x0, y0;
 
   var render =  function (data) {
-    // // Parse data
-    // if (data === undefined)
-    //   throw new Error("No data specified for chart " + chart.id());
+    chart.update(data, Chartmander.components.point);
 
-    // // New data
-    // if (chart.setsCount() === 0) {
-    //   var datasets = [], i=0;
-    //   forEach(data, function (set) {
-    //     datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.point));
-    //     i++;
-    //   });
-    // } else { // Update
+    var xrange = getRange(getArrayBy(data, "label"));
+    var yrange = getRange(function(){
+      var values = [];
+      forEach(chart.datasets(), function (set) {
+        values.push(set.min());
+        values.push(set.max());
+      });
+      return values;
+    }());
 
-    // }
+    // grid before axes
+    grid.adapt(chart.width(), chart.height(), chart.margin());
+    // axes use grid height to calculate their scale
+    xAxis.adapt(chart, xrange);
+    yAxis.adapt(chart, yrange);
 
-    // if (chart.setsCount() == 0) {
-    //   var xrange = getRange(getArrayBy(data, "label"));
-    //   var yrange = getRange(getArrayBy(data, "value"));
-
-    //   chart.datasets(datasets);
-    //   // grid before axes
-    //   grid.adapt(chart.width(), chart.height(), chart.margin());
-    //   // axes use grid height to calculate their scale
-    //   xAxis.adapt(chart, xrange);
-    //   yAxis.adapt(chart, yrange);
-    //   recalcPoints();
-    //   chart.draw(drawComponents, false);
-    // }
-    // else {
-      update(data);
-      recalcPoints(true);
-      chart.completed(0);
-      chart.draw(drawComponents, false)
+    recalcPoints();
+    // chart.completed(0);
+    chart.draw(drawComponents, false);
   }
 
   var recalcPoints = function () {
@@ -892,7 +862,7 @@ Chartmander.models.lineChart = function (canvas) {
         x = Math.ceil(grid.left() + (point.label()-xAxis.min())/xAxis.scale());
         y = chart.base()- point.value()/yAxis.scale();
         point.savePosition(grid.width()/2, chart.base()).moveTo(x, y);
-      })
+      });
     });
   }
 
@@ -1159,8 +1129,8 @@ Chartmander.components.dataset = function (data, color, element) {
 
   var title = data.title
     , elements = []
-    , yMin = 0
-    , yMax = 0
+    , min = 0
+    , max = 0
     , normal = {
         color: tinycolor.lighten(color, 5).toHex(),
         strokeColor: tinycolor.darken(color, 10).toHex()
@@ -1171,20 +1141,19 @@ Chartmander.components.dataset = function (data, color, element) {
       }
     ;
 
-  forEach(data.values, function (el) {
-    elements.push(new element(el, data.title));
-  });
+  var getMaxMin = function () {
+    var yRange = getRange(function () {
+      var result = [];
+      forEach(elements, function (el) {
+        result.push(el.value());
+      });
+      return result;
+    }());
 
-  var yRange = getRange(function(){
-    var result = [];
-    forEach(data.values, function (el) {
-      result.push(el.value)
-    });
-    return result;
-  }());
+    min = yRange.min;
+    max = yRange.max;
+  }
 
-  yMin = yRange.min;
-  yMax = yRange.max;
 
   var merge = function (data, chart, element) {
     // Test equality of datastream
@@ -1208,7 +1177,18 @@ Chartmander.components.dataset = function (data, color, element) {
         elements[elements.length-j].delete();
       }
     }
+    getMaxMin();
   }
+
+  ///////////////////////////////
+  // Init
+  ///////////////////////////////
+
+  forEach(data.values, function (el) {
+    elements.push(new element(el, data.title));
+  });
+
+  getMaxMin();
 
   ///////////////////////////////
   // Public Methods & Variables
@@ -1254,14 +1234,14 @@ Chartmander.components.dataset = function (data, color, element) {
   };
 
   dataset.min = function (_) {
-    if(!arguments.length) return yMin;
-    yMin = _;
+    if(!arguments.length) return min;
+    min = _;
     return dataset;
   };
 
   dataset.max = function (_) {
-    if(!arguments.length) return yMax;
-    yMax = _;
+    if(!arguments.length) return max;
+    max = _;
     return dataset;
   };
 
@@ -1479,16 +1459,7 @@ Chartmander.components.xAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
-    // Default config
-    axis.format("MM/YYYY");
-
-  // rename to timeAxis ?
-  // make another numberAxis and category
-  // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
-
-  var recalc = function (chart) {
-
-    var steps = [
+  var steps = [
         {
           "days": 1,
           "label": "days"
@@ -1506,14 +1477,23 @@ Chartmander.components.xAxis = function () {
           "label": "years"
         }
       ]
-      , dayMSec = 60*60*24*1000
+    , dayMSec = 60*60*24*1000
+    ;
+    
+  axis.format("MM/YYYY");
+  // rename to timeAxis ?
+  // make another numberAxis and category
+  // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
+
+  var recalc = function (chart) {
+    var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec
-      , startDate = moment(axis.min())
       , stepIndex = steps.length
       , labelCount = 0
-      , labels = []
       ;
 
+    // clear labels
+    axis.labels([]);
     // Time per pixel
     axis.scale(axis.delta()/chart.grid.width());
 
