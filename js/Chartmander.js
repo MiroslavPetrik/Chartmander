@@ -366,13 +366,41 @@ Chartmander.models.chart = function (canvasID) {
     requestAnimationFrame(loop);
   }
 
+  ///////////////////////////////////
+  // Chart Update - Parse Data
+  ///////////////////////////////////
+
+  var update = function (data, element) {
+    if (data === undefined) {
+      throw new Error("No data specified for chart " + id);
+    }
+    // First render, create new datasets
+    if (chart.setsCount() === 0) {
+      var i=0;
+      forEach(data, function (set) {
+        datasets.push(new Chartmander.components.dataset(set, colors[i], element));
+        i++;
+      });
+    } else { // Update
+      var i=0;
+      forEach(datasets, function (set) {
+        if (data[i] === undefined) {
+          throw new Error("Missing dataset. Dataset count on update must match.");
+        }
+        set.merge(data[i], chart, element);
+        i++;
+      });
+    }
+  }
+
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
   chart.tooltip = tooltip;
-  chart.draw = draw;
-  chart.ctx = ctx;
+  chart.draw    = draw;
+  chart.update  = update;
+  chart.ctx     = ctx;
 
   chart.id = function (_) {
     // if(!arguments.length)
@@ -633,33 +661,18 @@ Chartmander.models.barChart = function (canvas) {
     ;
 
   var render =  function (data) {
-    // Parse data
-    if (data === undefined) {
-      throw new Error("No data specified for chart " + chart.id());
-    }
-
-    // First render, create new datasets
-    if (chart.setsCount() === 0) {
-      var datasets = [], i=0;
-      forEach(data, function (set) {
-        datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.bar));
-        i++;
-      });
-    } else { // Update
-      var i=0;
-      forEach(chart.datasets(), function (set) {
-        if (data[i] === undefined) {
-          throw new Error("Missing dataset. Dataset count on update must match.");
-        }
-        set.merge(data[i], chart);
-        i++;
-      });
-    }
+    chart.update(data, Chartmander.components.bar);
 
     var xrange = getRange(getArrayBy(data, "label"));
-    var yrange = getRange(getArrayBy(data, "value"));
+    var yrange = getRange(function(){
+      var values = [];
+      forEach(chart.datasets(), function (set) {
+        values.push(set.min());
+        values.push(set.max());
+      });
+      return values;
+    }());
 
-    chart.datasets(datasets);
     // grid before axes
     grid.adapt(chart.width(), chart.height(), chart.margin());
     // axes use grid height to calculate their scale
@@ -669,7 +682,7 @@ Chartmander.models.barChart = function (canvas) {
     // update(data);
     recalcBars(true);
     chart.completed(0);
-    chart.draw(drawComponents, false)
+    chart.draw(drawComponents, false);
   }
 
   var recalcBars = function () {
@@ -837,40 +850,39 @@ Chartmander.models.lineChart = function (canvas) {
   var x0, y0;
 
   var render =  function (data) {
-    // Parse data
-    if (data === undefined)
-      throw new Error("No data specified for chart " + chart.id());
+    // // Parse data
+    // if (data === undefined)
+    //   throw new Error("No data specified for chart " + chart.id());
 
-    // New data
-    if (chart.setsCount() === 0) {
-      var datasets = [], i=0;
-      forEach(data, function (set) {
-        datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.point));
-        i++;
-      });
-    } else { // Update
+    // // New data
+    // if (chart.setsCount() === 0) {
+    //   var datasets = [], i=0;
+    //   forEach(data, function (set) {
+    //     datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.point));
+    //     i++;
+    //   });
+    // } else { // Update
 
-    }
+    // }
 
-    if (chart.setsCount() == 0) {
-      var xrange = getRange(getArrayBy(data, "label"));
-      var yrange = getRange(getArrayBy(data, "value"));
+    // if (chart.setsCount() == 0) {
+    //   var xrange = getRange(getArrayBy(data, "label"));
+    //   var yrange = getRange(getArrayBy(data, "value"));
 
-      chart.datasets(datasets);
-      // grid before axes
-      grid.adapt(chart.width(), chart.height(), chart.margin());
-      // axes use grid height to calculate their scale
-      xAxis.adapt(chart, xrange);
-      yAxis.adapt(chart, yrange);
-      recalcPoints();
-      chart.draw(drawComponents, false);
-    }
-    else {
+    //   chart.datasets(datasets);
+    //   // grid before axes
+    //   grid.adapt(chart.width(), chart.height(), chart.margin());
+    //   // axes use grid height to calculate their scale
+    //   xAxis.adapt(chart, xrange);
+    //   yAxis.adapt(chart, yrange);
+    //   recalcPoints();
+    //   chart.draw(drawComponents, false);
+    // }
+    // else {
       update(data);
       recalcPoints(true);
       chart.completed(0);
       chart.draw(drawComponents, false)
-    }
   }
 
   var recalcPoints = function () {
@@ -1163,13 +1175,46 @@ Chartmander.components.dataset = function (data, color, element) {
     elements.push(new element(el, data.title));
   });
 
-  var yRange = getRange(getArrayBy(data, "value"));
+  var yRange = getRange(function(){
+    var result = [];
+    forEach(data.values, function (el) {
+      result.push(el.value)
+    });
+    return result;
+  }());
+
   yMin = yRange.min;
   yMax = yRange.max;
+
+  var merge = function (data, chart, element) {
+    // Test equality of datastream
+    if (title != data.title) {
+      throw new Error("Different datastream on update!");
+    }
+    // Update or create
+    for (var i=0, len=data.values.length; i != len; i++) {
+      if (elements[i] !== undefined) {
+        elements[i].label(data.values[i].label).value(data.values[i].value).savePosition();
+      }
+      else {
+        var element = new element(data.values[i], dataset.title);
+        elements.push(element.savePosition(chart.grid.width(), chart.getBase()));
+      }
+    }
+    // Delete
+    if (elements.length > data.values.length) {
+      for (var j = elements.length - data.values; j!=0; j--) {
+        console.log("Delete");
+        elements[elements.length-j].delete();
+      }
+    }
+  }
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
+
+  dataset.merge = merge;
 
   dataset.each = function (action) {
     forEach(elements, action);
@@ -1190,46 +1235,6 @@ Chartmander.components.dataset = function (data, color, element) {
   dataset.elementCount = function () {
     return elements.length;
   };
-
-  // dataset.merge = function (newData, chart) {
-  //   var newElements = newData.values
-  //     , oldElements = dataset.elements
-  //     ;
-
-  //   // Test equality of datastream
-  //   if (dataset.title != newData.title) {
-  //     throw new Error("Different datastream on update!");
-  //   }
-
-  //   // Update existing elements, if new > old add new elements
-  //   for (var i=0, len=newElements.length; i != len; i++) {
-  //     // Update existing
-  //     if (oldElements[i] instanceof Element) {
-  //       dataset.elements[i].updateValue(newElements[i].label, newElements[i].value).savePosition();
-  //     }
-  //     // Create
-  //     else {
-  //       var element = new Element(newElements[i], dataset.title);
-
-  //       if (dataset.type == "bar")
-  //         element = element.Bar();
-  //       else if (dataset.type == "line")
-  //         element = element.Point();
-  //       // Each segment in pieChart is dataset with only one element therefore next lines will never get executec
-  //       // else if (dataset.type == "pie")
-  //       //   element = element.Segment();
-  //       dataset.elements.push(element.savePosition(chart.getGridProperties().width, chart.getBase()));
-  //     }
-  //   }
-  //   // Flush old 
-  //   if (oldElements.length > newElements.length) {
-  //     for (var j=oldElements-newElements; j!=0; j--) {
-  //       // supr FAUX
-  //       console.log("Delete");
-  //       dataset.elements[oldElements-j].die();
-  //     }
-  //   }
-  // }
 
   dataset.getElement = function (index) {
     if (index == "last")

@@ -31,40 +31,39 @@ Chartmander.models.lineChart = function (canvas) {
   var x0, y0;
 
   var render =  function (data) {
-    // Parse data
-    if (data === undefined)
-      throw new Error("No data specified for chart " + chart.id());
+    // // Parse data
+    // if (data === undefined)
+    //   throw new Error("No data specified for chart " + chart.id());
 
-    // New data
-    if (chart.setsCount() === 0) {
-      var datasets = [], i=0;
-      forEach(data, function (set) {
-        datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.point));
-        i++;
-      });
-    } else { // Update
+    // // New data
+    // if (chart.setsCount() === 0) {
+    //   var datasets = [], i=0;
+    //   forEach(data, function (set) {
+    //     datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.point));
+    //     i++;
+    //   });
+    // } else { // Update
 
-    }
+    // }
 
-    if (chart.setsCount() == 0) {
-      var xrange = getRange(getArrayBy(data, "label"));
-      var yrange = getRange(getArrayBy(data, "value"));
+    // if (chart.setsCount() == 0) {
+    //   var xrange = getRange(getArrayBy(data, "label"));
+    //   var yrange = getRange(getArrayBy(data, "value"));
 
-      chart.datasets(datasets);
-      // grid before axes
-      grid.adapt(chart.width(), chart.height(), chart.margin());
-      // axes use grid height to calculate their scale
-      xAxis.adapt(chart, xrange);
-      yAxis.adapt(chart, yrange);
-      recalcPoints();
-      chart.draw(drawComponents, false);
-    }
-    else {
+    //   chart.datasets(datasets);
+    //   // grid before axes
+    //   grid.adapt(chart.width(), chart.height(), chart.margin());
+    //   // axes use grid height to calculate their scale
+    //   xAxis.adapt(chart, xrange);
+    //   yAxis.adapt(chart, yrange);
+    //   recalcPoints();
+    //   chart.draw(drawComponents, false);
+    // }
+    // else {
       update(data);
       recalcPoints(true);
       chart.completed(0);
       chart.draw(drawComponents, false)
-    }
   }
 
   var recalcPoints = function () {

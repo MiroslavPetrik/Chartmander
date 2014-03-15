@@ -114,13 +114,41 @@ Chartmander.models.chart = function (canvasID) {
     requestAnimationFrame(loop);
   }
 
+  ///////////////////////////////////
+  // Chart Update - Parse Data
+  ///////////////////////////////////
+
+  var update = function (data, element) {
+    if (data === undefined) {
+      throw new Error("No data specified for chart " + id);
+    }
+    // First render, create new datasets
+    if (chart.setsCount() === 0) {
+      var i=0;
+      forEach(data, function (set) {
+        datasets.push(new Chartmander.components.dataset(set, colors[i], element));
+        i++;
+      });
+    } else { // Update
+      var i=0;
+      forEach(datasets, function (set) {
+        if (data[i] === undefined) {
+          throw new Error("Missing dataset. Dataset count on update must match.");
+        }
+        set.merge(data[i], chart, element);
+        i++;
+      });
+    }
+  }
+
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
   chart.tooltip = tooltip;
-  chart.draw = draw;
-  chart.ctx = ctx;
+  chart.draw    = draw;
+  chart.update  = update;
+  chart.ctx     = ctx;
 
   chart.id = function (_) {
     // if(!arguments.length)

@@ -28,33 +28,18 @@ Chartmander.models.barChart = function (canvas) {
     ;
 
   var render =  function (data) {
-    // Parse data
-    if (data === undefined) {
-      throw new Error("No data specified for chart " + chart.id());
-    }
-
-    // First render, create new datasets
-    if (chart.setsCount() === 0) {
-      var datasets = [], i=0;
-      forEach(data, function (set) {
-        datasets.push(new Chartmander.components.dataset(set, chart.color(i), Chartmander.components.bar));
-        i++;
-      });
-    } else { // Update
-      var i=0;
-      forEach(chart.datasets(), function (set) {
-        if (data[i] === undefined) {
-          throw new Error("Missing dataset. Dataset count on update must match.");
-        }
-        set.merge(data[i], chart);
-        i++;
-      });
-    }
+    chart.update(data, Chartmander.components.bar);
 
     var xrange = getRange(getArrayBy(data, "label"));
-    var yrange = getRange(getArrayBy(data, "value"));
+    var yrange = getRange(function(){
+      var values = [];
+      forEach(chart.datasets(), function (set) {
+        values.push(set.min());
+        values.push(set.max());
+      });
+      return values;
+    }());
 
-    chart.datasets(datasets);
     // grid before axes
     grid.adapt(chart.width(), chart.height(), chart.margin());
     // axes use grid height to calculate their scale
@@ -64,7 +49,7 @@ Chartmander.models.barChart = function (canvas) {
     // update(data);
     recalcBars(true);
     chart.completed(0);
-    chart.draw(drawComponents, false)
+    chart.draw(drawComponents, false);
   }
 
   var recalcBars = function () {
