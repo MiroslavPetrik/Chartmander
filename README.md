@@ -2,9 +2,8 @@
 	-> #Chartmander <-
 </p>
 
-<p align="center">
-#Chartmander
-</p>
+<h1 align="center">Chartmander</h1>
+<h1 style="text-align: center">Chartmander</h1>
 
 ->center<-
 
