@@ -60,7 +60,7 @@ Chartmander.models.barChart = function (canvas) {
     chart.draw(drawComponents, false);
   }
 
-  var recalcBars = function (update) {
+  var recalcBars = function () {
     var counter = 0, leftFix, x, y;
 
     barWidth = Math.floor( grid.width()/chart.elementCount() );
@@ -75,7 +75,7 @@ Chartmander.models.barChart = function (canvas) {
       set.each(function (bar) {
         x = grid.left() + (bar.label()-xAxis.min())/xAxis.scale() + counter*barWidth;
         y = -bar.value()/yAxis.scale();
-        if (update) {
+        if (chart.updated()) {
           bar.savePosition();
         } else {
           bar.savePosition(x, 0);

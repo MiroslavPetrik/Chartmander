@@ -36,7 +36,11 @@ title: Chartmander.js Examples
   $("#update").on('click', function () {
     Chartmander.addChart(function(){
       var chart = Chartmander.select("bar", "bar");
-        // Data after settings
+        chart
+          .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
+        return chart;
+    }).addChart(function(){
+      var chart = Chartmander.select("line", "line");
         chart
           .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
         return chart;

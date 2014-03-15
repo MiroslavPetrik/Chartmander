@@ -4,10 +4,8 @@ Chartmander.components.grid = function () {
 
   var horizontalLines = true
     , verticalLines = true
-    , lineColor = "#DBDFE5"
+    , lineColor = "#ddd"
     , lineWidth = 1
-    // , evenOddContrast = true
-    // , oddColor = "#EAEAEA"
     ;
 
   // Properties/margins
@@ -44,15 +42,10 @@ Chartmander.components.grid = function () {
       forEach(chart.yAxis.labels(), function (line) {
         var y = Math.ceil(line.y());
         ctx.beginPath();
-        if (line.label() == 0) {
-          ctx.save();
-          ctx.strokeStyle = "#999"; // TODO Axis Width and Color
-        }
         ctx.moveTo(left, y);
         ctx.lineTo(right, y);
         ctx.stroke();
-        if (line.label==0) ctx.restore();
-      })
+      });
     }
 
     if (verticalLines) {
@@ -62,7 +55,7 @@ Chartmander.components.grid = function () {
         ctx.moveTo(xOffset, top);
         ctx.lineTo(xOffset, bottom);
         ctx.stroke();
-      };
+      }
     }
     ctx.restore();
   }

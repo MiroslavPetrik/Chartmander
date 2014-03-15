@@ -60,7 +60,12 @@ Chartmander.models.lineChart = function (canvas) {
       set.each(function (point) {
         x = Math.ceil(grid.left() + (point.label()-xAxis.min())/xAxis.scale());
         y = chart.base()- point.value()/yAxis.scale();
-        point.savePosition(grid.width()/2, chart.base()).moveTo(x, y);
+        if (chart.updated()) {
+          point.savePosition();
+        } else {
+          point.savePosition(grid.width()/2, chart.base());
+        }
+        point.moveTo(x, y);
       });
     });
   }

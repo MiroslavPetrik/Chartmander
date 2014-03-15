@@ -702,7 +702,7 @@ Chartmander.models.barChart = function (canvas) {
     chart.draw(drawComponents, false);
   }
 
-  var recalcBars = function (update) {
+  var recalcBars = function () {
     var counter = 0, leftFix, x, y;
 
     barWidth = Math.floor( grid.width()/chart.elementCount() );
@@ -717,7 +717,7 @@ Chartmander.models.barChart = function (canvas) {
       set.each(function (bar) {
         x = grid.left() + (bar.label()-xAxis.min())/xAxis.scale() + counter*barWidth;
         y = -bar.value()/yAxis.scale();
-        if (update) {
+        if (chart.updated()) {
           bar.savePosition();
         } else {
           bar.savePosition(x, 0);
@@ -877,7 +877,12 @@ Chartmander.models.lineChart = function (canvas) {
       set.each(function (point) {
         x = Math.ceil(grid.left() + (point.label()-xAxis.min())/xAxis.scale());
         y = chart.base()- point.value()/yAxis.scale();
-        point.savePosition(grid.width()/2, chart.base()).moveTo(x, y);
+        if (chart.updated()) {
+          point.savePosition();
+        } else {
+          point.savePosition(grid.width()/2, chart.base());
+        }
+        point.moveTo(x, y);
       });
     });
   }
@@ -1238,10 +1243,8 @@ Chartmander.components.grid = function () {
 
   var horizontalLines = true
     , verticalLines = true
-    , lineColor = "#DBDFE5"
+    , lineColor = "#ddd"
     , lineWidth = 1
-    // , evenOddContrast = true
-    // , oddColor = "#EAEAEA"
     ;
 
   // Properties/margins
@@ -1278,15 +1281,10 @@ Chartmander.components.grid = function () {
       forEach(chart.yAxis.labels(), function (line) {
         var y = Math.ceil(line.y());
         ctx.beginPath();
-        if (line.label() == 0) {
-          ctx.save();
-          ctx.strokeStyle = "#999"; // TODO Axis Width and Color
-        }
         ctx.moveTo(left, y);
         ctx.lineTo(right, y);
         ctx.stroke();
-        if (line.label==0) ctx.restore();
-      })
+      });
     }
 
     if (verticalLines) {
@@ -1296,7 +1294,7 @@ Chartmander.components.grid = function () {
         ctx.moveTo(xOffset, top);
         ctx.lineTo(xOffset, bottom);
         ctx.stroke();
-      };
+      }
     }
     ctx.restore();
   }
