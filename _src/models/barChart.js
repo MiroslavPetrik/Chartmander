@@ -55,8 +55,6 @@ Chartmander.models.barChart = function (canvas) {
     }
     // chart.completed(0);
     chart.draw(drawComponents, false);
-    x0 = xAxis;
-    y0 = yAxis;
   }
 
   var recalcBars = function (update) {
