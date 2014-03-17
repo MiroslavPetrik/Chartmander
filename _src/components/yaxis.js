@@ -10,7 +10,7 @@ Chartmander.components.yAxis = function () {
     ;
 
   // generate?
-  var recalc = function (chart) {
+  var recalc = function (chart, oldScale) {
 
     var height = chart.grid.height()
       , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
@@ -37,7 +37,12 @@ Chartmander.components.yAxis = function () {
         label.startAt(chart.base()).moveTo(false, chart.base());
         continue;
       }
-      label.startAt(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
+      // where to start animating labels
+      if (!isNaN(oldScale)) {
+        label.startAt(chart.base() - label.value()/oldScale).moveTo(false, chart.base() - label.value()/axis.scale());
+      } else {
+        label.startAt(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
+      }
     }
 
     function getLabels (setup) {
@@ -152,9 +157,11 @@ Chartmander.components.yAxis = function () {
     return axis;
   };
 
-  axis.adapt = function (chart, range) {
+  // oldScale FAUX 
+  axis.adapt = function (chart, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    recalc(chart);
+    console.log(oldScale)
+    recalc(chart, oldScale);
     return axis;
   };
 

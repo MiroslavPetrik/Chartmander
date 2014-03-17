@@ -37,7 +37,7 @@ function parseMedals (data) {
       "value": country.medals.gold
     });
   });
-  return [bronze, silver, gold]
+  return [bronze, silver, gold];
 }
 
 // function getTopAthletes () {

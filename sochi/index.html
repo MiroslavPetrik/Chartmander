@@ -16,17 +16,15 @@ title: Sochi 2014 visualization with Chartmander.js
       <section class="page">
         <!-- <a href="#" class="update">update</a> -->
         <div class="panel panel-sochi">
-          <div class="panel-heading">Top athletes</div>
+          <div class="panel-heading">Top countries</div>
           <div class="panel-body">
-            <canvas id="top-athletes" width="750" height="200"></canvas>
-            <!-- <canvas id="athletes" width="150" height="150"></canvas> -->
+            <canvas id="top-countries" width="750" height="200"></canvas>
           </div>
         </div>
         <div class="panel panel-sochi">
-          <div class="panel-heading">Top Countries</div>
+          <div class="panel-heading">Top athletes</div>
           <div class="panel-body">
             <canvas id="circle" width="300" height="300"></canvas>
-            <!-- <canvas id="top-countries" width="750" height="200"></canvas> -->
           </div>
         </div>
       </section>
@@ -47,19 +45,6 @@ var athletesData = [
   }
 ];
 
-
-Chartmander.addChart(function(){
-  var chart = Chartmander.models.pieChart("circle");
-    chart
-      .margin({left: 30})
-      .colors(["yellow", "orangered"])
-      ;
-    // Data after settings
-    chart.render(athletesData);
-    return chart;
-});
-
-
 // $('.update').on('click', function (e) {
 //   e.preventDefault()
 //   athletes.update(dataFactory(["Men", "Women"], ["xx"], 50))
@@ -72,10 +57,20 @@ Chartmander.addChart(function(){
 //   }
 // }
 
-// getMedalsByCountries(0, function (chartData) {
-//   var topCountries = new Chartmander("top-countries").CategoryBar(parseMedals(chartData));
-//     topCountries.margin({ top: 0, left:0, right:0, bottom:0});
-// });
+getMedalsByCountries(0, function (chartData) {
+  Chartmander.addChart(function(){
+    var chart = Chartmander.select("top-countries", "bar");
+    var medals = parseMedals(chartData);
+      chart
+        .margin({left: 30})
+        .colors(["yellow", "orangered"])
+        ;
+
+      console.log(medals)
+      chart.render(medals);
+      return chart;
+  });
+});
       
 // var topAthletes = new Chartmander("top-athletes").CategoryBar();
 

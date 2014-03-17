@@ -685,6 +685,7 @@ Chartmander.models.barChart = function (canvas) {
 
   var render =  function (data) {
     chart.parse(data, Chartmander.components.bar);
+    var oldYScale; //undefined
     var xrange = getRange(getArrayBy(data, "label"));
     var yrange = getRange(function(){
       var values = [];
@@ -696,19 +697,23 @@ Chartmander.models.barChart = function (canvas) {
     }());
 
     if (chart.updated()) {
-      x0 = xAxis.copy();
+      x0 = xAxis.copy(); // just object with labels and scale
       y0 = yAxis.copy();
-      var oldScale = yAxis.scale();
+      oldYScale = y0.scale;
     }
     // grid before axes
     grid.adapt(chart.width(), chart.height(), chart.margin());
     // axes use grid height to calculate their scale
     xAxis.adapt(chart, xrange);
-    yAxis.adapt(chart, yrange);
+    yAxis.adapt(chart, yrange, oldYScale);
 
+    // recalc old labels to new position
     if (chart.updated()) {
-      console.log(yAxis.scale(), y0.scale(), oldScale)
+      forEach(y0.labels, function (label) {
+        label.savePosition().moveTo(false, chart.base() - label.value()/yAxis.scale());
+      });
     }
+
     recalcBars();
     // chart.completed(0);
     chart.draw(drawComponents, false);
@@ -763,17 +768,29 @@ Chartmander.models.barChart = function (canvas) {
 
     if (xAxisVisible) {
       xAxis.animIn().drawInto(chart, _perc_);
-      if (x0 && x0.getState() > 0) {
-        // x0.animOut();
-        x0.drawInto(chart, 1-_perc_);
-      } 
+      // if (x0 && x0.state > 0) {
+      //   ctx.save();
+      //   forEach(x0.labels, function (label) {
+
+      //   });
+      //   ctx.restore();
+      // } 
     }
 
     if (yAxisVisible) {
       yAxis.animIn().drawInto(chart, _perc_);
-      if (y0 && y0.getState() > 0) {
-        // y0.animOut();
-        y0.drawInto(chart, 1-_perc_);
+      if (y0 && y0.state > 0) {
+        ctx.save();
+        ctx.textAlign = "right";
+        ctx.fillStyle = chart.fontColor();
+        ctx.font = chart.font();
+        ctx.globalAlpha = y0.state;
+        forEach(y0.labels, function (label) {
+          label.updatePosition(_perc_);
+          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.left() - yAxis.margin(), label.y());
+        });
+        ctx.restore();
+        y0.state -= .01;
       } 
     }
 
@@ -1436,7 +1453,11 @@ Chartmander.components.axis = function () {
   };
 
   axis.copy = function () {
-    return Object.create(axis);
+    return {
+      state: axis.getState(),
+      labels: labels,
+      scale: scale
+    };
   }
 
   return axis;
@@ -1540,7 +1561,7 @@ Chartmander.components.yAxis = function () {
     ;
 
   // generate?
-  var recalc = function (chart) {
+  var recalc = function (chart, oldScale) {
 
     var height = chart.grid.height()
       , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
@@ -1567,7 +1588,12 @@ Chartmander.components.yAxis = function () {
         label.startAt(chart.base()).moveTo(false, chart.base());
         continue;
       }
-      label.startAt(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
+      // where to start animating labels
+      if (!isNaN(oldScale)) {
+        label.startAt(chart.base() - label.value()/oldScale).moveTo(false, chart.base() - label.value()/axis.scale());
+      } else {
+        label.startAt(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
+      }
     }
 
     function getLabels (setup) {
@@ -1682,9 +1708,11 @@ Chartmander.components.yAxis = function () {
     return axis;
   };
 
-  axis.adapt = function (chart, range) {
+  // oldScale FAUX 
+  axis.adapt = function (chart, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    recalc(chart);
+    console.log(oldScale)
+    recalc(chart, oldScale);
     return axis;
   };
 

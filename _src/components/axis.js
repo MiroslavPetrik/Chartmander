@@ -60,7 +60,11 @@ Chartmander.components.axis = function () {
   };
 
   axis.copy = function () {
-    return Object.create(axis);
+    return {
+      state: axis.getState(),
+      labels: labels,
+      scale: scale
+    };
   }
 
   return axis;
