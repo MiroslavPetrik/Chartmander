@@ -665,7 +665,7 @@ Chartmander.models.barChart = function (canvas) {
 
   var stacked        = false
     , barWidth       = 0  // calculated so all sets can fit in chart
-    , userBarWidth   = 20 // used only if default barwidth is higher
+    , userBarWidth   = 30 // used only if default barwidth is higher
     , datasetSpacing = 0
     , groupWidth     = 0
     , groupOffset    = 0
@@ -1055,7 +1055,7 @@ Chartmander.models.lineChart = function (canvas) {
   var lineWidth        = 2
     , pointRadius      = 5
     , pointHoverRadius = 20
-    , drawArea         = true
+    , areaVisible      = true
     , areaOpacity      = .33
     , mergeHover       = true
     , xAxisVisible     = true
@@ -1205,7 +1205,9 @@ Chartmander.models.lineChart = function (canvas) {
     forEach(chart.datasets(), function (set) {
       hoveredItems = [];
       updatePoints(set, _perc_);
-      drawArea(set);
+      if (areaVisible) {
+        drawArea(set);
+      }
       drawLines(set);
       drawPoints(set);
     });
@@ -1232,8 +1234,14 @@ Chartmander.models.lineChart = function (canvas) {
   }
 
   chart.areaVisible = function (_) {
-    if (!arguments.length) return drawArea;
-    drawArea = _;
+    if (!arguments.length) return areaVisible;
+    areaVisible = _;
+    return chart;
+  }
+
+  chart.areaOpacity = function (_) {
+    if (!arguments.length) return areaOpacity;
+    areaOpacity = _;
     return chart;
   }
 

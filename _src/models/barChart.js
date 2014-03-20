@@ -4,7 +4,7 @@ Chartmander.models.barChart = function (canvas) {
 
   var stacked        = false
     , barWidth       = 0  // calculated so all sets can fit in chart
-    , userBarWidth   = 20 // used only if default barwidth is higher
+    , userBarWidth   = 30 // used only if default barwidth is higher
     , datasetSpacing = 0
     , groupWidth     = 0
     , groupOffset    = 0

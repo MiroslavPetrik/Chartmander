@@ -14,11 +14,8 @@ title: Chartmander - HTML5 canvas charts
     <div class="col-lg-10 col-lg-offset-1">
         <h2 class="page-header">Bar Chart <small>great for category data</small><i class="ion-stats-bars pull-right"></i></h2>
       <div class="row">
-        <div class="col-lg-6">
-          <canvas id="bar1" class="chart" width="500" height="300"></canvas>
-        </div>
-        <div class="col-lg-6">
-          <canvas id="bar2" class="chart" width="500" height="300"></canvas>
+        <div class="col-lg-12">
+          <canvas id="bar1" width="900" height="300"></canvas>
         </div>
       </div>
     </div>
@@ -28,13 +25,13 @@ title: Chartmander - HTML5 canvas charts
       <h2 class="page-header"><i class="ion-ios7-pie-outline pull-right"></i>Pie Chart <small>great for ratio and quantity data</small></h2>
       <div class="row">
         <div class="col-lg-4">
-          <canvas id="pie1" class="chart" width="300" height="300"></canvas>
+          <canvas id="pie1" width="200" height="300"></canvas>
         </div>
         <div class="col-lg-4">
-          <canvas id="pie2" class="chart" width="300" height="300"></canvas>
+          <canvas id="pie2" width="200" height="300"></canvas>
         </div>
         <div class="col-lg-4">
-          <canvas id="pie3" class="chart" width="300" height="300"></canvas>
+          <canvas id="pie3" width="200" height="300"></canvas>
         </div>
       </div>
     </div>
@@ -54,39 +51,47 @@ title: Chartmander - HTML5 canvas charts
 </div>
 <script>
   
-  var introData = dataFactory(["Petrol"], yearByMonths(1), 100);
-  
   // First Intro Chart  
   Chartmander.addChart(function(){
-    var chart = Chartmander.models.lineChart("chartmander-intro");
+    var chart = Chartmander.select("bar1", "bar");
+
+    chart.colors(["rgb(231, 85, 57)"]).render(dataFactory(["Petrol"], yearByMonths(1), 100));
+    return chart;
+
+  }).addChart(function(){
+    var chart = Chartmander.select("pie1", "pie");
     chart
-      .colors(["#fff"])
-      .easing("easeOutQuint")
-      .pointRadius(10)
-      .fontColor("#b3c8dd")
-      .font("14px Arial")
+      .render(dataFactory(["Eat","Sleep","Rave","Repeat"], ["Day in a fast Life"], 50));
 
-    chart.render(introData)
-  })
+    return chart;
+  }).addChart(function(){
+    var chart = Chartmander.select("pie2", "pie");
+    chart
+      .innerRadius(0)
+      .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 50));
 
-  // setInterval(function (argument) {
-  //   introChart.update(dataFactory(["Petrol"], dates, Math.random()*100))
-  // }, 3000);
+    return chart;
+  }).addChart(function(){
+    var chart = Chartmander.select("pie3", "pie");
+    chart
+      .innerRadius(.8)
+      .render(dataFactory(["Used","Ready","Free"], ["Ram Usage"], 50));
 
-  // introChart.grid.lineColor("#eaf1f7").verticalLines(false)
+    return chart;
+  });
 
-  // Bar Charts
-  // var barData2 = dataFactory(["Category 1", "Category 2", "Category 3"], dates, 450);
-  // var bar = new Chartmander("bar1").Bar(barData);
-  // var bar2 = new Chartmander("bar2").Bar(barData2);
+  setInterval(function(){
+    Chartmander.addChart(function(){
+      var chart = Chartmander.select("chartmander-intro", "line");
+      chart
+        .colors(["#fff", "darkblue"])
+        .easing("easeOutQuint")
+        .pointRadius(10)
+        .fontColor("#fff")
+        .font("14px Arial")
 
-  // bar2.datasetSpacing(1);
-
-  // var pie = new Chartmander("pie1").Pie(dataFactory(["Eat","Sleep","Rave","Repeat"], ["watatatta"], 50));
-  // pie.innerRadius(0).easingFunction("linear");
-
-  // var pie2 = new Chartmander("pie2").Pie(dataFactory(["Eat","Sleep"], ["wat"], 50));
-  // pie2.easingFunction("easeOutCubic").colors(["#2f8693", "#76bfc4", "#e9ecea"])
-
-
+      chart.render(dataFactory(["Petrol"], yearByMonths(1), 100));
+      return chart;
+    });
+  }, 3000);
 </script>
