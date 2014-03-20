@@ -160,7 +160,6 @@ Chartmander.components.yAxis = function () {
   // oldScale FAUX 
   axis.adapt = function (chart, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    console.log(oldScale)
     recalc(chart, oldScale);
     return axis;
   };

@@ -9,29 +9,27 @@ title: Sochi 2014 visualization with Chartmander.js
         <h1>Sochi</h1>
       </header>
       <ul class="nav nav-tabs top-nav">
-        <li class="active"><a href="{{site.sochi}}"><i class="ion-speedometer"></i>Overview</a></li>
-        <li><a href="{{site.sochi}}countries.html"><i class="ion-earth"></i>Countries</a></li>
+        <li><a href="{{site.sochi}}"><i class="ion-speedometer"></i>Overview</a></li>
+        <li class="active"><a href="{{site.sochi}}countries.html"><i class="ion-earth"></i>Countries</a></li>
         <li><a href="{{site.sochi}}athletes.html"><i class="ion-ios7-people"></i>Athletes</a></li>
       </ul>
       <section class="page">
-        <!-- <a href="#" class="update">update</a> -->
         <div class="panel panel-sochi">
           <div class="panel-heading">
-            <div class="js-range btn-group pull-right">
-              <button type="button" data-offset="-10" class="btn btn-default js-move">Left</button>
-              <button type="button" class="btn btn-default disabled value">1-10</button>
-              <button type="button" data-offset="10" class="btn btn-default js-move">Right</button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                Russia <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
             </div>
-            <h4>Top countries</h4>
           </div>
           <div class="panel-body">
             <canvas id="top-countries" width="900" height="250"></canvas>
-          </div>
-        </div>
-        <div class="panel panel-sochi">
-          <div class="panel-heading">Top athletes</div>
-          <div class="panel-body">
-            <canvas id="top-athletes" width="900" height="250"></canvas>
           </div>
         </div>
       </section>

@@ -3,7 +3,7 @@ Chartmander.components.axis = function () {
   var axis = new Chartmander.components.animatedPart();
 
   var labels = []
-    , labelSpace = 0
+    // , labelSpace = 0
     , dataMin = 0
     , dataMax = 0
     , scale = 1

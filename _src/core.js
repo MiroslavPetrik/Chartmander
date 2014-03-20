@@ -50,6 +50,9 @@
     if (model === "bar")
       return new Chartmander.models.barChart(id);
 
+    if (model === "categoryBar")
+      return new Chartmander.models.categoryBarChart(id);
+
     if (model === "line")
       return new Chartmander.models.lineChart(id);
 

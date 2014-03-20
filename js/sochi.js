@@ -17,6 +17,14 @@ function getMedalsByCountries (offset, callback) {
   });
 }
 
+function getMedalsByAthletes (offset, callback) {
+  if (offset === undefined) offset = 0;
+
+  $.getJSON(kimono("athletes?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=10&offset="+offset), function (data) {
+    callback(data);
+  });
+}
+
 function parseMedals (data) {
   var bronze = medalStream("Bronze")
   , silver = medalStream("Silver")
@@ -39,6 +47,52 @@ function parseMedals (data) {
   });
   return [bronze, silver, gold];
 }
+
+
+
+  ///////////////////////////////
+  // UI
+  ///////////////////////////////
+
+  $(function(){
+
+    var $rangeValue = $('.js-range .value');
+
+    $('.js-move').on('click', function () {
+      var offset = $(this).data('offset')
+        , current = $rangeValue.text().split("-")
+        , from, to
+        ;
+
+      // bariera
+      if (current[0] == 1 && offset < 0 || current[1] == 30 && offset > 0)
+        return true;
+      else {
+        from = Number(current[0])+offset;
+        to = Number(current[1])+offset;
+        $rangeValue.text(from + " - " + to);
+      }
+
+      getMedalsByCountries(from-1, function (chartData) {
+        Chartmander.addChart(function(){
+          var chart = Chartmander.select("top-countries", "categoryBar");
+          var medals = parseMedals(chartData);
+            chart
+              .fontColor("#fff")
+              .margin({left: 30})
+              .colors(["yellow", "orangered"])
+              ;
+
+            console.log(medals)
+            chart.render(medals);
+            return chart;
+        });
+      });
+
+
+    });
+  });
+
 
 // function getTopAthletes () {
 //   var bronze = medalStream("Bronze")

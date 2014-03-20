@@ -195,6 +195,10 @@ Chartmander.models.chart = function (canvasID) {
     return chart;
   };
 
+  chart.dataset = function (_) {
+    return datasets[_];
+  };
+
   chart.elementCount = function () {
     var total = 0;
     forEach(datasets, function (set) {
