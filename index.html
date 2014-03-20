@@ -5,7 +5,6 @@ title: Chartmander - HTML5 canvas charts
 <header class="jumbotron chartmander">
   {% include nav.html %}
   <h1>Attractive charts for your new webapp or design mockup</h1>
-  <!-- <button class="btn btn-default btn-block">Explore</button> -->
   <canvas id="chartmander-intro" class="chart" width="1200" height="400"></canvas>
 </header>
 
@@ -13,7 +12,7 @@ title: Chartmander - HTML5 canvas charts
   <div class="row">
     <div class="col-lg-10 col-lg-offset-1">
         <h2 class="page-header">Bar Chart <small>great for category data</small><i class="ion-stats-bars pull-right"></i></h2>
-      <div class="row">
+      <div class="row charts">
         <div class="col-lg-12">
           <canvas id="bar1" width="900" height="300"></canvas>
         </div>
@@ -23,7 +22,7 @@ title: Chartmander - HTML5 canvas charts
   <div class="row">
     <div class="col-lg-10 col-lg-offset-1">
       <h2 class="page-header"><i class="ion-ios7-pie-outline pull-right"></i>Pie Chart <small>great for ratio and quantity data</small></h2>
-      <div class="row">
+      <div class="row charts">
         <div class="col-lg-4">
           <canvas id="pie1" width="200" height="300"></canvas>
         </div>
@@ -51,36 +50,7 @@ title: Chartmander - HTML5 canvas charts
 </div>
 <script>
   
-  // First Intro Chart  
-  Chartmander.addChart(function(){
-    var chart = Chartmander.select("bar1", "bar");
-
-    chart.colors(["rgb(231, 85, 57)"]).render(dataFactory(["Petrol"], yearByMonths(1), 100));
-    return chart;
-
-  }).addChart(function(){
-    var chart = Chartmander.select("pie1", "pie");
-    chart
-      .render(dataFactory(["Eat","Sleep","Rave","Repeat"], ["Day in a fast Life"], 50));
-
-    return chart;
-  }).addChart(function(){
-    var chart = Chartmander.select("pie2", "pie");
-    chart
-      .innerRadius(0)
-      .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 50));
-
-    return chart;
-  }).addChart(function(){
-    var chart = Chartmander.select("pie3", "pie");
-    chart
-      .innerRadius(.8)
-      .render(dataFactory(["Used","Ready","Free"], ["Ram Usage"], 50));
-
-    return chart;
-  });
-
-  setInterval(function(){
+  var myCharts = function () {
     Chartmander.addChart(function(){
       var chart = Chartmander.select("chartmander-intro", "line");
       chart
@@ -92,6 +62,39 @@ title: Chartmander - HTML5 canvas charts
 
       chart.render(dataFactory(["Petrol"], yearByMonths(1), 100));
       return chart;
+    }).addChart(function(){
+      var chart = Chartmander.select("bar1", "bar");
+
+      chart.colors(["rgb(231, 85, 57)"]).render(dataFactory(["Petrol"], yearByMonths(1), 100));
+      return chart;
+
+    }).addChart(function(){
+      var chart = Chartmander.select("pie1", "pie");
+      chart
+        .render(dataFactory(["Eat","Sleep","Rave","Repeat"], ["Day in a fast Life"], 50));
+
+      return chart;
+    }).addChart(function(){
+      var chart = Chartmander.select("pie2", "pie");
+      chart
+        .innerRadius(0)
+        .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 50));
+
+      return chart;
+    }).addChart(function(){
+      var chart = Chartmander.select("pie3", "pie");
+      chart
+        .innerRadius(.8)
+        .render(dataFactory(["Used","Ready","Free"], ["Ram Usage"], 50));
+
+      return chart;
     });
-  }, 3000);
+    
+  }
+
+  myCharts();
+
+  setInterval(function(){
+    myCharts();
+  }, 4000);
 </script>

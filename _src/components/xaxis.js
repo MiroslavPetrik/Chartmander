@@ -59,7 +59,7 @@ Chartmander.components.xAxis = function () {
     ctx.save();
     ctx.fillStyle = chart.fontColor();
     ctx.font = chart.font();
-    ctx.globalAlpha = _perc_;
+    ctx.globalAlpha = 1;
     axis.each(function (label) {
       var leftOffset = chart.margin().left + (label-chart.xAxis.min())/chart.xAxis.scale();
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);

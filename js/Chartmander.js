@@ -543,7 +543,7 @@ Chartmander.models.pieChart = function (canvas) {
     , startAngle = 0
     ;
 
-  chart.type("pie");
+  chart.type("pie").easing("easeOutBounce");
 
   var recalcSlices = function () {
     var slice
@@ -1736,7 +1736,7 @@ Chartmander.components.xAxis = function () {
     ctx.save();
     ctx.fillStyle = chart.fontColor();
     ctx.font = chart.font();
-    ctx.globalAlpha = _perc_;
+    ctx.globalAlpha = 1;
     axis.each(function (label) {
       var leftOffset = chart.margin().left + (label-chart.xAxis.min())/chart.xAxis.scale();
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
@@ -1950,7 +1950,7 @@ Chartmander.components.categoryAxis = function () {
 
     ctx.save();
     ctx.fillStyle = chart.fontColor();
-    ctx.globalAlpha = _perc_;
+    ctx.globalAlpha = 1;
     ctx.font = chart.font();
     axis.each(function (label) {
       var leftOffset = chart.grid.left() + counter*labelSpace + labelSpace/2 - ctx.measureText(label).width/2;

@@ -18,7 +18,7 @@ Chartmander.components.categoryAxis = function () {
 
     ctx.save();
     ctx.fillStyle = chart.fontColor();
-    ctx.globalAlpha = _perc_;
+    ctx.globalAlpha = 1;
     ctx.font = chart.font();
     axis.each(function (label) {
       var leftOffset = chart.grid.left() + counter*labelSpace + labelSpace/2 - ctx.measureText(label).width/2;

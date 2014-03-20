@@ -8,7 +8,7 @@ Chartmander.models.pieChart = function (canvas) {
     , startAngle = 0
     ;
 
-  chart.type("pie");
+  chart.type("pie").easing("easeOutBounce");
 
   var recalcSlices = function () {
     var slice
