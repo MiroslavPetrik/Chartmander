@@ -60,32 +60,32 @@ title: Chartmander - HTML5 canvas charts
         .fontColor("#fff")
         .font("14px Arial")
 
-      chart.render(dataFactory(["Petrol"], yearByMonths(1), 100));
+      chart.render(dataFactory(["Petrol"], yearByMonths(1), 500));
       return chart;
     }).addChart(function(){
       var chart = Chartmander.select("bar1", "bar");
 
-      chart.colors(["rgb(231, 85, 57)"]).render(dataFactory(["Petrol"], yearByMonths(1), 100));
+      chart.colors(["rgb(231, 85, 57)"]).render(dataFactory(["Petrol"], yearByMonths(1), 300));
       return chart;
 
     }).addChart(function(){
       var chart = Chartmander.select("pie1", "pie");
       chart
-        .render(dataFactory(["Eat","Sleep","Rave","Repeat"], ["Day in a fast Life"], 50));
+        .render(dataFactory(["Eat","Sleep","Rave","Repeat"], ["Day in a fast Life"], 200));
 
       return chart;
     }).addChart(function(){
       var chart = Chartmander.select("pie2", "pie");
       chart
         .innerRadius(0)
-        .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 50));
+        .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200));
 
       return chart;
     }).addChart(function(){
       var chart = Chartmander.select("pie3", "pie");
       chart
         .innerRadius(.8)
-        .render(dataFactory(["Used","Ready","Free"], ["Ram Usage"], 50));
+        .render(dataFactory(["Used","Ready","Free"], ["Ram Usage"], 200));
 
       return chart;
     });

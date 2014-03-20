@@ -5,6 +5,7 @@ Chartmander.models.lineChart = function (canvas) {
   var lineWidth        = 2
     , pointRadius      = 5
     , pointHoverRadius = 20
+    , pointHoverColor  = "orange"
     , areaVisible      = true
     , areaOpacity      = .33
     , mergeHover       = true
@@ -50,7 +51,7 @@ Chartmander.models.lineChart = function (canvas) {
     yAxis.adapt(chart, yrange);
 
     recalcPoints();
-    // chart.completed(0);
+    chart.completed(0);
     chart.draw(drawComponents, false);
   }
 
@@ -210,6 +211,12 @@ Chartmander.models.lineChart = function (canvas) {
   chart.pointHoverRadius = function (_) {
     if (!arguments.length) return pointHoverRadius;
     pointHoverRadius = _;
+    return chart;
+  }
+
+  chart.pointHoverColor = function (_) {
+    if (!arguments.length) return pointHoverColor;
+    pointHoverColor = _;
     return chart;
   }
 

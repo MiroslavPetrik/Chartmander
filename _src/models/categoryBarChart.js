@@ -75,8 +75,6 @@ Chartmander.models.categoryBarChart = function (canvas) {
       barWidth = userBarWidth;
     }
 
-    console.log(xAxis.labelSpace())
-
     categoryOffset = grid.width()/xAxis.labelSpace();
 
     forEach(chart.datasets(), function (set) {

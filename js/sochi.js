@@ -1,5 +1,5 @@
 function kimono (req) {
-  return "http://sochi.kimonolabs.com/api/" + req + "&apikey=4152bed5732942b0d6dc190dceea2a51";
+  return "http://sochi.kimonolabs.com/api/" + req + "apikey=4152bed5732942b0d6dc190dceea2a51";
 }
 
 function medalStream (medal) {
@@ -9,10 +9,16 @@ function medalStream (medal) {
   }
 }
 
+function getCountry (id, callback) {
+  $.getJSON(kimono("countries/"+id+"?"), function (data) {
+    callback(data);
+  });
+}
+
 function getMedalsByCountries (offset, callback) {
   if (offset === undefined) offset = 0;
 
-  $.getJSON(kimono("countries?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=10&offset="+offset), function (data) {
+  $.getJSON(kimono("countries?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=10&offset="+offset+"&"), function (data) {
     callback(data);
   });
 }
@@ -20,7 +26,7 @@ function getMedalsByCountries (offset, callback) {
 function getMedalsByAthletes (offset, callback) {
   if (offset === undefined) offset = 0;
 
-  $.getJSON(kimono("athletes?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=10&offset="+offset), function (data) {
+  $.getJSON(kimono("athletes?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=10&offset="+offset+"&"), function (data) {
     callback(data);
   });
 }
@@ -32,6 +38,7 @@ function parseMedals (data) {
   ;
 
   $.each(data.data, function (i, country) {
+
     bronze.values.push({
       "label": country.name,
       "value": country.medals.bronze
@@ -48,6 +55,23 @@ function parseMedals (data) {
   return [bronze, silver, gold];
 }
 
+function parsePieMedals (country, medals) {
+  var result = [];
+
+  for (key in medals) {
+    if (key == "total")
+      continue; // dovidenia
+    result.push({
+      title: key + "medals",
+      values: [{
+        label: country,
+        value: medals[key]
+      }]
+    })
+  }
+  
+  return result;
+}
 
 
   ///////////////////////////////

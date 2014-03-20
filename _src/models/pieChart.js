@@ -55,7 +55,7 @@ Chartmander.models.pieChart = function (canvas) {
     }());
 
     recalcSlices();
-    // chart.completed(0);
+    chart.completed(0);
     chart.draw(drawComponents, false);
   }
 

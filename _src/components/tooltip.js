@@ -5,9 +5,9 @@ Chartmander.components.tooltip = function (items) {
   var items = []
     , margin = 20
     , padding = 10
-    , backgroundColor = "rgba(46,59,66,.8)"
-    , width = 0
-    , height = 0
+    , backgroundColor = "rgba(46,59,66,.9)"
+    , width = 110
+    , height = 40
     , dateFormat = "MMMM YYYY"
     , fontSize = 12
     , lineHeight = 1.5
@@ -30,11 +30,11 @@ Chartmander.components.tooltip = function (items) {
       , lineOffset = fontSize*lineHeight
       ;
 
-    tooltip.animIn();
+    // tooltip.animIn();
 
     ctx.save();
     // Draw Tooltip body
-    ctx.globalAlpha = tooltip.getState();
+    ctx.globalAlpha = 1;
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(leftOffset, topOffset, width + padding*2, height + padding*2);
 
@@ -43,6 +43,7 @@ Chartmander.components.tooltip = function (items) {
     leftOffset += padding;
     topOffset += padding;
     ctx.textBaseline = "top";
+    ctx.font = chart.font();
 
     // Tooltip header
     ctx.fillText(moment(items[0].label).format(dateFormat), leftOffset, topOffset);
@@ -68,7 +69,6 @@ Chartmander.components.tooltip = function (items) {
       height += lineHeight;
     });
   };
-
 
   ///////////////////////////////
   // Public Methods & Variables

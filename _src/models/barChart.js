@@ -61,7 +61,7 @@ Chartmander.models.barChart = function (canvas) {
     }
 
     recalcBars();
-    // chart.completed(0);
+    chart.completed(0);
     chart.draw(drawComponents, false);
   }
 

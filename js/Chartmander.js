@@ -56,6 +56,9 @@
     if (model === "line")
       return new Chartmander.models.lineChart(id);
 
+    if (model === "categoryLine")
+      return new Chartmander.models.categoryLineChart(id);
+
     throw new Error("Unknown model of chart.");
   };
 
@@ -288,6 +291,7 @@ Chartmander.models.chart = function (canvasID) {
     , hovered = false
     , animationSteps = 100
     , animationCompleted = 0
+    , hoverFinished = true
     , easing = "easeInQuint"
     , updated = false
     // , onAnimationCompleted = null
@@ -322,8 +326,8 @@ Chartmander.models.chart = function (canvasID) {
     mouse.y = event.clientY - rect.top;
     // Allow repaint on hover only if chart and tooltip are done with self-repaint
     // AND if also hovered item is not repainting 
-    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverNotFinished ) {
-    if (animationCompleted >= 1 ) {
+    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
+    if (animationCompleted >= 1 && hoverFinished) {
       chart.drawFull();
     }
   }
@@ -349,7 +353,8 @@ Chartmander.models.chart = function (canvasID) {
       , _perc_
       ;
 
-    animationCompleted = animate ? 0 : 1;
+    if (!updated)
+      animationCompleted = animate ? 0 : 1;
 
     function loop () {
 
@@ -360,21 +365,21 @@ Chartmander.models.chart = function (canvasID) {
       }
 
       _perc_ = easingFunction(animationCompleted);
-      // hoverNotFinished = false;
       ctx.clearRect(0, 0, width, height);
+      hoverFinished = true;
       tooltip.flush();
 
       drawComponents(_perc_);
 
       if (hovered && tooltip.hasItems()) {
-        tooltip.recalc(ctx);
+        // tooltip.recalc(ctx);
         tooltip.drawInto(chart);
       }
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
 
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
-      if (animationCompleted < 1) {
+      if (animationCompleted < 1 || !hoverFinished) {
         requestAnimationFrame(loop);
       }
       else {
@@ -530,6 +535,12 @@ Chartmander.models.chart = function (canvasID) {
     return chart;
   };
 
+  chart.hoverFinished = function (_) {
+    if (!arguments.length) return hoverFinished;
+    hoverFinished = _;
+    return chart;
+  };
+
   return chart;
 };
 
@@ -590,7 +601,7 @@ Chartmander.models.pieChart = function (canvas) {
     }());
 
     recalcSlices();
-    // chart.completed(0);
+    chart.completed(0);
     chart.draw(drawComponents, false);
   }
 
@@ -722,7 +733,7 @@ Chartmander.models.barChart = function (canvas) {
     }
 
     recalcBars();
-    // chart.completed(0);
+    chart.completed(0);
     chart.draw(drawComponents, false);
   }
 
@@ -928,8 +939,6 @@ Chartmander.models.categoryBarChart = function (canvas) {
       barWidth = userBarWidth;
     }
 
-    console.log(xAxis.labelSpace())
-
     categoryOffset = grid.width()/xAxis.labelSpace();
 
     forEach(chart.datasets(), function (set) {
@@ -1055,6 +1064,7 @@ Chartmander.models.lineChart = function (canvas) {
   var lineWidth        = 2
     , pointRadius      = 5
     , pointHoverRadius = 20
+    , pointHoverColor  = "orange"
     , areaVisible      = true
     , areaOpacity      = .33
     , mergeHover       = true
@@ -1100,7 +1110,7 @@ Chartmander.models.lineChart = function (canvas) {
     yAxis.adapt(chart, yrange);
 
     recalcPoints();
-    // chart.completed(0);
+    chart.completed(0);
     chart.draw(drawComponents, false);
   }
 
@@ -1260,6 +1270,12 @@ Chartmander.models.lineChart = function (canvas) {
   chart.pointHoverRadius = function (_) {
     if (!arguments.length) return pointHoverRadius;
     pointHoverRadius = _;
+    return chart;
+  }
+
+  chart.pointHoverColor = function (_) {
+    if (!arguments.length) return pointHoverColor;
+    pointHoverColor = _;
     return chart;
   }
 
@@ -2149,6 +2165,7 @@ Chartmander.components.bar = function (data, title) {
 
     ctx.save();
     if (chart.hovered() && isHovered(chart)) {
+      // chart.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
       chart.tooltip.addItem({
@@ -2251,9 +2268,10 @@ Chartmander.components.point = function (data, title) {
     // }
 
     if (point.getState() > 0) {
+      chart.hoverFinished(false);
       ctx.save();
       ctx.beginPath();
-      ctx.fillStyle = "red";
+      ctx.fillStyle = chart.pointHoverColor();
       ctx.arc(point.x(), point.y(),10*point.getState(), 0, Math.PI*2, false);
       ctx.fill();
       // if (style.onHover.stroke > 0) {
@@ -2388,9 +2406,9 @@ Chartmander.components.tooltip = function (items) {
   var items = []
     , margin = 20
     , padding = 10
-    , backgroundColor = "rgba(46,59,66,.8)"
-    , width = 0
-    , height = 0
+    , backgroundColor = "rgba(46,59,66,.9)"
+    , width = 110
+    , height = 40
     , dateFormat = "MMMM YYYY"
     , fontSize = 12
     , lineHeight = 1.5
@@ -2413,11 +2431,11 @@ Chartmander.components.tooltip = function (items) {
       , lineOffset = fontSize*lineHeight
       ;
 
-    tooltip.animIn();
+    // tooltip.animIn();
 
     ctx.save();
     // Draw Tooltip body
-    ctx.globalAlpha = tooltip.getState();
+    ctx.globalAlpha = 1;
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(leftOffset, topOffset, width + padding*2, height + padding*2);
 
@@ -2426,6 +2444,7 @@ Chartmander.components.tooltip = function (items) {
     leftOffset += padding;
     topOffset += padding;
     ctx.textBaseline = "top";
+    ctx.font = chart.font();
 
     // Tooltip header
     ctx.fillText(moment(items[0].label).format(dateFormat), leftOffset, topOffset);
@@ -2451,7 +2470,6 @@ Chartmander.components.tooltip = function (items) {
       height += lineHeight;
     });
   };
-
 
   ///////////////////////////////
   // Public Methods & Variables

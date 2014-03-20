@@ -9,6 +9,8 @@ html, body {
 
 body {
 	@include background-image(linear-gradient(#113b6f, #267ab5));
+	background-size: cover;
+	background-attachment: fixed;
 }
 
 header {
@@ -56,6 +58,10 @@ header {
 			}
 		}
 	}
+}
+
+.page {
+	@include rem(margin-bottom, 8);
 }
 
 .panel-sochi {

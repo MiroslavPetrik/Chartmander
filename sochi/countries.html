@@ -1,6 +1,6 @@
 ---
 layout: sochi
-title: Sochi 2014 visualization with Chartmander.js
+title: Sochi 2014 Country statistics
 ---
 <div class="container">
   <div class="row">
@@ -16,20 +16,35 @@ title: Sochi 2014 visualization with Chartmander.js
       <section class="page">
         <div class="panel panel-sochi">
           <div class="panel-heading">
-            <div class="btn-group">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                Russia <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu" role="menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
-                <li><a href="#">Separated link</a></li>
-              </ul>
+            <div class="btn-group js-radio" data-toggle="buttons">
+              <label class="btn btn-primary" id="tada">
+                <input type="radio" name="options" id="russian_fed"> Russian Federation
+              </label>
+              <label class="btn btn-primary">
+                <input type="radio" name="options" id="united_states"> United States
+              </label>
+              <label class="btn btn-primary">
+                <input type="radio" name="options" id="canada"> Canada
+              </label>
+              <label class="btn btn-primary">
+                <input type="radio" name="options" id="netherlands"> Netherlands
+              </label>
+              <label class="btn btn-primary">
+                <input type="radio" name="options" id="norway"> Norway
+              </label>
             </div>
           </div>
           <div class="panel-body">
-            <canvas id="top-countries" width="900" height="250"></canvas>
+            <div class="row">
+              <div class="col-sm-4">
+                <img src="" alt="flag" width="200" height="200" class="js-flag">
+              </div>
+              <div class="col-sm-8">
+                <h2 class="js-name"></h2>
+                <p class="js-description"></p>
+              </div>
+            </div>
+            <canvas id="pieMedals" width="240" height="250"></canvas>
           </div>
         </div>
       </section>
@@ -38,50 +53,29 @@ title: Sochi 2014 visualization with Chartmander.js
 </div>
 
 <script>
+$(function(){
 
-var athletesData = [
-  {
-    "title": "Men",
-    "values": [{ "label": "men", "value": 5 }]
-  },
-  {
-    "title": "Women",
-    "values": [{ "label": "women", "value": 4 }]
-  }
-];
+  var $description = $('.js-description')
+    , $flag = $('.js-flag')
+    , $name = $('.js-name')
+    ;
 
-getMedalsByCountries(0, function (chartData) {
-  Chartmander.addChart(function(){
-    var chart = Chartmander.select("top-countries", "categoryBar");
-    var medals = parseMedals(chartData);
-      chart
-        .fontColor("#fff")
-        .margin({left: 30})
-        .colors(["yellow", "orangered"])
-        ;
+  $('.js-radio .btn').on('click', function () {
+    var country_id = $(this).find('input').attr('id');
 
-      console.log(medals)
-      chart.render(medals);
-      return chart;
+    getCountry(country_id, function (data) {
+      $name.text(data.name);
+      $flag.attr("src", data.flag);
+      $description.text(data.description);
+      Chartmander.addChart(function(){
+        var chart = Chartmander.select("pieMedals", "pie");
+        chart.render(parsePieMedals(data.name, data.medals));
+        return chart;
+      });
+    });
   });
+
+  $('#tada').click();
 });
-
-
-getMedalsByAthletes(0, function (chartData) {
-  Chartmander.addChart(function(){
-    var chart = Chartmander.select("top-athletes", "categoryBar");
-    var medals = parseMedals(chartData);
-      chart
-        .fontColor("#fff")
-        .margin({left: 30})
-        .colors(["yellow", "orangered"])
-        ;
-
-      console.log(medals)
-      chart.render(medals);
-      return chart;
-  });
-});
-
 
 </script>

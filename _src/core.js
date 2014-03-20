@@ -56,6 +56,9 @@
     if (model === "line")
       return new Chartmander.models.lineChart(id);
 
+    if (model === "categoryLine")
+      return new Chartmander.models.categoryLineChart(id);
+
     throw new Error("Unknown model of chart.");
   };
 

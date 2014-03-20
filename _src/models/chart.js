@@ -18,6 +18,7 @@ Chartmander.models.chart = function (canvasID) {
     , hovered = false
     , animationSteps = 100
     , animationCompleted = 0
+    , hoverFinished = true
     , easing = "easeInQuint"
     , updated = false
     // , onAnimationCompleted = null
@@ -52,8 +53,8 @@ Chartmander.models.chart = function (canvasID) {
     mouse.y = event.clientY - rect.top;
     // Allow repaint on hover only if chart and tooltip are done with self-repaint
     // AND if also hovered item is not repainting 
-    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverNotFinished ) {
-    if (animationCompleted >= 1 ) {
+    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
+    if (animationCompleted >= 1 && hoverFinished) {
       chart.drawFull();
     }
   }
@@ -79,7 +80,8 @@ Chartmander.models.chart = function (canvasID) {
       , _perc_
       ;
 
-    animationCompleted = animate ? 0 : 1;
+    if (!updated)
+      animationCompleted = animate ? 0 : 1;
 
     function loop () {
 
@@ -90,21 +92,21 @@ Chartmander.models.chart = function (canvasID) {
       }
 
       _perc_ = easingFunction(animationCompleted);
-      // hoverNotFinished = false;
       ctx.clearRect(0, 0, width, height);
+      hoverFinished = true;
       tooltip.flush();
 
       drawComponents(_perc_);
 
       if (hovered && tooltip.hasItems()) {
-        tooltip.recalc(ctx);
+        // tooltip.recalc(ctx);
         tooltip.drawInto(chart);
       }
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
 
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
-      if (animationCompleted < 1) {
+      if (animationCompleted < 1 || !hoverFinished) {
         requestAnimationFrame(loop);
       }
       else {
@@ -257,6 +259,12 @@ Chartmander.models.chart = function (canvasID) {
   chart.updated = function (_) {
     if (!arguments.length) return updated;
     updated = _;
+    return chart;
+  };
+
+  chart.hoverFinished = function (_) {
+    if (!arguments.length) return hoverFinished;
+    hoverFinished = _;
     return chart;
   };
 

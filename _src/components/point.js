@@ -20,9 +20,10 @@ Chartmander.components.point = function (data, title) {
     // }
 
     if (point.getState() > 0) {
+      chart.hoverFinished(false);
       ctx.save();
       ctx.beginPath();
-      ctx.fillStyle = "red";
+      ctx.fillStyle = chart.pointHoverColor();
       ctx.arc(point.x(), point.y(),10*point.getState(), 0, Math.PI*2, false);
       ctx.fill();
       // if (style.onHover.stroke > 0) {
