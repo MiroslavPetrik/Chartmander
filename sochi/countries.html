@@ -69,7 +69,10 @@ $(function(){
       $description.text(data.description);
       Chartmander.addChart(function(){
         var chart = Chartmander.select("pieMedals", "pie");
-        chart.render(parsePieMedals(data.name, data.medals));
+
+        chart
+          .colors(["#c35f00", "#e3e3e3", "#ffbf00"])
+          .render(parsePieMedals(data.name, data.medals));
         return chart;
       });
     });

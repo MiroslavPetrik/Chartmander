@@ -18,7 +18,7 @@ function getCountry (id, callback) {
 function getMedalsByCountries (offset, callback) {
   if (offset === undefined) offset = 0;
 
-  $.getJSON(kimono("countries?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=10&offset="+offset+"&"), function (data) {
+  $.getJSON(kimono("countries?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=5&offset="+offset+"&"), function (data) {
     callback(data);
   });
 }
@@ -26,7 +26,7 @@ function getMedalsByCountries (offset, callback) {
 function getMedalsByAthletes (offset, callback) {
   if (offset === undefined) offset = 0;
 
-  $.getJSON(kimono("athletes?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=10&offset="+offset+"&"), function (data) {
+  $.getJSON(kimono("athletes?sort=medals.total,-1&fields=name,medals.gold,medals.silver,medals.bronze&limit=5&offset="+offset+"&"), function (data) {
     callback(data);
   });
 }

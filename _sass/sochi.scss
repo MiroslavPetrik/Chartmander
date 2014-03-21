@@ -65,18 +65,34 @@ header {
 }
 
 .panel-sochi {
-	$panel: rgba(#48647f, .8);
+	$panel: rgba(30,62,93,.7);
 	margin-bottom: 1px;
 	background: transparent;
 	border: 0;
+	color: #fff;
 	.panel-heading {
 		margin-bottom: 1px;
 		@include rem(line-height, 3);
 		background: $panel;
 		border-radius: 0px;
 		color: #B5D0E9;
+		border: 1px solid rgba(0,0,0,.1);
 	}
 	.panel-body {
+		border: 1px solid rgba(0,0,0,.1);
 		background: $panel;
 	}
+	&.blank {
+		text-align: center;
+		.ion-lg {
+			color: rgba(0,0,0,.4);
+		}
+		.panel-body {
+			@include rem(padding, 4, 0);
+		}
+	}
+}
+
+.ion-lg {
+	@include font(15);
 }
