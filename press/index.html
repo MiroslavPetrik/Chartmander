@@ -399,7 +399,7 @@
 							</div>
 						</div>
 					</section>
-					<section data-state="chart-types">
+					<section data-state="chart-types" id="chartTypes">
 						<h2>Charakteristika vlastnej, experimentálnej knižnice</h2>
 						<div class="row">
 							<div class="col-sm-4">
@@ -596,25 +596,73 @@
 
 			$('#chart-intro').attr("width", window.innerWidth).attr("height", window.innerHeight/2.666);	
 
-			Chartmander.addChart(function(){
-				var chart = Chartmander.select("chart-intro", "line");
-				chart
-					.colors(['#1d2d48', '#fff'])
-					.pointRadius(10)
-					.lineWidth(4)
-					.showXAxis(false)
-					.showYAxis(false)
-					.margin({top:10,right:0,bottom:0,left:0})
-					;
+			function introChart () {
+				console.log("intro chart called")
+				Chartmander.addChart(function(){
+					var chart = Chartmander.select("chart-intro", "line");
+					chart
+						.colors(['#1d2d48', '#fff'])
+						.pointRadius(10)
+						.lineWidth(4)
+						.showXAxis(false)
+						.showYAxis(false)
+						.margin({top:10,right:0,bottom:0,left:0})
+						;
 
-				chart.grid
-					.horizontalLines(false)
-					.verticalLines(false)
-					;
+					chart.grid
+						.horizontalLines(false)
+						.verticalLines(false)
+						;
 
-				chart.render(dataFactory(["Vyhram", "To"], yearByMonths(1), 100));
-				return chart;
-			});
+					chart.render(bonvoyage(["Last week", "This week"], yearByMonths(1)));
+					return chart;
+				});
+			}
+
+			function chartTypes () {
+				console.log("chart types called")
+				Chartmander.addChart(function(){
+					var chart = Chartmander.select("chart-line", "line");
+
+					chart
+						.colors(["#1a5631", "#fff"])
+						.easing("easeOutBounce")
+						.pointRadius(10)
+						.lineWidth(5)
+						.areaOpacity(.11)
+						.showXAxis(false)
+						.showYAxis(false)
+						;
+					chart.grid.verticalLines(false).horizontalLines(false);
+					chart.render(dataFactory(["Prijmy","Vydavky"], months(3), 100))
+					return chart;
+
+				}).addChart(function(){
+					var chart = Chartmander.select("chart-pie", "pie");
+
+					chart
+						.colors(["#1a5631", "#fff", "#fff"])
+						.innerRadius(0.8)
+						.render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200))
+					return chart;
+
+				}).addChart(function(){
+					var chart = Chartmander.select("chart-bar", "bar");
+
+					chart
+						.colors(["#1a5631","#fff"])
+						.showXAxis(false)
+						.easing("easeOutBounce")
+						.showYAxis(false)
+						;
+					chart.grid.verticalLines(false).horizontalLines(false);
+					chart.render(dataFactory(["Prijmy","Vydavky"], months(3), 100))
+
+					return chart;
+				});
+			}
+
+			var introInterval, chartsInterval;
 
 			////////////////////////////////////
 			// Control special backgrounds
@@ -641,6 +689,8 @@
 				var curr = event.currentSlide;
 
 				if(slide(curr, "intro")) {
+					introChart();
+					introInterval = setInterval(introChart, 3000);
 					$intro.fadeIn();
 				}
 
@@ -682,62 +732,30 @@
 				$procesColor.attr('class', 'pink');
 			});
 
-			Reveal.addEventListener( 'chart-types', function() {
-				Chartmander
-				.addChart(function(){
-					var chart = Chartmander.select("chart-line", "line");
-
-					chart
-						.colors(["#1a5631", "#fff"])
-						.easing("easeOutBounce")
-						.pointRadius(10)
-						.lineWidth(5)
-						.showXAxis(false)
-						.showYAxis(false)
-						;
-					chart.grid.verticalLines(false).horizontalLines(false);
-					chart.render(dataFactory(["Prijmy","Vydavky"], months(3), 100))
-					return chart;
-				})
-				.addChart(function(){
-					var chart = Chartmander.select("chart-pie", "pie");
-
-					chart
-						.colors(["#1a5631", "#fff", "#fff"])
-						.innerRadius(0.8)
-						.render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200))
-					return chart;
-				})
-				.addChart(function(){
-					var chart = Chartmander.select("chart-bar", "bar");
-
-					chart
-						.colors(["#1a5631","#fff"])
-						.showXAxis(false)
-						.easing("easeOutBounce")
-						.showYAxis(false)
-						;
-					chart.grid.verticalLines(false).horizontalLines(false);
-					chart.render(dataFactory(["Prijmy","Vydavky"], months(3), 100))
-
-					return chart;
-				});
-			}, false );
-
 			Reveal.addEventListener('slidechanged', function( event ) {
 				var prev = event.previousSlide,
 						curr = event.currentSlide;
 
 				if (slide(curr, "intro")) {
 					$intro.fadeIn();
+					introInterval = setInterval(introChart, 3000);
 				} else {
 					$intro.fadeOut();
+					clearInterval(introInterval);
+					introInterval = null;
 				}
 
 				if(slide(curr, "ciele")) {
 					$ciele.fadeIn();
 				} else {
 					$ciele.fadeOut();
+				}
+
+				if(slide(curr, "chartTypes")) {
+					chartsInterval = setInterval(chartTypes, 3000);
+				} else {
+					clearInterval(chartsInterval);
+					chartsInterval = null;
 				}
 
 				if(slide(curr, "technologie")) {
@@ -754,6 +772,10 @@
 
 			  // event.previousSlide, event.currentSlide, event.indexh, event.indexv
 			});
+
+			Reveal.addEventListener( 'chart-types', function() {
+				chartTypes();
+			}, false );
 		</script>
 	</body>
 </html>

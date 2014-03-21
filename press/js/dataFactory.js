@@ -2,11 +2,7 @@ function dataFactory (datasets, categories, range) {
   var data = []
     ;
   for (var i = 0; i < datasets.length; i++) {
-    if (i==0) 
-      value = (range - 1) + Math.random()*(range - 1);
-    else
-      value = 10+Math.random()*30;
-    
+
     data.push({
       title: datasets[i],
       values: stream(categories, range)
@@ -18,18 +14,12 @@ function dataFactory (datasets, categories, range) {
 
 function stream (cats, range) {
   var result = []
-    , value = 0
     ;
 
   for (var i = 0; i < cats.length; i++) {
-    if (i==0) 
-      value = (range - 1) + Math.random()*(range - 1);
-    else
-      value = 10+Math.random()*30;
-
     result.push({
       label: cats[i],
-      value: parseInt( value )
+      value: Math.ceil( 30+Math.random()*range )
     })
   };
 
@@ -86,4 +76,14 @@ function months (count) {
     dates.push(new Date(2014, 1+i).getTime());
   }
   return dates;
+}
+
+function bonvoyage (sets, months) {
+  return [{
+    label: sets[0],
+    values: stream(months, 400)
+  }, {
+    label: sets[1],
+    values: stream(months, 50)
+  }];
 }
