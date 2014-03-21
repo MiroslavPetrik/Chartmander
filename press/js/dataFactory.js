@@ -77,3 +77,13 @@ function yearByMonths (yearCount) {
   }
   return dates;
 }
+
+function months (count) {
+  var dates = []
+    ;
+  
+  for (var i=0; i<count; i++) {
+    dates.push(new Date(2014, 1+i).getTime());
+  }
+  return dates;
+}

@@ -430,3 +430,8 @@ h2 {
     rgb(65, 171, 107) 30px 30px;
 }
 
+.icon-vector,
+.icon-grid {
+  font-size: 11rem;
+  line-height: 14rem;
+}

@@ -96,3 +96,21 @@ header {
 .ion-lg {
 	@include font(15);
 }
+
+.flag-wrapper {
+	display: inline-block;
+	margin: 0;
+	border-radius: 50%;
+	width: 16rem;
+	height: 16rem;
+	background: transparent;
+	overflow: hidden;
+	margin-left: 4rem;
+	margin-top: 5rem;
+	opacity: 0;
+}
+
+#pieMedals {
+	position: absolute;
+	z-index: 40;
+}

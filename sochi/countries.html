@@ -5,8 +5,8 @@ title: Sochi 2014 Country statistics
 <div class="container">
   <div class="row">
     <div class="col-sm-10 col-sm-offset-1">
-      <header>
-        <h1>Sochi</h1>
+      <header style="margin: 2rem 0;">
+        <img src="../img/sochi.png" width="300px" alt="">
       </header>
       <ul class="nav nav-tabs top-nav">
         <li><a href="{{site.sochi}}"><i class="ion-speedometer"></i>Overview</a></li>
@@ -15,7 +15,7 @@ title: Sochi 2014 Country statistics
       </ul>
       <section class="page">
         <div class="panel panel-sochi">
-          <div class="panel-heading">
+          <div class="panel-heading" style="text-align: center">
             <div class="btn-group js-radio" data-toggle="buttons">
               <label class="btn btn-primary" id="tada">
                 <input type="radio" name="options" id="russian_fed"> Russian Federation
@@ -36,15 +36,17 @@ title: Sochi 2014 Country statistics
           </div>
           <div class="panel-body">
             <div class="row">
-              <div class="col-sm-4">
-                <img src="" alt="flag" width="200" height="200" class="js-flag">
+              <div class="col-sm-4" style="height:30rem; text-align: center;">
+                <canvas id="pieMedals" width="240" height="250"></canvas>
+                <div class="flag-wrapper">
+                  <img src="" alt="flag" height="185" class="js-flag">
+                </div>
               </div>
               <div class="col-sm-8">
                 <h2 class="js-name"></h2>
                 <p class="js-description"></p>
               </div>
             </div>
-            <canvas id="pieMedals" width="240" height="250"></canvas>
           </div>
         </div>
       </section>
@@ -58,12 +60,14 @@ $(function(){
   var $description = $('.js-description')
     , $flag = $('.js-flag')
     , $name = $('.js-name')
+    , $flagWrap = $('.flag-wrapper')
     ;
 
   $('.js-radio .btn').on('click', function () {
     var country_id = $(this).find('input').attr('id');
 
     getCountry(country_id, function (data) {
+      $flagWrap.delay(1000).animate({opacity: 1}, 1000);
       $name.text(data.name);
       $flag.attr("src", data.flag);
       $description.text(data.description);
