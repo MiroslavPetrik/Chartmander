@@ -1,0 +1,32 @@
+---
+layout: post
+title:  Bar chart
+anchor: bar-chart
+date:   2014-03-15
+categories: chartmander piechart
+---
+
+### Example
+<canvas id="bar-example" width="700" height="300"></canvas>
+
+You'll find this post in your `_posts` directory - edit this post and re-build (or run with the `-w` switch) to see your changes!
+To add new posts, simply add a file in the `_posts` directory that follows the convention: YYYY-MM-DD-name-of-post.ext.
+
+Jekyll also offers powerful support for code snippets:
+
+{% highlight javascript %}
+Chartmander.addChart(function(){
+	// Select your bar model with ID
+	var chart = hartmander.select("canvas-id", "bar");
+
+	// style your chart
+	chart.maxBarWidth(20);
+
+	// pass your data
+	chart.render(data);
+	
+	// return chart back to chartmander
+	return chart;
+});
+{% endhighlight %}
+
