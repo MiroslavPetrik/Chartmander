@@ -10,11 +10,15 @@ categories: chartmander piechart
 <canvas id="pie-example" width="300" height="300"></canvas>
 
 ### Code
+{% highlight html %}
+<canvas id="pie-example" width="300" height="300"></canvas>
+{% endhighlight %}
 
 {% highlight javascript %}
 Chartmander.addChart(function(){
-	// Select your model with ID
-	var chart = hartmander.select("canvas-id", "pie");
+	// Select your bar model with select method
+	// first parameter is ID of your canvas element and the second one is model of chart
+	var chart = Chartmander.select("pie-example", "pie");
 
 	// style your chart
 	chart.innerRadius(.8);
@@ -28,3 +32,4 @@ Chartmander.addChart(function(){
 {% endhighlight %}
 
 ### Example data
+soon...

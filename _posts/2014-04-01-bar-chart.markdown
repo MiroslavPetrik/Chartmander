@@ -9,15 +9,16 @@ categories: chartmander piechart
 ### Example
 <canvas id="bar-example" width="700" height="300"></canvas>
 
-You'll find this post in your `_posts` directory - edit this post and re-build (or run with the `-w` switch) to see your changes!
-To add new posts, simply add a file in the `_posts` directory that follows the convention: YYYY-MM-DD-name-of-post.ext.
-
-Jekyll also offers powerful support for code snippets:
+### Code
+{% highlight html %}
+<canvas id="bar-example" width="700" height="300"></canvas>
+{% endhighlight %}
 
 {% highlight javascript %}
 Chartmander.addChart(function(){
-	// Select your bar model with ID
-	var chart = hartmander.select("canvas-id", "bar");
+	// Select your bar model with select method
+	// first parameter is ID of your canvas element and the second one is model of chart
+	var chart = Chartmander.select("bar-example", "bar");
 
 	// style your chart
 	chart.maxBarWidth(20);
@@ -29,4 +30,3 @@ Chartmander.addChart(function(){
 	return chart;
 });
 {% endhighlight %}
-

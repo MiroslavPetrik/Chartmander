@@ -10,10 +10,15 @@ categories: chartmander linechart getting started
 <canvas id="line-example" width="800" height="300"></canvas>
 
 ### Code
+{% highlight html %}
+<canvas id="line-example" width="800" height="300"></canvas>
+{% endhighlight %}
+
 {% highlight javascript %}
 Chartmander.addChart(function(){
-	// Select your model with ID
-	var chart = hartmander.select("line-chart", "line");
+	// Select your bar model with select method
+	// first parameter is ID of your canvas element and the second one is model of chart
+	var chart = hartmander.select("line-example", "line");
 
 	// style your chart
 	chart.innerRadius(.8);
@@ -25,5 +30,3 @@ Chartmander.addChart(function(){
 	return chart;
 });
 {% endhighlight %}
-
-[gh-repo]: https://github.com/11th/Chartmander/blob/gh-pages/js/Chartmander.js
