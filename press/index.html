@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Chartmander.js - Data visualization HTML5 Canvas</title>
+		<title>PRESS Chartmander.js - Data visualization HTML5 Canvas</title>
 		<meta name="description" content="Attractive charts for your new webapp or design mockup">
 		<meta name="author" content="Miroslav Petrik">
 		<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -17,6 +17,7 @@
 		<!-- For syntax highlighting -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
 		<link href='http://fonts.googleapis.com/css?family=Roboto:400,500,700' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Patrick+Hand+SC' rel='stylesheet' type='text/css'>
 		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
 		<script>
 			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
@@ -24,13 +25,29 @@
 		<!--[if lt IE 9]>
 		<script src="lib/js/html5shiv.js"></script>
 		<![endif]-->
+<!-- 		<style>
+			body {
+				width: 80%;
+				margin: 0 auto;
+			}
+		</style> -->
 	</head>
 
 	<body>
-	
 		<div class="reveal">
 			<div class="maximo" id="blueprint"></div>
-			<canvas id="chart-intro" width='1300' height='400'></canvas>
+			<div class="maximo" id="intro">
+				<div class="header">
+					<div class="pull-left">
+						<div class="number">11</div> <span>Informatika</span>
+					</div>
+					<div class="pull-right">
+						<img src="img/spseke.png" class="spseke" alt="">
+						<span class="name">Miroslav Petrik</span>
+					</div>
+				</div>
+				<canvas id="chart-intro" width='1300' height='400'></canvas>
+			</div>
 			<div class="maximo" id="proces-head">
 				<div class="orange">
 					<h2>Proces vizualizácie dát</h2>
@@ -61,7 +78,7 @@
 								<p>akcia</p>
 							</div>
 						</div>
-						<p>najrýchlejšia cesta ako odkomunikovať informáciu človeku</p>
+						<p style="margin-top: 5rem;">najrýchlejšia cesta ako odkomunikovať informáciu človeku</p style="margin-top: 3rem;">
 					</section>
 					<section data-background="img/compare.png">
 					</section>
@@ -543,6 +560,9 @@
 								<h3>Zhotovenie tooltipu pomocou HTML/CSS</h3>
 							</li>
 							<li>
+								<h3>Responzivita</h3>
+							</li>
+							<li>
 								<h3>Vykresľovanie viacerých modelov</h3>
 							</li>
 						</ol>
@@ -668,7 +688,7 @@
 			// Control special backgrounds
 			////////////////////////////////////
 
-			var $intro = $('#chart-intro')
+			var $intro = $('#intro')
 				, $ciele = $('#blueprint')
 				, $techno = $('#circuit')
 				, $proces = $('#proces-head')

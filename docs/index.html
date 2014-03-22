@@ -27,3 +27,33 @@ title: Chartmander.js Documentation
   </div>
 </div>
 
+<script>
+  // the chart code - so it wont fight with markdown
+  Chartmander.addChart(function(){
+    var chart = Chartmander.select("pie-example", "pie");
+
+    chart
+      .innerRadius(0)
+      .colors(["#f15a25", "#fbb03b","#fdee21"])
+      .render(dataFactory(["Eat", "Sleep", "Rave"], ["Day in a Life"], 200));
+    
+    return chart;
+  }).addChart(function(){
+    var chart = Chartmander.select("bar-example", "bar");
+
+    chart
+      .colors(["#f15a25", "#fbb03b","#fdee21"])
+      .render(dataFactory(["Eat","Sleep"], yearByMonths(1), 200));
+    
+    return chart;
+  }).addChart(function(){
+    var chart = Chartmander.select("line-example", "line");
+
+    chart
+      .lineWidth(3)
+      .pointRadius(5)
+      .colors(["#28abe3", "#0071bd", "#2e3192"])
+      .render(dataFactory(["Eat","Sleep"], yearByMonths(1), 200));
+    return chart;
+  });
+</script>

@@ -435,3 +435,31 @@ h2 {
   font-size: 11rem;
   line-height: 14rem;
 }
+
+.header {
+  padding: 3rem;
+  color: #fff;
+}
+
+.number {
+  display: inline-block;
+  vertical-align: middle;
+  background: rgba(0,0,0,.11);
+  border-radius: 50%;
+  width: 7rem;
+  height: 7rem;
+  padding-top: 1rem;
+  text-align: center;
+}
+
+.spseke {
+  height: 7rem;
+  width: 7rem;
+  float: left;
+  margin-right: 2rem !important;
+}
+
+.name {
+  position: relative;
+  top: 1rem;
+}
