@@ -45,19 +45,19 @@ Chartmander.models.chart = function () {
 
       _perc_ = easingFunction(animationCompleted);
 
-      layer
-        .erase(0, 0, width, height)
-        .hoverFinished(true)
-        .tooltip.flush()
-        ;
+      // layer
+      //   .erase(0, 0, width, height)
+      //   .hoverFinished(true)
+      //   .tooltip.flush()
+      //   ;
 
       // Model specific drawings
       drawComponents(_perc_);
 
-      if (hovered && tooltip.hasItems()) {
-        // tooltip.recalc(ctx);
-        layer.tooltip.drawInto(chart);
-      }
+      // if (hovered && tooltip.hasItems()) {
+      //   // tooltip.recalc(ctx);
+      //   layer.tooltip.drawInto(chart);
+      // }
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {

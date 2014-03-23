@@ -1,15 +1,15 @@
 Chartmander.models.pie = function () {
 
-  var model = new Chartmander.models.base();
+  var chart = new Chartmander.models.base();
 
-  var center          = { x: model.width()/2, y: model.height()/2 }
+  var center          = { x: chart.width()/2, y: chart.height()/2 }
     , radius          = Math.min.apply(null, [center.x, center.y])
     , innerRadius     = .6
     , rotateAnimation = true
     , startAngle      = 0
     ;
 
-  model.easing("easeOutBounce");
+  chart.easing("easeOutBounce");
 
   var recalcSlices = function () {
     var slice
@@ -17,11 +17,11 @@ Chartmander.models.pie = function () {
       , sliceEnd
       ;
 
-    forEach(model.datasets(), function (set) {
+    forEach(chart.datasets(), function (set) {
       // There is always one element inside of dataset in pie chart
       slice = set.getElement(0);
       sliceEnd = sliceStart + getAngleOf(slice.value());
-      if (model.updated()) {
+      if (chart.updated()) {
         slice.savePosition();
       } else {
         slice.savePosition(0, 0);
@@ -32,23 +32,23 @@ Chartmander.models.pie = function () {
   }
   
   var drawSlices = function (_perc_) {
-    model.ctx.save();
-    forEach(model.datasets(), function (set) {
+    chart.ctx.save();
+    forEach(chart.datasets(), function (set) {
       var slice = set.getElement(0);
-      model.ctx.fillStyle = set.color();
+      chart.ctx.fillStyle = set.color();
       
       slice.updatePosition(rotateAnimation ? _perc_ : 1)
-           .drawInto(model, set);
+           .drawInto(chart, set);
     });
-    model.ctx.restore();
+    chart.ctx.restore();
   }
 
   var render =  function (data) {
-    model.parse(data, Chartmander.components.slice);
+    chart.parse(data, Chartmander.components.slice);
     var xrange = getRange(getArrayBy(data, "label"));
     var yrange = getRange(function(){
       var values = [];
-      forEach(model.datasets(), function (set) {
+      forEach(chart.datasets(), function (set) {
         values.push(set.min());
         values.push(set.max());
       });
@@ -56,21 +56,21 @@ Chartmander.models.pie = function () {
     }());
 
     recalcSlices();
-    model.completed(0);
-    model.draw(drawComponents, false);
+    chart.completed(0);
+    chart.draw(drawComponents, false);
   }
 
   var update = function (data) {
     var i = 0;
-    forEach(model.datasets(), function (set) {
-      set.merge(data[i], model);
+    forEach(chart.datasets(), function (set) {
+      set.merge(data[i], chart);
       i++;
     });
   }
 
   var getDataSum = function () {
     var total = 0;
-    forEach(model.datasets(), function (set) {
+    forEach(chart.datasets(), function (set) {
       set.each(function (e) {
         total += e.value();
       });
@@ -87,7 +87,7 @@ Chartmander.models.pie = function () {
   }
 
   var drawFull = function () {
-    model.draw(drawComponents, true);
+    chart.draw(drawComponents, true);
   }
 
 
@@ -95,34 +95,34 @@ Chartmander.models.pie = function () {
   // Public Methods & Variables
   ///////////////////////////////
 
-  model.render = render;
-  model.drawFull = drawFull;
-  model.drawComponents = drawComponents;
+  chart.render = render;
+  chart.drawFull = drawFull;
+  chart.drawComponents = drawComponents;
 
-  model.center = function (_) {
+  chart.center = function (_) {
     if(!arguments.length) return center
     center.x = typeof _.x != 'undefined' ? _.x : center.x;
     center.y = typeof _.y != 'undefined' ? _.y : center.y;
-    return model;
+    return chart;
   };
 
-  model.innerRadius = function (_) {
+  chart.innerRadius = function (_) {
     if(!arguments.length) return innerRadius;
     innerRadius = _;
-    return model;
+    return chart;
   };
 
-  model.radius = function (_) {
+  chart.radius = function (_) {
     if(!arguments.length) return radius;
     radius = _;
-    return model;
+    return chart;
   };
 
-  model.startAngle = function (_) {
+  chart.startAngle = function (_) {
     if(!arguments.length) return startAngle;
     startAngle = _;
-    return model;
+    return chart;
   };
 
-  return model;
+  return chart;
 };
