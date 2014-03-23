@@ -179,6 +179,7 @@ Chartmander.models.lineChart = function (canvas) {
   
   chart.render    = render;
   chart.drawFull  = drawFull;
+  chart.drawComponents = drawComponents;
 
   chart.base = function (_) {
     return grid.bottom() - yAxis.zeroLevel();

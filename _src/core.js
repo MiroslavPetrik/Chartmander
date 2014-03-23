@@ -16,7 +16,8 @@
   window.Chartmander = Chartmander;
 
   Chartmander.version    = '0.1.1';
-  Chartmander.models     = Chartmander.models     || {};
+  Chartmander.models     = Chartmander.models     || {}; // base models
+  Chartmander.charts     = Chartmander.charts     || {}; // models combined into charts
   Chartmander.components = Chartmander.components || {};
   Chartmander.charts     = []; // Store all rendered charts
 
@@ -45,19 +46,22 @@
     }
     // Provide new chart
     if (model === "pie")
-      return new Chartmander.models.pieChart(id);
+      return new Chartmander.charts.pieChart(id);
 
     if (model === "bar")
-      return new Chartmander.models.barChart(id);
+      return new Chartmander.charts.barChart(id);
 
     if (model === "categoryBar")
-      return new Chartmander.models.categoryBarChart(id);
+      return new Chartmander.charts.categoryBarChart(id);
 
     if (model === "line")
-      return new Chartmander.models.lineChart(id);
+      return new Chartmander.charts.lineChart(id);
 
     if (model === "categoryLine")
-      return new Chartmander.models.categoryLineChart(id);
+      return new Chartmander.charts.categoryLineChart(id);
+
+    if (model === "trigonometric")
+      return new Chartmander.charts.trigonometricCombo(id);
 
     throw new Error("Unknown model of chart.");
   };

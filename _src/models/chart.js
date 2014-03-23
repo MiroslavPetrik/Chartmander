@@ -1,77 +1,29 @@
-Chartmander.models.chart = function (canvasID) {
+Chartmander.models.chart = function () {
   
+  // parent for each chartmander model
+  // provides just logic
+  // stores data and state
+  // animation is here
+
   var chart = this;
 
-  var id = canvasID // unique ID selector
-    , type = ""
-    , canvas = document.getElementById(canvasID)
-    , ctx = canvas.getContext('2d')
-    , datasets = []
-    , width = ctx.canvas.width
-    , height = ctx.canvas.height
+  var datasets = []
+    // , id = canvasID // for simple debugging in errors
+    , width = null
+    , height = null
     , margin = { top: 0, right: 0, bottom: 0, left: 0 }
-    , mouse = { x: 0, y: 0 }
     , colors = ["blue", "green", "red"]
     , font = "13px Arial, sans-serif"
     , fontColor = "#555"
     , animate = true
-    , hovered = false
     , animationSteps = 100
     , animationCompleted = 0
-    , hoverFinished = true
     , easing = "easeInQuint"
     , updated = false
-    // , onAnimationCompleted = null
     ;
 
   ///////////////////////////////////
-  // Use Components
-  ///////////////////////////////////
-
-  var tooltip = new Chartmander.components.tooltip();
-
-  ///////////////////////////////////
-  // Interaction Setup
-  ///////////////////////////////////
-
-  canvas.addEventListener("mouseenter", handleEnter, false);
-  canvas.addEventListener("mousemove",  handleHover, false);
-  canvas.addEventListener("mouseleave", handleLeave, false);
-
-  if (window.devicePixelRatio) {
-    ctx.canvas.style.width  =  width + "px";
-    ctx.canvas.style.height = height + "px";
-    ctx.canvas.height       = height * window.devicePixelRatio;
-    ctx.canvas.width        = width  * window.devicePixelRatio;
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  }
-
-  function handleHover (event) {
-    var rect = canvas.getBoundingClientRect();
-
-    mouse.x = event.clientX - rect.left;
-    mouse.y = event.clientY - rect.top;
-    // Allow repaint on hover only if chart and tooltip are done with self-repaint
-    // AND if also hovered item is not repainting 
-    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
-    if (animationCompleted >= 1 && hoverFinished) {
-      chart.drawFull();
-    }
-  }
-
-  function handleEnter () {
-    hovered = true;
-  }
-
-  function handleLeave () {
-    hovered = false;
-    // chart.tooltip.removeItems();
-    if (animationCompleted >= 1)
-      chart.drawFull();
-  }
-
-  ///////////////////////////////////
-  // The Loop
+  // The Animating Loop
   ///////////////////////////////////
 
   var draw = function (drawComponents, finished) {
@@ -92,19 +44,22 @@ Chartmander.models.chart = function (canvasID) {
       }
 
       _perc_ = easingFunction(animationCompleted);
-      ctx.clearRect(0, 0, width, height);
-      hoverFinished = true;
-      tooltip.flush();
 
+      layer
+        .erase(0, 0, width, height)
+        .hoverFinished(true)
+        .tooltip.flush()
+        ;
+
+      // Model specific drawings
       drawComponents(_perc_);
 
       if (hovered && tooltip.hasItems()) {
         // tooltip.recalc(ctx);
-        tooltip.drawInto(chart);
+        layer.tooltip.drawInto(chart);
       }
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
-
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
       if (animationCompleted < 1 || !hoverFinished) {
         requestAnimationFrame(loop);
@@ -145,39 +100,30 @@ Chartmander.models.chart = function (canvasID) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Methods and Binding
   ///////////////////////////////
 
+  chart.ctx     = ctx;
+  chart.layer   = layer;
   chart.tooltip = tooltip;
   chart.draw    = draw;
-  chart.parse  = parse;
-  chart.ctx     = ctx;
+  chart.parse   = parse;
 
-  chart.id = function (_) {
-    // if(!arguments.length)
-      return id;
-    // id = _;
-    // return chart;
-  };
+  // chart.id = function (_) {
+  //   if(!arguments.length) return id;
+  //   id = _;
+  //   return layer;
+  // };
 
-  chart.type = function (_) {
-    if(!arguments.length) return type;
-    type = _;
+  chart.width = function (_) {
+    if(!arguments.length) return width;
+    width = _;
     return chart;
   };
 
-  chart.width = function () {
-    return width;
-  };
-
-  chart.height = function () {
-    return height;
-  };
-
-  chart.mouse = function (_) {
-    if(!arguments.length) return mouse;
-    mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
-    mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
+  chart.height = function (_) {
+    if(!arguments.length) return height;
+    height = _;
     return chart;
   };
 
@@ -238,12 +184,6 @@ Chartmander.models.chart = function (canvasID) {
     return chart;
   };
 
-  chart.hovered = function (_) {
-    if (!arguments.length) return hovered;
-    hovered = _;
-    return chart;
-  };
-
   chart.font = function (_) {
     if (!arguments.length) return font;
     font = _;
@@ -259,12 +199,6 @@ Chartmander.models.chart = function (canvasID) {
   chart.updated = function (_) {
     if (!arguments.length) return updated;
     updated = _;
-    return chart;
-  };
-
-  chart.hoverFinished = function (_) {
-    if (!arguments.length) return hoverFinished;
-    hoverFinished = _;
     return chart;
   };
 
