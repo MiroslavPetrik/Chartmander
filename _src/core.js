@@ -26,7 +26,7 @@
       , isUnique = true;
 
     forEach(Chartmander.charts, function (chart) {
-      if (newChart.id() === chart.id())
+      if (newChart.layer().id() === chart.layer().id())
         isUnique = false;
     });
 
@@ -39,29 +39,29 @@
   Chartmander.select = function (id, model) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].id()) {
+      if (id === Chartmander.charts[i].layer().id()) {
         // Do update...
         return Chartmander.charts[i].updated(true);
       }
     }
     // Provide new chart
     if (model === "pie")
-      return new Chartmander.charts.pieChart(id);
+      return new Chartmander.charts.pie(id);
 
-    if (model === "bar")
-      return new Chartmander.charts.barChart(id);
+    // if (model === "bar")
+    //   return new Chartmander.charts.bar(id);
 
-    if (model === "categoryBar")
-      return new Chartmander.charts.categoryBarChart(id);
+    // if (model === "categoryBar")
+    //   return new Chartmander.charts.categoryBar(id);
 
-    if (model === "line")
-      return new Chartmander.charts.lineChart(id);
+    // if (model === "line")
+    //   return new Chartmander.charts.line(id);
 
-    if (model === "categoryLine")
-      return new Chartmander.charts.categoryLineChart(id);
+    // if (model === "categoryLine")
+    //   return new Chartmander.charts.categoryLine(id);
 
-    if (model === "trigonometric")
-      return new Chartmander.charts.trigonometricCombo(id);
+    // if (model === "trigonometric")
+    //   return new Chartmander.charts.trigonometricCombo(id);
 
     throw new Error("Unknown model of chart.");
   };

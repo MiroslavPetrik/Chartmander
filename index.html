@@ -51,24 +51,27 @@ title: Chartmander - HTML5 canvas charts
 <script>
   
   var myCharts = function () {
-    Chartmander.addChart(function(){
-      var chart = Chartmander.select("chartmander-intro", "line");
-      chart
-        .colors(["#fff", "darkblue"])
-        .easing("easeOutQuint")
-        .pointRadius(10)
-        .fontColor("#fff")
-        .font("14px Arial")
+    Chartmander
+    // .addChart(function(){
+    //   var chart = Chartmander.select("chartmander-intro", "line");
+    //   chart
+    //     .colors(["#fff", "darkblue"])
+    //     .easing("easeOutQuint")
+    //     .pointRadius(10)
+    //     .fontColor("#fff")
+    //     .font("14px Arial")
 
-      chart.render(dataFactory(["Petrol"], yearByMonths(1), 500));
-      return chart;
-    }).addChart(function(){
-      var chart = Chartmander.select("bar1", "bar");
+    //   chart.render(dataFactory(["Petrol"], yearByMonths(1), 500));
+    //   return chart;
+    // })
+    // .addChart(function(){
+    //   var chart = Chartmander.select("bar1", "bar");
 
-      chart.colors(["#2e3192"]).render(dataFactory(["Petrol"], yearByMonths(1), 300));
-      return chart;
+    //   chart.colors(["#2e3192"]).render(dataFactory(["Petrol"], yearByMonths(1), 300));
+    //   return chart;
 
-    }).addChart(function(){
+    // })
+    .addChart(function(){
       var chart = Chartmander.select("pie1", "pie");
 
       chart
@@ -84,7 +87,8 @@ title: Chartmander - HTML5 canvas charts
         .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200));
 
       return chart;
-    }).addChart(function(){
+    })
+    .addChart(function(){
       var chart = Chartmander.select("pie3", "pie");
       chart
         .innerRadius(.8)

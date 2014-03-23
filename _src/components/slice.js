@@ -6,11 +6,12 @@ Chartmander.components.slice = function (data, title) {
   */
 
   var slice = new Chartmander.components.element();
-      slice.set(title).label(data.label).value(data.value);
+
+  slice.set(title).label(data.label).value(data.value);
 
   var sliceIsHovered = function (pie) {
-    var x = pie.mouse().x - pie.center().x
-      , y = pie.mouse().y - pie.center().y
+    var x = pie.layer().mouse().x - pie.center().x
+      , y = pie.layer().mouse().y - pie.center().y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
@@ -25,20 +26,15 @@ Chartmander.components.slice = function (data, title) {
         hovered = true;
       }
     }
-
     return hovered;
   }
 
-  ///////////////////////////////
-  // Public Methods & Variables
-  ///////////////////////////////
-
-  slice.drawInto = function (pie, set) {
-    pie.ctx.beginPath();
+  var drawInto = function (ctx, pie, set) {
+    ctx.beginPath();
     // Check if this slice was hovered
-    if (pie.hovered()) {
+    if (pie.layer().hovered()) {
       if (sliceIsHovered(pie)) {
-        pie.ctx.fillStyle = set.hoverColor();
+        ctx.fillStyle = set.hoverColor();
         // pie.tooltip.addItem({
         //   "set": set.title,
         //   "label": slice.label,
@@ -47,10 +43,16 @@ Chartmander.components.slice = function (data, title) {
         // });
       }
     }
-    pie.ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y());
-    pie.ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), true);
-    pie.ctx.fill();
-  };
+    ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y());
+    ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), true);
+    ctx.fill();
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  slice.drawInto = drawInto;
 
   return slice;
 };

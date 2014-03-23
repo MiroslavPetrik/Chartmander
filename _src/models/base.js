@@ -1,4 +1,4 @@
-Chartmander.models.chart = function () {
+Chartmander.models.base = function () {
   
   // parent for each chartmander model
   // provides just logic
@@ -7,19 +7,19 @@ Chartmander.models.chart = function () {
 
   var chart = this;
 
-  var datasets = []
-    // , id = canvasID // for simple debugging in errors
-    , width = null
-    , height = null
-    , margin = { top: 0, right: 0, bottom: 0, left: 0 }
-    , colors = ["blue", "green", "red"]
-    , font = "13px Arial, sans-serif"
-    , fontColor = "#555"
-    , animate = true
-    , animationSteps = 100
+  var datasets           = []
+    , layer              = null // Every model needs a canvas layer
+    , width              = null
+    , height             = null
+    , margin             = { top: 0, right: 0, bottom: 0, left: 0 }
+    , colors             = ["blue", "green", "red"]
+    , font               = "13px Arial, sans-serif"
+    , fontColor          = "#555"
+    , animate            = true
+    , animationSteps     = 100
     , animationCompleted = 0
-    , easing = "easeInQuint"
-    , updated = false
+    , easing             = "easeInQuint"
+    , updated            = false
     ;
 
   ///////////////////////////////////
@@ -45,11 +45,12 @@ Chartmander.models.chart = function () {
 
       _perc_ = easingFunction(animationCompleted);
 
-      // layer
-      //   .erase(0, 0, width, height)
-      //   .hoverFinished(true)
-      //   .tooltip.flush()
-      //   ;
+      layer
+        .erase(0, 0, width, height)
+        .hoverFinished(true)
+        // .tooltip.flush()
+        ;
+      console.log("loop")
 
       // Model specific drawings
       drawComponents(_perc_);
@@ -61,7 +62,7 @@ Chartmander.models.chart = function () {
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
-      if (animationCompleted < 1 || !hoverFinished) {
+      if (animationCompleted < 1 || !layer.hoverFinished()) {
         requestAnimationFrame(loop);
       }
       else {
@@ -103,17 +104,14 @@ Chartmander.models.chart = function () {
   // Methods and Binding
   ///////////////////////////////
 
-  chart.ctx     = ctx;
-  chart.layer   = layer;
-  chart.tooltip = tooltip;
-  chart.draw    = draw;
-  chart.parse   = parse;
+  chart.parse = parse;
+  chart.draw  = draw;
 
-  // chart.id = function (_) {
-  //   if(!arguments.length) return id;
-  //   id = _;
-  //   return layer;
-  // };
+  chart.layer = function (_) {
+    if(!arguments.length) return layer;
+    layer = _;
+    return chart;
+  }
 
   chart.width = function (_) {
     if(!arguments.length) return width;

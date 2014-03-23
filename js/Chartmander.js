@@ -16,7 +16,8 @@
   window.Chartmander = Chartmander;
 
   Chartmander.version    = '0.1.1';
-  Chartmander.models     = Chartmander.models     || {};
+  Chartmander.models     = Chartmander.models     || {}; // base models
+  Chartmander.charts     = Chartmander.charts     || {}; // models combined into charts
   Chartmander.components = Chartmander.components || {};
   Chartmander.charts     = []; // Store all rendered charts
 
@@ -25,7 +26,7 @@
       , isUnique = true;
 
     forEach(Chartmander.charts, function (chart) {
-      if (newChart.id() === chart.id())
+      if (newChart.layer().id() === chart.layer().id())
         isUnique = false;
     });
 
@@ -38,26 +39,29 @@
   Chartmander.select = function (id, model) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].id()) {
+      if (id === Chartmander.charts[i].layer().id()) {
         // Do update...
         return Chartmander.charts[i].updated(true);
       }
     }
     // Provide new chart
     if (model === "pie")
-      return new Chartmander.models.pieChart(id);
+      return new Chartmander.charts.pie(id);
 
-    if (model === "bar")
-      return new Chartmander.models.barChart(id);
+    // if (model === "bar")
+    //   return new Chartmander.charts.bar(id);
 
-    if (model === "categoryBar")
-      return new Chartmander.models.categoryBarChart(id);
+    // if (model === "categoryBar")
+    //   return new Chartmander.charts.categoryBar(id);
 
-    if (model === "line")
-      return new Chartmander.models.lineChart(id);
+    // if (model === "line")
+    //   return new Chartmander.charts.line(id);
 
-    if (model === "categoryLine")
-      return new Chartmander.models.categoryLineChart(id);
+    // if (model === "categoryLine")
+    //   return new Chartmander.charts.categoryLine(id);
+
+    // if (model === "trigonometric")
+    //   return new Chartmander.charts.trigonometricCombo(id);
 
     throw new Error("Unknown model of chart.");
   };
@@ -271,30 +275,23 @@
     return indexOf.call(this, element);
   }
 
-Chartmander.models.chart = function (canvasID) {
-  
-  var chart = this;
+Chartmander.components.layer = function (canvasID) {
+
+  // main component for each chart or multiple charts
+
+  var layer = this;
 
   var id = canvasID // unique ID selector
-    , type = ""
     , canvas = document.getElementById(canvasID)
     , ctx = canvas.getContext('2d')
-    , datasets = []
     , width = ctx.canvas.width
     , height = ctx.canvas.height
-    , margin = { top: 0, right: 0, bottom: 0, left: 0 }
+    , margin = { top: 0, right: 0, bottom: 0, left: 0 } // layer offset
     , mouse = { x: 0, y: 0 }
-    , colors = ["blue", "green", "red"]
-    , font = "13px Arial, sans-serif"
-    , fontColor = "#555"
-    , animate = true
     , hovered = false
     , animationSteps = 100
     , animationCompleted = 0
     , hoverFinished = true
-    , easing = "easeInQuint"
-    , updated = false
-    // , onAnimationCompleted = null
     ;
 
   ///////////////////////////////////
@@ -343,8 +340,99 @@ Chartmander.models.chart = function (canvasID) {
       chart.drawFull();
   }
 
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  layer.ctx     = ctx;
+  layer.tooltip = tooltip;
+
+  layer.id = function (_) {
+    if(!arguments.length) return id;
+    id = _;
+    return layer;
+  };
+
+  layer.width = function (_) {
+    if(!arguments.length) return width;
+    width = _;
+    return layer;
+  };
+
+  layer.height = function (_) {
+    if(!arguments.length) return height;
+    height = _;
+    return layer;
+  };
+
+  layer.mouse = function (_) {
+    if(!arguments.length) return mouse;
+    mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
+    mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
+    return layer;
+  };
+
+  layer.completed = function (_) {
+    if(!arguments.length) return animationCompleted;
+    animationCompleted = _;
+    return layer;
+  };
+
+  layer.margin = function (_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return layer;
+  };
+
+  layer.hovered = function (_) {
+    if (!arguments.length) return hovered;
+    hovered = _;
+    return layer;
+  };
+
+  layer.hoverFinished = function (_) {
+    if (!arguments.length) return hoverFinished;
+    hoverFinished = _;
+    return layer;
+  };
+
+  layer.erase = function (x, y, width, height) {
+    ctx.clearRect(x, y, width, height);
+    return layer;
+  }
+
+  return layer;
+};
+
+Chartmander.models.base = function () {
+  
+  // parent for each chartmander model
+  // provides just logic
+  // stores data and state
+  // animation is here
+
+  var chart = this;
+
+  var datasets           = []
+    , layer              = null // Every model needs a canvas layer
+    , width              = null
+    , height             = null
+    , margin             = { top: 0, right: 0, bottom: 0, left: 0 }
+    , colors             = ["blue", "green", "red"]
+    , font               = "13px Arial, sans-serif"
+    , fontColor          = "#555"
+    , animate            = true
+    , animationSteps     = 100
+    , animationCompleted = 0
+    , easing             = "easeInQuint"
+    , updated            = false
+    ;
+
   ///////////////////////////////////
-  // The Loop
+  // The Animating Loop
   ///////////////////////////////////
 
   var draw = function (drawComponents, finished) {
@@ -365,21 +453,25 @@ Chartmander.models.chart = function (canvasID) {
       }
 
       _perc_ = easingFunction(animationCompleted);
-      ctx.clearRect(0, 0, width, height);
-      hoverFinished = true;
-      tooltip.flush();
 
+      layer
+        .erase(0, 0, width, height)
+        .hoverFinished(true)
+        // .tooltip.flush()
+        ;
+      console.log("loop")
+
+      // Model specific drawings
       drawComponents(_perc_);
 
-      if (hovered && tooltip.hasItems()) {
-        // tooltip.recalc(ctx);
-        tooltip.drawInto(chart);
-      }
+      // if (hovered && tooltip.hasItems()) {
+      //   // tooltip.recalc(ctx);
+      //   layer.tooltip.drawInto(chart);
+      // }
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
-
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
-      if (animationCompleted < 1 || !hoverFinished) {
+      if (animationCompleted < 1 || !layer.hoverFinished()) {
         requestAnimationFrame(loop);
       }
       else {
@@ -418,39 +510,27 @@ Chartmander.models.chart = function (canvasID) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Methods and Binding
   ///////////////////////////////
 
-  chart.tooltip = tooltip;
-  chart.draw    = draw;
-  chart.parse  = parse;
-  chart.ctx     = ctx;
+  chart.parse = parse;
+  chart.draw  = draw;
 
-  chart.id = function (_) {
-    // if(!arguments.length)
-      return id;
-    // id = _;
-    // return chart;
-  };
+  chart.layer = function (_) {
+    if(!arguments.length) return layer;
+    layer = _;
+    return chart;
+  }
 
-  chart.type = function (_) {
-    if(!arguments.length) return type;
-    type = _;
+  chart.width = function (_) {
+    if(!arguments.length) return width;
+    width = _;
     return chart;
   };
 
-  chart.width = function () {
-    return width;
-  };
-
-  chart.height = function () {
-    return height;
-  };
-
-  chart.mouse = function (_) {
-    if(!arguments.length) return mouse;
-    mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
-    mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
+  chart.height = function (_) {
+    if(!arguments.length) return height;
+    height = _;
     return chart;
   };
 
@@ -511,12 +591,6 @@ Chartmander.models.chart = function (canvasID) {
     return chart;
   };
 
-  chart.hovered = function (_) {
-    if (!arguments.length) return hovered;
-    hovered = _;
-    return chart;
-  };
-
   chart.font = function (_) {
     if (!arguments.length) return font;
     font = _;
@@ -535,26 +609,25 @@ Chartmander.models.chart = function (canvasID) {
     return chart;
   };
 
-  chart.hoverFinished = function (_) {
-    if (!arguments.length) return hoverFinished;
-    hoverFinished = _;
-    return chart;
-  };
-
   return chart;
 };
 
-Chartmander.models.pieChart = function (canvas) {
+Chartmander.models.pie = function (layer) {
 
-  var chart = new Chartmander.models.chart(canvas)
-    , center = { x: chart.width()/2, y: chart.height()/2 }
-    , radius = Math.min.apply(null, [center.x, center.y])
-    , innerRadius = .6
+  var chart = new Chartmander.models.base();
+
+  var center          = { x: chart.width()/2, y: chart.height()/2 }
+    , radius          = Math.min.apply(null, [center.x, center.y])
+    , innerRadius     = .6
     , rotateAnimation = true
-    , startAngle = 0
+    , startAngle      = 0
     ;
 
-  chart.type("pie").easing("easeOutBounce");
+  // Initial setup
+  chart.easing("easeOutBounce");
+  chart.layer(layer);
+
+  var layer = chart.layer();
 
   var recalcSlices = function () {
     var slice
@@ -577,15 +650,15 @@ Chartmander.models.pieChart = function (canvas) {
   }
   
   var drawSlices = function (_perc_) {
-    chart.ctx.save();
+    layer.ctx.save();
     forEach(chart.datasets(), function (set) {
       var slice = set.getElement(0);
-      chart.ctx.fillStyle = set.color();
+      layer.ctx.fillStyle = set.color();
       
       slice.updatePosition(rotateAnimation ? _perc_ : 1)
-           .drawInto(chart, set);
+           .drawInto(layer.ctx, chart, set);
     });
-    chart.ctx.restore();
+    layer.ctx.restore();
   }
 
   var render =  function (data) {
@@ -635,13 +708,13 @@ Chartmander.models.pieChart = function (canvas) {
     chart.draw(drawComponents, true);
   }
 
-
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
   chart.render = render;
   chart.drawFull = drawFull;
+  chart.drawComponents = drawComponents;
 
   chart.center = function (_) {
     if(!arguments.length) return center
@@ -659,6 +732,7 @@ Chartmander.models.pieChart = function (canvas) {
   chart.radius = function (_) {
     if(!arguments.length) return radius;
     radius = _;
+    return chart;
   };
 
   chart.startAngle = function (_) {
@@ -670,9 +744,9 @@ Chartmander.models.pieChart = function (canvas) {
   return chart;
 };
 
-Chartmander.models.barChart = function (canvas) {
+Chartmander.models.bar = function () {
 
-  var chart = new Chartmander.models.chart(canvas);
+  var chart = new Chartmander.models.base();
 
   var stacked        = false
     , barWidth       = 0  // calculated so all sets can fit in chart
@@ -684,7 +758,7 @@ Chartmander.models.barChart = function (canvas) {
     , yAxisVisible   = true
     ;
 
-  chart.type("bar").margin({ top: 30, right: 40, bottom: 30, left: 70 });
+  chart.margin({ top: 30, right: 40, bottom: 30, left: 70 });
 
   // Shorthand for drawing functions
   var ctx = chart.ctx;
@@ -1057,9 +1131,9 @@ Chartmander.models.categoryBarChart = function (canvas) {
   return chart;
 }
 
-Chartmander.models.lineChart = function (canvas) {
+Chartmander.models.line = function () {
 
-  var chart = new Chartmander.models.chart(canvas);
+  var chart = new Chartmander.models.base();
 
   var lineWidth        = 2
     , pointRadius      = 5
@@ -1073,7 +1147,7 @@ Chartmander.models.lineChart = function (canvas) {
     , hoveredItems     = []
     ;
 
-  chart.type("line").margin({ top: 30, right: 50, bottom: 50, left: 50 })
+  chart.margin({ top: 30, right: 50, bottom: 50, left: 50 })
 
   // Shorthand for drawing functions
   var ctx = chart.ctx;
@@ -1238,6 +1312,7 @@ Chartmander.models.lineChart = function (canvas) {
   
   chart.render    = render;
   chart.drawFull  = drawFull;
+  chart.drawComponents = drawComponents;
 
   chart.base = function (_) {
     return grid.bottom() - yAxis.zeroLevel();
@@ -1308,6 +1383,19 @@ Chartmander.models.lineChart = function (canvas) {
     return chart;
   };
 
+  return chart;
+};
+
+Chartmander.charts.pie = function (canvas) {
+
+  ///////////////////////////////////
+  // Use Layer and Model(s)
+  ///////////////////////////////////
+
+  var layer = new Chartmander.components.layer(canvas)
+    , chart = new Chartmander.models.pie(layer)
+    ;
+  console.log("MAH")
   return chart;
 };
 
@@ -2099,11 +2187,12 @@ Chartmander.components.slice = function (data, title) {
   */
 
   var slice = new Chartmander.components.element();
-      slice.set(title).label(data.label).value(data.value);
+
+  slice.set(title).label(data.label).value(data.value);
 
   var sliceIsHovered = function (pie) {
-    var x = pie.mouse().x - pie.center().x
-      , y = pie.mouse().y - pie.center().y
+    var x = pie.layer().mouse().x - pie.center().x
+      , y = pie.layer().mouse().y - pie.center().y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
@@ -2118,20 +2207,15 @@ Chartmander.components.slice = function (data, title) {
         hovered = true;
       }
     }
-
     return hovered;
   }
 
-  ///////////////////////////////
-  // Public Methods & Variables
-  ///////////////////////////////
-
-  slice.drawInto = function (pie, set) {
-    pie.ctx.beginPath();
+  var drawInto = function (ctx, pie, set) {
+    ctx.beginPath();
     // Check if this slice was hovered
-    if (pie.hovered()) {
+    if (pie.layer().hovered()) {
       if (sliceIsHovered(pie)) {
-        pie.ctx.fillStyle = set.hoverColor();
+        ctx.fillStyle = set.hoverColor();
         // pie.tooltip.addItem({
         //   "set": set.title,
         //   "label": slice.label,
@@ -2140,10 +2224,16 @@ Chartmander.components.slice = function (data, title) {
         // });
       }
     }
-    pie.ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y());
-    pie.ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), true);
-    pie.ctx.fill();
-  };
+    ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y());
+    ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), true);
+    ctx.fill();
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  slice.drawInto = drawInto;
 
   return slice;
 };

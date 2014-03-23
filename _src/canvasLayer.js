@@ -67,8 +67,8 @@ Chartmander.components.layer = function (canvasID) {
   // Public Methods & Variables
   ///////////////////////////////
 
-  layer.tooltip = tooltip;
   layer.ctx     = ctx;
+  layer.tooltip = tooltip;
 
   layer.id = function (_) {
     if(!arguments.length) return id;

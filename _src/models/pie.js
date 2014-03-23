@@ -1,4 +1,4 @@
-Chartmander.models.pie = function () {
+Chartmander.models.pie = function (layer) {
 
   var chart = new Chartmander.models.base();
 
@@ -9,7 +9,11 @@ Chartmander.models.pie = function () {
     , startAngle      = 0
     ;
 
+  // Initial setup
   chart.easing("easeOutBounce");
+  chart.layer(layer);
+
+  var layer = chart.layer();
 
   var recalcSlices = function () {
     var slice
@@ -32,15 +36,15 @@ Chartmander.models.pie = function () {
   }
   
   var drawSlices = function (_perc_) {
-    chart.ctx.save();
+    layer.ctx.save();
     forEach(chart.datasets(), function (set) {
       var slice = set.getElement(0);
-      chart.ctx.fillStyle = set.color();
+      layer.ctx.fillStyle = set.color();
       
       slice.updatePosition(rotateAnimation ? _perc_ : 1)
-           .drawInto(chart, set);
+           .drawInto(layer.ctx, chart, set);
     });
-    chart.ctx.restore();
+    layer.ctx.restore();
   }
 
   var render =  function (data) {
@@ -89,7 +93,6 @@ Chartmander.models.pie = function () {
   var drawFull = function () {
     chart.draw(drawComponents, true);
   }
-
 
   ///////////////////////////////
   // Public Methods & Variables
