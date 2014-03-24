@@ -748,6 +748,9 @@ Chartmander.models.pie = function (layer) {
   return chart;
 };
 
+
+
+
 Chartmander.models.bar = function () {
 
   var chart = new Chartmander.models.base();
@@ -1399,9 +1402,20 @@ Chartmander.charts.pie = function (canvas) {
   var layer = new Chartmander.components.layer(canvas)
     , chart = new Chartmander.models.pie(layer)
     ;
+
+  layer
+  	.onHover(chart.drawFull)
+  	.onLeave(function(){
+  		if (chart.completed() ) {
+  			chart.drawFull();
+  		}
+  	});
+
   console.log("MAH")
   return chart;
 };
+
+
 
 Chartmander.components.animatedPart = function () {
 

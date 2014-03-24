@@ -11,7 +11,9 @@ Chartmander.charts.pie = function (canvas) {
   layer
   	.onHover(chart.drawFull)
   	.onLeave(function(){
-  		if (pie.completed() )
+  		if (chart.completed() ) {
+  			chart.drawFull();
+  		}
   	});
 
   console.log("MAH")
