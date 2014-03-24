@@ -20,7 +20,7 @@ Chartmander.components.layer = function (canvasID) {
   // Use Components
   ///////////////////////////////////
 
-  var tooltip = new Chartmander.components.tooltip();
+  // var tooltip = new Chartmander.components.tooltip();
 
   ///////////////////////////////////
   // Interaction Setup
@@ -67,7 +67,7 @@ Chartmander.components.layer = function (canvasID) {
   ///////////////////////////////
 
   layer.ctx     = ctx;
-  layer.tooltip = tooltip;
+  // layer.tooltip = tooltip;
 
   layer.id = function (_) {
     if(!arguments.length) return id;

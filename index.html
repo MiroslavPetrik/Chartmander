@@ -52,18 +52,18 @@ title: Chartmander - HTML5 canvas charts
   
   var myCharts = function () {
     Chartmander
-    // .addChart(function(){
-    //   var chart = Chartmander.select("chartmander-intro", "line");
-    //   chart
-    //     .colors(["#fff", "darkblue"])
-    //     .easing("easeOutQuint")
-    //     .pointRadius(10)
-    //     .fontColor("#fff")
-    //     .font("14px Arial")
+    .addChart(function(){
+      var chart = Chartmander.select("chartmander-intro", "line");
+      chart
+        .colors(["#fff", "darkblue"])
+        .easing("easeOutQuint")
+        .pointRadius(10)
+        .fontColor("#fff")
+        .font("14px Arial")
 
-    //   chart.render(dataFactory(["Petrol"], yearByMonths(1), 500));
-    //   return chart;
-    // })
+      chart.render(dataFactory(["Petrol"], yearByMonths(1), 500));
+      return chart;
+    })
     // .addChart(function(){
     //   var chart = Chartmander.select("bar1", "bar");
 
@@ -101,7 +101,7 @@ title: Chartmander - HTML5 canvas charts
 
   myCharts();
 
-  setInterval(function(){
-    myCharts();
-  }, 4000);
+  // setInterval(function(){
+  //   myCharts();
+  // }, 4000);
 </script>

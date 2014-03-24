@@ -7,60 +7,19 @@ Chartmander.models.line = function () {
     , pointHoverRadius = 20
     , pointHoverColor  = "orange"
     , areaVisible      = true
-    , areaOpacity      = .33
+    , areaOpacity      = .29
     , mergeHover       = true
-    , xAxisVisible     = true
-    , yAxisVisible     = true
     , hoveredItems     = []
     ;
 
-  chart.margin({ top: 30, right: 50, bottom: 50, left: 50 })
+  chart.margin({ top: 30, right: 50, bottom: 50, left: 50 });
 
-  // Shorthand for drawing functions
-  var ctx = chart.ctx;
-
-  ///////////////////////////////////
-  // Use components
-  ///////////////////////////////////
-
-  var xAxis     = new Chartmander.components.xAxis()
-    , yAxis     = new Chartmander.components.yAxis()
-    , grid      = new Chartmander.components.grid()
-    , crosshair = new Chartmander.components.crosshair()
-    ;
-
-  var x0, y0;
-
-  var render =  function (data) {
-    chart.parse(data, Chartmander.components.point);
-
-    var xrange = getRange(getArrayBy(data, "label"));
-    var yrange = getRange(function(){
-      var values = [];
-      forEach(chart.datasets(), function (set) {
-        values.push(set.min());
-        values.push(set.max());
-      });
-      return values;
-    }());
-
-    // grid before axes
-    grid.adapt(chart.width(), chart.height(), chart.margin());
-    // axes use grid height to calculate their scale
-    xAxis.adapt(chart, xrange);
-    yAxis.adapt(chart, yrange);
-
-    recalcPoints();
-    chart.completed(0);
-    chart.draw(drawComponents, false);
-  }
-
-  var recalcPoints = function () {
+  var recalc = function (xAxis, yAxis, grid) {
     var x, y;
     forEach(chart.datasets(), function (set) {
       set.each(function (point) {
-        x = Math.ceil(grid.left() + (point.label()-xAxis.min())/xAxis.scale());
-        y = chart.base()- point.value()/yAxis.scale();
+        x = Math.ceil(grid.left() + (point.label() - xAxis.min())/xAxis.scale());
+        y = chart.base() - point.value()/yAxis.scale();
         if (chart.updated()) {
           point.savePosition();
         } else {
@@ -78,6 +37,7 @@ Chartmander.models.line = function () {
   }
 
   var drawArea = function (set) {
+    var ctx = chart.layer.ctx;
     ctx.save();
     ctx.fillStyle = set.color();
     ctx.globalAlpha = areaOpacity;
@@ -93,6 +53,7 @@ Chartmander.models.line = function () {
   }
 
   var drawLines = function (set) {
+    var ctx = chart.layer.ctx;
     ctx.save();
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = set.color();
@@ -105,6 +66,7 @@ Chartmander.models.line = function () {
   }
 
   var drawPoints = function (set) {
+    var ctx = chart.layer.ctx;
     ctx.save();
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
@@ -137,22 +99,6 @@ Chartmander.models.line = function () {
   }
 
   var drawComponents = function (_perc_) {
-    grid.drawInto(chart, _perc_);
-
-    if (xAxisVisible) {
-      xAxis.animIn()
-           .drawInto(chart, _perc_);
-    }
-
-    if (yAxisVisible) {
-      yAxis.animIn()
-           .drawInto(chart, _perc_);
-    }
-
-    if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse()) ) {
-      crosshair.drawInto(chart);
-    }
-
     forEach(chart.datasets(), function (set) {
       hoveredItems = [];
       updatePoints(set, _perc_);
@@ -164,26 +110,12 @@ Chartmander.models.line = function () {
     });
   }
 
-  var drawFull = function () {
-    chart.draw(drawComponents, true);
-  }
-
   ///////////////////////////////
-  // Public Methods & Variables
+  // Public Methods
   ///////////////////////////////
 
-  chart.xAxis     = xAxis;
-  chart.yAxis     = yAxis;
-  chart.grid      = grid;
-  chart.crosshair = crosshair;
-  
-  chart.render    = render;
-  chart.drawFull  = drawFull;
+  chart.recalc = recalc;
   chart.drawComponents = drawComponents;
-
-  chart.base = function (_) {
-    return grid.bottom() - yAxis.zeroLevel();
-  }
 
   chart.areaVisible = function (_) {
     if (!arguments.length) return areaVisible;
@@ -225,18 +157,6 @@ Chartmander.models.line = function () {
     if (!arguments.length) return mergeHover;
     mergeHover = _;
     return chart;    
-  }
-
-  chart.showXAxis = function (_) {
-    if (!arguments.length) return xAxisVisible;
-    xAxisVisible = _;
-    return chart;
-  }
-
-  chart.showYAxis = function (_) {
-    if (!arguments.length) return yAxisVisible;
-    yAxisVisible = _;
-    return chart;
   }
 
   chart.hoveredItems = function (_) {

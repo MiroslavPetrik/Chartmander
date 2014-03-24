@@ -53,7 +53,7 @@ Chartmander.components.xAxis = function () {
   }
 
   var drawInto = function (chart, _perc_) {
-    var ctx = chart.ctx
+    var ctx = chart.layer.ctx
       , topOffset = chart.grid.bottom() + 25;
 
     ctx.save();

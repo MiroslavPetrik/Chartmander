@@ -115,9 +115,8 @@ Chartmander.components.yAxis = function () {
   }
 
   var drawInto = function (chart, _perc_) {
-    var ctx = chart.ctx
-      , grid = chart.grid
-      ;
+    var ctx = chart.layer.ctx
+      , grid = chart.grid;
 
     ctx.save();
     ctx.textAlign = "right";

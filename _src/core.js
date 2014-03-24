@@ -54,8 +54,8 @@
     // if (model === "categoryBar")
     //   return new Chartmander.charts.categoryBar(id);
 
-    // if (model === "line")
-    //   return new Chartmander.charts.line(id);
+    if (model === "line")
+      return new Chartmander.charts.line(id);
 
     // if (model === "categoryLine")
     //   return new Chartmander.charts.categoryLine(id);

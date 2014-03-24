@@ -9,10 +9,9 @@ Chartmander.models.pie = function () {
     , startAngle      = 0
     ;
 
-  // Initial setup
   chart.easing("easeOutBounce");
 
-  var recalcSlices = function () {
+  var recalc = function () {
     var slice
       , sliceStart = 0
       , sliceEnd
@@ -46,23 +45,6 @@ Chartmander.models.pie = function () {
     ctx.restore();
   }
 
-  var render =  function (data) {
-    chart.parse(data, Chartmander.components.slice);
-    var xrange = getRange(getArrayBy(data, "label"));
-    var yrange = getRange(function(){
-      var values = [];
-      forEach(chart.datasets(), function (set) {
-        values.push(set.min());
-        values.push(set.max());
-      });
-      return values;
-    }());
-
-    recalcSlices();
-    chart.completed(0);
-    chart.draw(false);
-  }
-
   var getDataSum = function () {
     var total = 0;
     forEach(chart.datasets(), function (set) {
@@ -90,7 +72,7 @@ Chartmander.models.pie = function () {
   // Public Methods & Variables
   ///////////////////////////////
 
-  chart.render = render;
+  chart.recalc = recalc;
   chart.drawComponents = drawComponents;
 
   chart.center = function (_) {

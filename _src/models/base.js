@@ -8,7 +8,6 @@ Chartmander.models.base = function () {
   var chart = this;
 
   var datasets           = []
-    // , layer              = null // Every model needs a canvas layer
     , width              = null
     , height             = null
     , margin             = { top: 0, right: 0, bottom: 0, left: 0 }
@@ -22,6 +21,15 @@ Chartmander.models.base = function () {
     , updated            = false
     , drawModel          = null
     ;
+
+  ///////////////////////////////////
+  // Components
+  ///////////////////////////////////
+
+  var tooltip = new Chartmander.components.tooltip();
+
+  chart.layer   = null; // each model need a layer
+  chart.tooltip = tooltip;
 
   ///////////////////////////////////
   // The Animating Loop
@@ -46,10 +54,10 @@ Chartmander.models.base = function () {
 
       _perc_ = easingFunction(animationCompleted);
 
+      // FAUX if layer not connected to model in chart!
       chart.layer
-        .erase(0, 0, width, height)
+        .erase(0, 0, width+5, height+5)
         .hoverFinished(true)
-        // .tooltip.flush()
         ;
 
       // Model specific drawings
@@ -104,15 +112,10 @@ Chartmander.models.base = function () {
   // Methods and Binding
   ///////////////////////////////
 
-  chart.layer = null; // each model need a layer, set it in chart
   chart.parse = parse;
   chart.draw  = draw;
 
-  // chart.layer = function (_) {
-  //   if(!arguments.length) return layer;
-  //   layer = _;
-  //   return chart;
-  // }
+  // Visual properties
 
   chart.width = function (_) {
     if(!arguments.length) return width;
@@ -124,34 +127,6 @@ Chartmander.models.base = function () {
     if(!arguments.length) return height;
     height = _;
     return chart;
-  };
-
-  chart.completed = function (_) {
-    if(!arguments.length) return animationCompleted;
-    animationCompleted = _;
-    return chart;
-  };
-
-  chart.setsCount = function () {
-    return datasets.length;
-  };
-
-  chart.datasets = function (_) {
-    if(!arguments.length) return datasets;
-    datasets = _;
-    return chart;
-  };
-
-  chart.dataset = function (_) {
-    return datasets[_];
-  };
-
-  chart.elementCount = function () {
-    var total = 0;
-    forEach(datasets, function (set) {
-      total += set.elementCount();
-    });
-    return total;
   };
 
   chart.margin = function (_) {
@@ -189,22 +164,54 @@ Chartmander.models.base = function () {
     return chart;
   };
 
-  chart.easing = function (_) {
-    if (!arguments.length) return easing;
-    easing = _;
+  // Data properties
+
+  chart.datasets = function (_) {
+    if(!arguments.length) return datasets;
+    datasets = _;
     return chart;
   };
   
-  chart.updated = function (_) {
-    if (!arguments.length) return updated;
-    updated = _;
+  chart.dataset = function (_) {
+    return datasets[_];
+  };
+  
+  chart.setsCount = function () {
+    return datasets.length;
+  };
+
+  chart.elementCount = function () {
+    var total = 0;
+    forEach(datasets, function (set) {
+      total += set.elementCount();
+    });
+    return total;
+  };
+
+  // Animation properties
+
+  chart.completed = function (_) {
+    if(!arguments.length) return animationCompleted;
+    animationCompleted = _;
+    return chart;
+  };
+
+  chart.easing = function (_) {
+    if (!arguments.length) return easing;
+    easing = _;
     return chart;
   };
 
   chart.drawModel = function (f) {
     drawModel = f;
     return chart;
-  } 
+  };
+
+  chart.updated = function (_) {
+    if (!arguments.length) return updated;
+    updated = _;
+    return chart;
+  };
 
   return chart;
 };
