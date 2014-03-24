@@ -64,13 +64,13 @@ title: Chartmander - HTML5 canvas charts
       chart.render(dataFactory(["Petrol"], yearByMonths(1), 500));
       return chart;
     })
-    // .addChart(function(){
-    //   var chart = Chartmander.select("bar1", "bar");
+    .addChart(function(){
+      var chart = Chartmander.select("bar1", "bar");
 
-    //   chart.colors(["#2e3192"]).render(dataFactory(["Petrol"], yearByMonths(1), 300));
-    //   return chart;
+      chart.colors(["#2e3192"]).render(dataFactory(["Petrol"], yearByMonths(1), 300));
+      return chart;
 
-    // })
+    })
     .addChart(function(){
       var chart = Chartmander.select("pie1", "pie");
 
@@ -104,4 +104,5 @@ title: Chartmander - HTML5 canvas charts
   setInterval(function(){
     myCharts();
   }, 4000);
+  
 </script>

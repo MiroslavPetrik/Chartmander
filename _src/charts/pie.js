@@ -50,8 +50,8 @@ Chartmander.charts.pie = function (canvas) {
   // Extend Animation Loop
   ///////////////////////////////////
 
-  pie.drawModel(function (_perc_) {
-    pie.drawComponents(_perc_);
+  pie.drawChart(function (_perc_) {
+    pie.drawModel(_perc_);
   });
 
   ///////////////////////////////////

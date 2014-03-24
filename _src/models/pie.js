@@ -64,16 +64,12 @@ Chartmander.models.pie = function () {
     center.y = chart.margin().top  + radius;
   }
 
-  var drawComponents = function (_perc_) {
-    drawSlices(_perc_);
-  };
-
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
   chart.recalc = recalc;
-  chart.drawComponents = drawComponents;
+  chart.drawModel = drawSlices;
 
   chart.center = function (_) {
     if (!arguments.length) return center

@@ -19,7 +19,7 @@ Chartmander.models.base = function () {
     , animationCompleted = 0
     , easing             = "easeInQuint"
     , updated            = false
-    , drawModel          = null
+    , drawChart          = null
     ;
 
   ///////////////////////////////////
@@ -61,7 +61,7 @@ Chartmander.models.base = function () {
         ;
 
       // Model specific drawings
-      drawModel(_perc_);
+      drawChart(_perc_);
 
       // if (hovered && tooltip.hasItems()) {
       //   // tooltip.recalc(ctx);
@@ -202,8 +202,8 @@ Chartmander.models.base = function () {
     return chart;
   };
 
-  chart.drawModel = function (f) {
-    drawModel = f;
+  chart.drawChart = function (f) {
+    drawChart = f;
     return chart;
   };
 

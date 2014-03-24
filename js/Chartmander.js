@@ -48,8 +48,8 @@
     if (model === "pie")
       return new Chartmander.charts.pie(id);
 
-    // if (model === "bar")
-    //   return new Chartmander.charts.bar(id);
+    if (model === "bar")
+      return new Chartmander.charts.bar(id);
 
     // if (model === "categoryBar")
     //   return new Chartmander.charts.categoryBar(id);
@@ -422,7 +422,7 @@ Chartmander.models.base = function () {
     , animationCompleted = 0
     , easing             = "easeInQuint"
     , updated            = false
-    , drawModel          = null
+    , drawChart          = null
     ;
 
   ///////////////////////////////////
@@ -464,7 +464,7 @@ Chartmander.models.base = function () {
         ;
 
       // Model specific drawings
-      drawModel(_perc_);
+      drawChart(_perc_);
 
       // if (hovered && tooltip.hasItems()) {
       //   // tooltip.recalc(ctx);
@@ -605,8 +605,8 @@ Chartmander.models.base = function () {
     return chart;
   };
 
-  chart.drawModel = function (f) {
-    drawModel = f;
+  chart.drawChart = function (f) {
+    drawChart = f;
     return chart;
   };
 
@@ -685,16 +685,12 @@ Chartmander.models.pie = function () {
     center.y = chart.margin().top  + radius;
   }
 
-  var drawComponents = function (_perc_) {
-    drawSlices(_perc_);
-  };
-
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
   chart.recalc = recalc;
-  chart.drawComponents = drawComponents;
+  chart.drawModel = drawSlices;
 
   chart.center = function (_) {
     if (!arguments.length) return center
@@ -737,66 +733,11 @@ Chartmander.models.bar = function () {
     , barWidth       = 0  // calculated so all sets can fit in chart
     , userBarWidth   = 30 // used only if default barwidth is higher
     , datasetSpacing = 0
-    , groupWidth     = 0
-    , groupOffset    = 0
-    , xAxisVisible   = true
-    , yAxisVisible   = true
     ;
 
   chart.margin({ top: 30, right: 40, bottom: 30, left: 70 });
 
-  // Shorthand for drawing functions
-  var ctx = chart.ctx;
-
-  ///////////////////////////////////
-  // Use components
-  ///////////////////////////////////
-
-  var xAxis      = new Chartmander.components.xAxis()
-    , yAxis      = new Chartmander.components.yAxis()
-    , grid       = new Chartmander.components.grid()
-    , crosshair  = new Chartmander.components.crosshair()
-    ;
-
-  var x0, y0;
-
-  var render =  function (data) {
-    chart.parse(data, Chartmander.components.bar);
-    var oldYScale; //undefined
-    var xrange = getRange(getArrayBy(data, "label"));
-    var yrange = getRange(function(){
-      var values = [];
-      forEach(chart.datasets(), function (set) {
-        values.push(set.min());
-        values.push(set.max());
-      });
-      return values;
-    }());
-
-    if (chart.updated()) {
-      x0 = xAxis.copy(); // just object with labels and scale
-      y0 = yAxis.copy();
-      oldYScale = y0.scale;
-    }
-    // grid before axes
-    grid.adapt(chart.width(), chart.height(), chart.margin());
-    // axes use grid height to calculate their scale
-    xAxis.adapt(chart, xrange);
-    yAxis.adapt(chart, yrange, oldYScale);
-
-    // recalc old labels to new position
-    if (chart.updated()) {
-      forEach(y0.labels, function (label) {
-        label.savePosition().moveTo(false, chart.base() - label.value()/yAxis.scale());
-      });
-    }
-
-    recalcBars();
-    chart.completed(0);
-    chart.draw(drawComponents, false);
-  }
-
-  var recalcBars = function () {
+  var recalc = function (xAxis, yAxis, grid) {
     var counter = 0, leftFix, x, y;
 
     barWidth = Math.floor( grid.width()/chart.elementCount() );
@@ -809,7 +750,7 @@ Chartmander.models.bar = function () {
 
     forEach(chart.datasets(), function (set) {
       set.each(function (bar) {
-        x = grid.left() + (bar.label()-xAxis.min())/xAxis.scale() + counter*barWidth;
+        x = grid.left() + (bar.label() - xAxis.min())/xAxis.scale() + counter*barWidth;
         y = -bar.value()/yAxis.scale();
         if (chart.updated()) {
           bar.savePosition();
@@ -824,7 +765,9 @@ Chartmander.models.bar = function () {
   }
 
   var drawBars = function (_perc_) {
-    var counter = 0;
+    var counter = 0
+      , ctx = chart.layer.ctx;
+
     ctx.save();
     forEach(chart.datasets(), function (set) {
       ctx.fillStyle = set.color();
@@ -840,59 +783,12 @@ Chartmander.models.bar = function () {
     ctx.restore();
   }
 
-  var drawComponents = function (_perc_) {
-    grid.drawInto(chart, _perc_);
-
-    if (xAxisVisible) {
-      xAxis.animIn().drawInto(chart, _perc_);
-      // if (x0 && x0.state > 0) {
-      //   ctx.save();
-      //   forEach(x0.labels, function (label) {
-
-      //   });
-      //   ctx.restore();
-      // } 
-    }
-
-    if (yAxisVisible) {
-      yAxis.animIn().drawInto(chart, _perc_);
-      if (y0 && y0.state > 0) {
-        ctx.save();
-        ctx.textAlign = "right";
-        ctx.fillStyle = chart.fontColor();
-        ctx.font = chart.font();
-        ctx.globalAlpha = y0.state;
-        forEach(y0.labels, function (label) {
-          label.updatePosition(_perc_);
-          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.left() - yAxis.margin(), label.y());
-        });
-        ctx.restore();
-        y0.state -= .01;
-      } 
-    }
-
-    drawBars(_perc_);
-  }
-
-  var drawFull = function () {
-    chart.draw(drawComponents, true);
-  }
-
   ///////////////////////////////
-  // Public Methods & Variables
+  // Public Methods
   ///////////////////////////////
 
-  chart.xAxis = xAxis;
-  chart.yAxis = yAxis;
-  chart.grid = grid;
-  chart.crosshair = crosshair;
-
-  chart.render = render;
-  chart.drawFull = drawFull;
-
-  chart.base = function (_) {
-    return grid.bottom() - yAxis.zeroLevel();
-  };
+  chart.recalc = recalc;
+  chart.drawModel = drawBars;
 
   chart.barWidth = function (_) {
     if(!arguments.length) return barWidth; // Internal
@@ -903,18 +799,6 @@ Chartmander.models.bar = function () {
   chart.datasetSpacing = function (_) {
     if(!arguments.length) return datasetSpacing;
     datasetSpacing = _;
-    return chart;
-  };
-
-  chart.showXAxis = function (_) {
-    if (!arguments.length) return xAxisVisible;
-    xAxisVisible = _;
-    return chart;
-  };
-
-  chart.showYAxis = function (_) {
-    if (!arguments.length) return yAxisVisible;
-    yAxisVisible = _;
     return chart;
   };
 
@@ -1216,7 +1100,7 @@ Chartmander.models.line = function () {
     ctx.restore();
   }
 
-  var drawComponents = function (_perc_) {
+  var drawModel = function (_perc_) {
     forEach(chart.datasets(), function (set) {
       hoveredItems = [];
       updatePoints(set, _perc_);
@@ -1233,7 +1117,7 @@ Chartmander.models.line = function () {
   ///////////////////////////////
 
   chart.recalc = recalc;
-  chart.drawComponents = drawComponents;
+  chart.drawModel = drawModel;
 
   chart.areaVisible = function (_) {
     if (!arguments.length) return areaVisible;
@@ -1343,8 +1227,8 @@ Chartmander.charts.pie = function (canvas) {
   // Extend Animation Loop
   ///////////////////////////////////
 
-  pie.drawModel(function (_perc_) {
-    pie.drawComponents(_perc_);
+  pie.drawChart(function (_perc_) {
+    pie.drawModel(_perc_);
   });
 
   ///////////////////////////////////
@@ -1355,6 +1239,151 @@ Chartmander.charts.pie = function (canvas) {
 
   return pie;
 };
+
+Chartmander.charts.bar = function (canvas) {
+
+  ///////////////////////////////////
+  // Use Components
+  ///////////////////////////////////
+
+  var layer     = new Chartmander.components.layer(canvas)
+    , bars      = new Chartmander.models.bar()
+    , xAxis     = new Chartmander.components.xAxis()
+    , yAxis     = new Chartmander.components.yAxis()
+    , grid      = new Chartmander.components.grid()
+    , crosshair = new Chartmander.components.crosshair()
+    ;
+
+  bars.layer = layer; // super important
+
+  var xAxisVisible = true
+    , yAxisVisible = true
+    ;
+
+  ///////////////////////////////////
+  // Setup defaults
+  ///////////////////////////////////
+
+  layer
+    .onHover(function () {
+      bars.draw(true);
+    })
+    .onLeave(function () {
+      if ( bars.completed() ) {
+        bars.draw(true);
+      }
+    })
+    ;
+
+  bars
+    .width(layer.width())
+    .height(layer.height())
+    ;
+
+  var x0, y0;
+
+  var render =  function (data) {
+    bars.parse(data, Chartmander.components.bar);
+    var oldYScale; //undefined
+    var xrange = getRange(getArrayBy(data, "label"));
+    var yrange = getRange(function(){
+      var values = [];
+      forEach(bars.datasets(), function (set) {
+        values.push(set.min());
+        values.push(set.max());
+      });
+      return values;
+    }());
+
+    if (bars.updated()) {
+      x0 = xAxis.copy(); // just object with labels and scale
+      y0 = yAxis.copy();
+      oldYScale = y0.scale;
+    }
+    // grid before axes
+    grid.adapt(bars.width(), bars.height(), bars.margin());
+    // axes use grid height to calculate their scale
+    xAxis.adapt(bars, xrange);
+    yAxis.adapt(bars, yrange, oldYScale);
+
+    // recalc old labels to new position
+    if (bars.updated()) {
+      forEach(y0.labels, function (label) {
+        label.savePosition().moveTo(false, bars.base() - label.value()/yAxis.scale());
+      });
+    }
+
+    bars.recalc(xAxis, yAxis, grid);
+    bars.completed(0);
+    bars.draw(false);
+  }
+
+  bars.drawChart(function (_perc_) {
+    var ctx = layer.ctx;
+
+    grid.drawInto(bars, _perc_);
+
+    if (xAxisVisible) {
+      xAxis
+        .animIn()
+        .drawInto(bars, _perc_);
+      // if (x0 && x0.state > 0) {
+      //   ctx.save();
+      //   forEach(x0.labels, function (label) {
+
+      //   });
+      //   ctx.restore();
+      // } 
+    }
+
+    if (yAxisVisible) {
+      yAxis
+        .animIn()
+        .drawInto(bars, _perc_);
+
+      if (y0 && y0.state > 0) {
+        ctx.save();
+        ctx.textAlign = "right";
+        ctx.fillStyle = bars.fontColor();
+        ctx.font = bars.font();
+        ctx.globalAlpha = y0.state;
+        forEach(y0.labels, function (label) {
+          label.updatePosition(_perc_);
+          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.left() - yAxis.margin(), label.y());
+        });
+        ctx.restore();
+        y0.state -= .01;
+      }
+    }
+
+    bars.drawModel(_perc_);
+  });
+
+  bars.xAxis = xAxis;
+  bars.yAxis = yAxis;
+  bars.grid = grid;
+  bars.crosshair = crosshair;
+
+  bars.render = render;
+
+  bars.base = function (_) {
+    return grid.bottom() - yAxis.zeroLevel();
+  };
+
+  bars.showXAxis = function (_) {
+    if (!arguments.length) return xAxisVisible;
+    xAxisVisible = _;
+    return bars;
+  };
+
+  bars.showYAxis = function (_) {
+    if (!arguments.length) return yAxisVisible;
+    yAxisVisible = _;
+    return bars;
+  };
+
+  return bars;
+}
 
 Chartmander.charts.line = function (canvas) {
 
@@ -1392,7 +1421,6 @@ Chartmander.charts.line = function (canvas) {
     ;
 
   lines
-    .margin({ top: 30, right: 50, bottom: 50, left: 50 })
     .width(layer.width())
     .height(layer.height())
     ;
@@ -1431,7 +1459,7 @@ Chartmander.charts.line = function (canvas) {
   // Extend Animation Loop(s)
   ///////////////////////////////////
 
-  lines.drawModel(function (_perc_) {
+  lines.drawChart(function (_perc_) {
     grid.drawInto(lines, _perc_);
     
     if (xAxisVisible) {
@@ -1446,12 +1474,11 @@ Chartmander.charts.line = function (canvas) {
         .drawInto(lines, _perc_);
     }
 
-    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse()) ) {
+    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
       crosshair.drawInto(lines);
     }
-
-    lines.drawComponents(_perc_);
-
+    
+    lines.drawModel(_perc_);
   });
 
   ///////////////////////////////
@@ -2335,10 +2362,11 @@ Chartmander.components.bar = function (data, title) {
     ;
 
   var drawInto = function (chart, set) {
-    var ctx = chart.ctx;
+    var layer = chart.layer
+      , ctx = layer.ctx;
 
     ctx.save();
-    if (chart.hovered() && isHovered(chart)) {
+    if (layer.hovered() && isHovered(chart)) {
       // chart.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
@@ -2373,8 +2401,8 @@ Chartmander.components.bar = function (data, title) {
   }
 
   var isHovered = function (chart) {
-    var x = chart.mouse().x
-      , y = chart.mouse().y
+    var x = chart.layer.mouse().x
+      , y = chart.layer.mouse().y
       , hovered = false
       , yRange = [bar.base(), bar.base()+bar.y()].sort(function(a,b){return a-b})
       ;

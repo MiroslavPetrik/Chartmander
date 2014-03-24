@@ -48,8 +48,8 @@
     if (model === "pie")
       return new Chartmander.charts.pie(id);
 
-    // if (model === "bar")
-    //   return new Chartmander.charts.bar(id);
+    if (model === "bar")
+      return new Chartmander.charts.bar(id);
 
     // if (model === "categoryBar")
     //   return new Chartmander.charts.categoryBar(id);

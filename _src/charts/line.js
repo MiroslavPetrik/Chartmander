@@ -34,7 +34,6 @@ Chartmander.charts.line = function (canvas) {
     ;
 
   lines
-    .margin({ top: 30, right: 50, bottom: 50, left: 50 })
     .width(layer.width())
     .height(layer.height())
     ;
@@ -73,7 +72,7 @@ Chartmander.charts.line = function (canvas) {
   // Extend Animation Loop(s)
   ///////////////////////////////////
 
-  lines.drawModel(function (_perc_) {
+  lines.drawChart(function (_perc_) {
     grid.drawInto(lines, _perc_);
     
     if (xAxisVisible) {
@@ -88,12 +87,11 @@ Chartmander.charts.line = function (canvas) {
         .drawInto(lines, _perc_);
     }
 
-    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse()) ) {
+    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
       crosshair.drawInto(lines);
     }
-
-    lines.drawComponents(_perc_);
-
+    
+    lines.drawModel(_perc_);
   });
 
   ///////////////////////////////

@@ -98,7 +98,7 @@ Chartmander.models.line = function () {
     ctx.restore();
   }
 
-  var drawComponents = function (_perc_) {
+  var drawModel = function (_perc_) {
     forEach(chart.datasets(), function (set) {
       hoveredItems = [];
       updatePoints(set, _perc_);
@@ -115,7 +115,7 @@ Chartmander.models.line = function () {
   ///////////////////////////////
 
   chart.recalc = recalc;
-  chart.drawComponents = drawComponents;
+  chart.drawModel = drawModel;
 
   chart.areaVisible = function (_) {
     if (!arguments.length) return areaVisible;
