@@ -22,16 +22,16 @@ Chartmander.components.grid = function () {
   ///////////////////////
 
   var adapt = function (w, h, margin) {
-    top = margin.top;
-    right = w - margin.right;
+    top    = margin.top;
+    right  = w - margin.right;
     bottom = h - margin.bottom;
-    left = margin.left;
-    width = w - margin.right - margin.left;
+    left   = margin.left;
+    width  = w - margin.right - margin.left;
     height = h - margin.bottom - margin.top;
   }
 
   var drawInto = function (chart, _perc_) {
-    var ctx = chart.ctx;
+    var ctx = chart.layer.ctx;
 
     ctx.save();
     ctx.strokeStyle = lineColor;

@@ -1356,6 +1356,134 @@ Chartmander.charts.pie = function (canvas) {
   return pie;
 };
 
+Chartmander.charts.line = function (canvas) {
+
+  ///////////////////////////////////
+  // Use Components
+  ///////////////////////////////////
+
+  var layer     = new Chartmander.components.layer(canvas)
+    , lines     = new Chartmander.models.line()
+    , xAxis     = new Chartmander.components.xAxis()
+    , yAxis     = new Chartmander.components.yAxis()
+    , grid      = new Chartmander.components.grid()
+    , crosshair = new Chartmander.components.crosshair()
+    ;
+
+  lines.layer = layer; // super important
+
+  var xAxisVisible = true
+    , yAxisVisible = true
+    ;
+
+  ///////////////////////////////////
+  // Setup defaults
+  ///////////////////////////////////
+
+  layer
+    .onHover(function () {
+      lines.draw(true);
+    })
+    .onLeave(function () {
+      if ( lines.completed() ) {
+        lines.draw(true);
+      }
+    })
+    ;
+
+  lines
+    .margin({ top: 30, right: 50, bottom: 50, left: 50 })
+    .width(layer.width())
+    .height(layer.height())
+    ;
+
+  ///////////////////////////////////
+  // Setup defaults
+  ///////////////////////////////////
+
+  var x0, y0;
+
+  var render =  function (data) {
+    lines.parse(data, Chartmander.components.point);
+
+    var xrange = getRange(getArrayBy(data, "label"));
+    var yrange = getRange(function(){
+      var values = [];
+      forEach(lines.datasets(), function (set) {
+        values.push(set.min());
+        values.push(set.max());
+      });
+      return values;
+    }());
+
+    // grid before axes
+    grid.adapt(lines.width(), lines.height(), lines.margin());
+    // axes use grid height to calculate their scale
+    xAxis.adapt(lines, xrange);
+    yAxis.adapt(lines, yrange);
+
+    lines.recalc(xAxis, yAxis, grid);
+    lines.completed(0);
+    lines.draw(false);
+  }
+
+  ///////////////////////////////////
+  // Extend Animation Loop(s)
+  ///////////////////////////////////
+
+  lines.drawModel(function (_perc_) {
+    grid.drawInto(lines, _perc_);
+    
+    if (xAxisVisible) {
+      xAxis
+        .animIn()
+        .drawInto(lines, _perc_);
+    }
+
+    if (yAxisVisible) {
+      yAxis
+        .animIn()
+        .drawInto(lines, _perc_);
+    }
+
+    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse()) ) {
+      crosshair.drawInto(lines);
+    }
+
+    lines.drawComponents(_perc_);
+
+  });
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  lines.xAxis     = xAxis;
+  lines.yAxis     = yAxis;
+  lines.grid      = grid;
+  lines.crosshair = crosshair;
+
+  lines.render    = render;
+
+  lines.base = function (_) {
+    return grid.bottom() - yAxis.zeroLevel();
+  }
+
+  lines.showXAxis = function (_) {
+    if (!arguments.length) return xAxisVisible;
+    xAxisVisible = _;
+    return lines;
+  }
+
+  lines.showYAxis = function (_) {
+    if (!arguments.length) return yAxisVisible;
+    yAxisVisible = _;
+    return lines;
+  }
+
+  return lines;
+};
+
 Chartmander.components.animatedPart = function () {
 
   var part = this;
@@ -1563,16 +1691,16 @@ Chartmander.components.grid = function () {
   ///////////////////////
 
   var adapt = function (w, h, margin) {
-    top = margin.top;
-    right = w - margin.right;
+    top    = margin.top;
+    right  = w - margin.right;
     bottom = h - margin.bottom;
-    left = margin.left;
-    width = w - margin.right - margin.left;
+    left   = margin.left;
+    width  = w - margin.right - margin.left;
     height = h - margin.bottom - margin.top;
   }
 
   var drawInto = function (chart, _perc_) {
-    var ctx = chart.ctx;
+    var ctx = chart.layer.ctx;
 
     ctx.save();
     ctx.strokeStyle = lineColor;
@@ -2295,12 +2423,15 @@ Chartmander.components.bar = function (data, title) {
 Chartmander.components.point = function (data, title) {
 
   var point = new Chartmander.components.element();
-      point.set(title).label(data.label).value(data.value);
+
+  point.set(title).label(data.label).value(data.value);
 
   var drawInto = function (chart, set) {
-    var ctx = chart.ctx;
-    if (chart.hovered()) {
-      var hover = isHovered(chart.mouse(), chart.pointHoverRadius(), chart.mergeHover());
+    var layer = chart.layer
+      , ctx = layer.ctx;
+
+    if (layer.hovered()) {
+      var hover = isHovered(layer.mouse(), chart.pointHoverRadius(), chart.mergeHover());
     }
     // Draw circle in normal state
     ctx.beginPath();
@@ -2314,7 +2445,7 @@ Chartmander.components.point = function (data, title) {
     // }
 
     if (point.getState() > 0) {
-      chart.hoverFinished(false);
+      layer.hoverFinished(false);
       ctx.save();
       ctx.beginPath();
       ctx.fillStyle = chart.pointHoverColor();
@@ -2328,7 +2459,7 @@ Chartmander.components.point = function (data, title) {
       ctx.restore();
     }
 
-    if (chart.hovered() && hover.was) {
+    if (layer.hovered() && hover.was) {
       chart.addHoveredItem({
         "index"   : indexOf.call(set.els(), point),
         "distance": hover.distance
@@ -2386,23 +2517,23 @@ Chartmander.components.crosshair = function () {
     ;
 
   var drawInto = function (chart) {
-    var ctx = chart.ctx;
+    var ctx = chart.layer.ctx;
 
     ctx.save();
     ctx.strokeStyle = color;
     ctx.lineWidth = lineWidth;
 
-    x = chart.mouse().x;
+    x = chart.layer.mouse().x;
 
-    if (sticky && chart.tooltip.hasItems()) {
-      x = chart.tooltip.items()[0].x
-    }
+    // if (sticky && chart.tooltip.hasItems()) {
+    //   x = chart.tooltip.items()[0].x
+    // }
 
-    chart.ctx.beginPath();
-    chart.ctx.moveTo(x, chart.grid.top());
-    chart.ctx.lineTo(x, chart.grid.bottom());
-    chart.ctx.stroke();
-    chart.ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(x, chart.grid.top());
+    ctx.lineTo(x, chart.grid.bottom());
+    ctx.stroke();
+    ctx.restore();
   }
 
   ///////////////////////////////
@@ -2410,7 +2541,6 @@ Chartmander.components.crosshair = function () {
   ///////////////////////////////
 
   crosshair.drawInto = drawInto;
-
 
   crosshair.x = function (_) {
     if(!arguments.length) return x;

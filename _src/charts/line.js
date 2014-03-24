@@ -24,16 +24,16 @@ Chartmander.charts.line = function (canvas) {
 
   layer
     .onHover(function () {
-      pie.draw(true);
+      lines.draw(true);
     })
     .onLeave(function () {
-      if ( pie.completed() ) {
-        pie.draw(true);
+      if ( lines.completed() ) {
+        lines.draw(true);
       }
     })
     ;
 
-  chart
+  lines
     .margin({ top: 30, right: 50, bottom: 50, left: 50 })
     .width(layer.width())
     .height(layer.height())
@@ -64,32 +64,32 @@ Chartmander.charts.line = function (canvas) {
     xAxis.adapt(lines, xrange);
     yAxis.adapt(lines, yrange);
 
-    lines.recalc();
+    lines.recalc(xAxis, yAxis, grid);
     lines.completed(0);
-    lines.draw(drawComponents, false);
+    lines.draw(false);
   }
 
   ///////////////////////////////////
   // Extend Animation Loop(s)
   ///////////////////////////////////
 
-  chart.drawModel(function (_perc_) {
-    grid.drawInto(chart, _perc_);
+  lines.drawModel(function (_perc_) {
+    grid.drawInto(lines, _perc_);
     
     if (xAxisVisible) {
       xAxis
         .animIn()
-        .drawInto(chart, _perc_);
+        .drawInto(lines, _perc_);
     }
 
     if (yAxisVisible) {
       yAxis
         .animIn()
-        .drawInto(chart, _perc_);
+        .drawInto(lines, _perc_);
     }
 
     if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse()) ) {
-      crosshair.drawInto(chart);
+      crosshair.drawInto(lines);
     }
 
     lines.drawComponents(_perc_);
@@ -125,5 +125,3 @@ Chartmander.charts.line = function (canvas) {
 
   return lines;
 };
-
-

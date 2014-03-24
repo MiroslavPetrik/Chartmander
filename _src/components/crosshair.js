@@ -11,23 +11,23 @@ Chartmander.components.crosshair = function () {
     ;
 
   var drawInto = function (chart) {
-    var ctx = chart.ctx;
+    var ctx = chart.layer.ctx;
 
     ctx.save();
     ctx.strokeStyle = color;
     ctx.lineWidth = lineWidth;
 
-    x = chart.mouse().x;
+    x = chart.layer.mouse().x;
 
-    if (sticky && chart.tooltip.hasItems()) {
-      x = chart.tooltip.items()[0].x
-    }
+    // if (sticky && chart.tooltip.hasItems()) {
+    //   x = chart.tooltip.items()[0].x
+    // }
 
-    chart.ctx.beginPath();
-    chart.ctx.moveTo(x, chart.grid.top());
-    chart.ctx.lineTo(x, chart.grid.bottom());
-    chart.ctx.stroke();
-    chart.ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(x, chart.grid.top());
+    ctx.lineTo(x, chart.grid.bottom());
+    ctx.stroke();
+    ctx.restore();
   }
 
   ///////////////////////////////
@@ -35,7 +35,6 @@ Chartmander.components.crosshair = function () {
   ///////////////////////////////
 
   crosshair.drawInto = drawInto;
-
 
   crosshair.x = function (_) {
     if(!arguments.length) return x;
