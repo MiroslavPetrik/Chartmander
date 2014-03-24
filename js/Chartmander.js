@@ -289,9 +289,9 @@ Chartmander.components.layer = function (canvasID) {
     , margin = { top: 0, right: 0, bottom: 0, left: 0 } // layer offset
     , mouse = { x: 0, y: 0 }
     , hovered = false
-    , animationSteps = 100
-    , animationCompleted = 0
     , hoverFinished = true
+    , onHover = null
+    , onLeave = null
     ;
 
   ///////////////////////////////////
@@ -324,8 +324,8 @@ Chartmander.components.layer = function (canvasID) {
     // Allow repaint on hover only if chart and tooltip are done with self-repaint
     // AND if also hovered item is not repainting 
     // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
-    if (animationCompleted >= 1 && hoverFinished) {
-      chart.drawFull();
+    if (hoverFinished) {
+      onHover();
     }
   }
 
@@ -336,8 +336,8 @@ Chartmander.components.layer = function (canvasID) {
   function handleLeave () {
     hovered = false;
     // chart.tooltip.removeItems();
-    if (animationCompleted >= 1)
-      chart.drawFull();
+    // if (animationCompleted >= 1)
+      onLeave();
   }
 
   ///////////////////////////////
@@ -372,12 +372,6 @@ Chartmander.components.layer = function (canvasID) {
     return layer;
   };
 
-  layer.completed = function (_) {
-    if(!arguments.length) return animationCompleted;
-    animationCompleted = _;
-    return layer;
-  };
-
   layer.margin = function (_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -401,6 +395,16 @@ Chartmander.components.layer = function (canvasID) {
 
   layer.erase = function (x, y, width, height) {
     ctx.clearRect(x, y, width, height);
+    return layer;
+  }
+
+  layer.onHover = function (f) {
+    onHover = f;
+    return layer;
+  }
+
+  layer.onLeave = function (f) {
+    onLeave = f;
     return layer;
   }
 
