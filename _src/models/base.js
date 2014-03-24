@@ -8,7 +8,7 @@ Chartmander.models.base = function () {
   var chart = this;
 
   var datasets           = []
-    , layer              = null // Every model needs a canvas layer
+    // , layer              = null // Every model needs a canvas layer
     , width              = null
     , height             = null
     , margin             = { top: 0, right: 0, bottom: 0, left: 0 }
@@ -20,13 +20,14 @@ Chartmander.models.base = function () {
     , animationCompleted = 0
     , easing             = "easeInQuint"
     , updated            = false
+    , drawModel          = null
     ;
 
   ///////////////////////////////////
   // The Animating Loop
   ///////////////////////////////////
 
-  var draw = function (drawComponents, finished) {
+  var draw = function (finished) {
     var easingFunction = easings[easing]
       , animationIncrement = 1/animationSteps
       , _perc_
@@ -45,15 +46,14 @@ Chartmander.models.base = function () {
 
       _perc_ = easingFunction(animationCompleted);
 
-      layer
+      chart.layer
         .erase(0, 0, width, height)
         .hoverFinished(true)
         // .tooltip.flush()
         ;
-      console.log("loop")
 
       // Model specific drawings
-      drawComponents(_perc_);
+      drawModel(_perc_);
 
       // if (hovered && tooltip.hasItems()) {
       //   // tooltip.recalc(ctx);
@@ -62,7 +62,7 @@ Chartmander.models.base = function () {
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
-      if (animationCompleted < 1 || !layer.hoverFinished()) {
+      if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
         requestAnimationFrame(loop);
       }
       else {
@@ -104,14 +104,15 @@ Chartmander.models.base = function () {
   // Methods and Binding
   ///////////////////////////////
 
+  chart.layer = null; // each model need a layer, set it in chart
   chart.parse = parse;
   chart.draw  = draw;
 
-  chart.layer = function (_) {
-    if(!arguments.length) return layer;
-    layer = _;
-    return chart;
-  }
+  // chart.layer = function (_) {
+  //   if(!arguments.length) return layer;
+  //   layer = _;
+  //   return chart;
+  // }
 
   chart.width = function (_) {
     if(!arguments.length) return width;
@@ -199,6 +200,11 @@ Chartmander.models.base = function () {
     updated = _;
     return chart;
   };
+
+  chart.drawModel = function (f) {
+    drawModel = f;
+    return chart;
+  } 
 
   return chart;
 };

@@ -10,8 +10,8 @@ Chartmander.components.slice = function (data, title) {
   slice.set(title).label(data.label).value(data.value);
 
   var sliceIsHovered = function (pie) {
-    var x = pie.layer().mouse().x - pie.center().x
-      , y = pie.layer().mouse().y - pie.center().y
+    var x = pie.layer.mouse().x - pie.center().x
+      , y = pie.layer.mouse().y - pie.center().y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
@@ -32,7 +32,7 @@ Chartmander.components.slice = function (data, title) {
   var drawInto = function (ctx, pie, set) {
     ctx.beginPath();
     // Check if this slice was hovered
-    if (pie.layer().hovered()) {
+    if (pie.layer.hovered()) {
       if (sliceIsHovered(pie)) {
         ctx.fillStyle = set.hoverColor();
         // pie.tooltip.addItem({

@@ -1,9 +1,9 @@
-Chartmander.models.pie = function (layer) {
+Chartmander.models.pie = function () {
 
   var chart = new Chartmander.models.base();
 
-  var center          = { x: chart.width()/2, y: chart.height()/2 }
-    , radius          = Math.min.apply(null, [center.x, center.y])
+  var center          = { x: 0, y: 0 }
+    , radius          = 0
     , innerRadius     = .6
     , rotateAnimation = true
     , startAngle      = 0
@@ -11,9 +11,6 @@ Chartmander.models.pie = function (layer) {
 
   // Initial setup
   chart.easing("easeOutBounce");
-  chart.layer(layer);
-
-  var layer = chart.layer();
 
   var recalcSlices = function () {
     var slice
@@ -36,15 +33,17 @@ Chartmander.models.pie = function (layer) {
   }
   
   var drawSlices = function (_perc_) {
-    layer.ctx.save();
+    var ctx = chart.layer.ctx;
+    ctx.save();
     forEach(chart.datasets(), function (set) {
       var slice = set.getElement(0);
-      layer.ctx.fillStyle = set.color();
+      ctx.fillStyle = set.color();
       
-      slice.updatePosition(rotateAnimation ? _perc_ : 1)
-           .drawInto(layer.ctx, chart, set);
+      slice
+        .updatePosition(rotateAnimation ? _perc_ : 1)
+        .drawInto(ctx, chart, set);
     });
-    layer.ctx.restore();
+    ctx.restore();
   }
 
   var render =  function (data) {
@@ -61,15 +60,7 @@ Chartmander.models.pie = function (layer) {
 
     recalcSlices();
     chart.completed(0);
-    chart.draw(drawComponents, false);
-  }
-
-  var update = function (data) {
-    var i = 0;
-    forEach(chart.datasets(), function (set) {
-      set.merge(data[i], chart);
-      i++;
-    });
+    chart.draw(false);
   }
 
   var getDataSum = function () {
@@ -86,43 +77,45 @@ Chartmander.models.pie = function (layer) {
     return (sliceValue/getDataSum())*Math.PI*2;
   }
 
-  var drawComponents = function (_perc_) {
-    drawSlices(_perc_);
+  var centerize = function () {
+    center.x = chart.margin().left + radius;
+    center.y = chart.margin().top  + radius;
   }
 
-  var drawFull = function () {
-    chart.draw(drawComponents, true);
-  }
+  var drawComponents = function (_perc_) {
+    drawSlices(_perc_);
+  };
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
   chart.render = render;
-  chart.drawFull = drawFull;
   chart.drawComponents = drawComponents;
 
   chart.center = function (_) {
-    if(!arguments.length) return center
+    if (!arguments.length) return center
     center.x = typeof _.x != 'undefined' ? _.x : center.x;
     center.y = typeof _.y != 'undefined' ? _.y : center.y;
     return chart;
   };
 
   chart.innerRadius = function (_) {
-    if(!arguments.length) return innerRadius;
+    if (!arguments.length) return innerRadius;
     innerRadius = _;
     return chart;
   };
 
   chart.radius = function (_) {
-    if(!arguments.length) return radius;
+    if (!arguments.length) return radius;
     radius = _;
+    chart.width(radius*2).height(radius*2);
+    centerize();
     return chart;
   };
 
   chart.startAngle = function (_) {
-    if(!arguments.length) return startAngle;
+    if (!arguments.length) return startAngle;
     startAngle = _;
     return chart;
   };

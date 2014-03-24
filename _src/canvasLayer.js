@@ -9,7 +9,6 @@ Chartmander.components.layer = function (canvasID) {
     , ctx = canvas.getContext('2d')
     , width = ctx.canvas.width
     , height = ctx.canvas.height
-    , margin = { top: 0, right: 0, bottom: 0, left: 0 } // layer offset
     , mouse = { x: 0, y: 0 }
     , hovered = false
     , hoverFinished = true
@@ -92,15 +91,6 @@ Chartmander.components.layer = function (canvasID) {
     if(!arguments.length) return mouse;
     mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
     mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
-    return layer;
-  };
-
-  layer.margin = function (_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     return layer;
   };
 

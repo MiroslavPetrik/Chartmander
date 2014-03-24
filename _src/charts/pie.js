@@ -5,17 +5,32 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
 
   var layer = new Chartmander.components.layer(canvas)
-    , chart = new Chartmander.models.pie(layer)
+    , chart = new Chartmander.models.pie()
     ;
 
+  // Set chart layer
+  chart.layer = layer;
+
   layer
-  	.onHover(chart.drawFull)
+  	.onHover(function(){
+      chart.draw(true);
+    })
   	.onLeave(function(){
   		if (chart.completed() ) {
-  			chart.drawFull();
+  			chart.draw(true);
   		}
-  	});
+  	})
+    ;
 
-  console.log("MAH")
+  // Setup chart
+  chart
+    .radius(layer.width()/2)
+    ;
+
+  // Setup drawing
+  chart.drawModel(function (_perc_) {
+    chart.drawComponents(_perc_);
+  });
+
   return chart;
 };

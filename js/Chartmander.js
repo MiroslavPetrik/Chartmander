@@ -26,7 +26,7 @@
       , isUnique = true;
 
     forEach(Chartmander.charts, function (chart) {
-      if (newChart.layer().id() === chart.layer().id())
+      if (newChart.layer.id() === chart.layer.id())
         isUnique = false;
     });
 
@@ -39,7 +39,7 @@
   Chartmander.select = function (id, model) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].layer().id()) {
+      if (id === Chartmander.charts[i].layer.id()) {
         // Do update...
         return Chartmander.charts[i].updated(true);
       }
@@ -286,7 +286,6 @@ Chartmander.components.layer = function (canvasID) {
     , ctx = canvas.getContext('2d')
     , width = ctx.canvas.width
     , height = ctx.canvas.height
-    , margin = { top: 0, right: 0, bottom: 0, left: 0 } // layer offset
     , mouse = { x: 0, y: 0 }
     , hovered = false
     , hoverFinished = true
@@ -372,15 +371,6 @@ Chartmander.components.layer = function (canvasID) {
     return layer;
   };
 
-  layer.margin = function (_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return layer;
-  };
-
   layer.hovered = function (_) {
     if (!arguments.length) return hovered;
     hovered = _;
@@ -421,7 +411,7 @@ Chartmander.models.base = function () {
   var chart = this;
 
   var datasets           = []
-    , layer              = null // Every model needs a canvas layer
+    // , layer              = null // Every model needs a canvas layer
     , width              = null
     , height             = null
     , margin             = { top: 0, right: 0, bottom: 0, left: 0 }
@@ -433,13 +423,14 @@ Chartmander.models.base = function () {
     , animationCompleted = 0
     , easing             = "easeInQuint"
     , updated            = false
+    , drawModel          = null
     ;
 
   ///////////////////////////////////
   // The Animating Loop
   ///////////////////////////////////
 
-  var draw = function (drawComponents, finished) {
+  var draw = function (finished) {
     var easingFunction = easings[easing]
       , animationIncrement = 1/animationSteps
       , _perc_
@@ -458,15 +449,14 @@ Chartmander.models.base = function () {
 
       _perc_ = easingFunction(animationCompleted);
 
-      layer
+      chart.layer
         .erase(0, 0, width, height)
         .hoverFinished(true)
         // .tooltip.flush()
         ;
-      console.log("loop")
 
       // Model specific drawings
-      drawComponents(_perc_);
+      drawModel(_perc_);
 
       // if (hovered && tooltip.hasItems()) {
       //   // tooltip.recalc(ctx);
@@ -475,7 +465,7 @@ Chartmander.models.base = function () {
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
-      if (animationCompleted < 1 || !layer.hoverFinished()) {
+      if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
         requestAnimationFrame(loop);
       }
       else {
@@ -517,14 +507,15 @@ Chartmander.models.base = function () {
   // Methods and Binding
   ///////////////////////////////
 
+  chart.layer = null; // each model need a layer, set it in chart
   chart.parse = parse;
   chart.draw  = draw;
 
-  chart.layer = function (_) {
-    if(!arguments.length) return layer;
-    layer = _;
-    return chart;
-  }
+  // chart.layer = function (_) {
+  //   if(!arguments.length) return layer;
+  //   layer = _;
+  //   return chart;
+  // }
 
   chart.width = function (_) {
     if(!arguments.length) return width;
@@ -613,15 +604,20 @@ Chartmander.models.base = function () {
     return chart;
   };
 
+  chart.drawModel = function (f) {
+    drawModel = f;
+    return chart;
+  } 
+
   return chart;
 };
 
-Chartmander.models.pie = function (layer) {
+Chartmander.models.pie = function () {
 
   var chart = new Chartmander.models.base();
 
-  var center          = { x: chart.width()/2, y: chart.height()/2 }
-    , radius          = Math.min.apply(null, [center.x, center.y])
+  var center          = { x: 0, y: 0 }
+    , radius          = 0
     , innerRadius     = .6
     , rotateAnimation = true
     , startAngle      = 0
@@ -629,9 +625,6 @@ Chartmander.models.pie = function (layer) {
 
   // Initial setup
   chart.easing("easeOutBounce");
-  chart.layer(layer);
-
-  var layer = chart.layer();
 
   var recalcSlices = function () {
     var slice
@@ -654,15 +647,17 @@ Chartmander.models.pie = function (layer) {
   }
   
   var drawSlices = function (_perc_) {
-    layer.ctx.save();
+    var ctx = chart.layer.ctx;
+    ctx.save();
     forEach(chart.datasets(), function (set) {
       var slice = set.getElement(0);
-      layer.ctx.fillStyle = set.color();
+      ctx.fillStyle = set.color();
       
-      slice.updatePosition(rotateAnimation ? _perc_ : 1)
-           .drawInto(layer.ctx, chart, set);
+      slice
+        .updatePosition(rotateAnimation ? _perc_ : 1)
+        .drawInto(ctx, chart, set);
     });
-    layer.ctx.restore();
+    ctx.restore();
   }
 
   var render =  function (data) {
@@ -679,15 +674,7 @@ Chartmander.models.pie = function (layer) {
 
     recalcSlices();
     chart.completed(0);
-    chart.draw(drawComponents, false);
-  }
-
-  var update = function (data) {
-    var i = 0;
-    forEach(chart.datasets(), function (set) {
-      set.merge(data[i], chart);
-      i++;
-    });
+    chart.draw(false);
   }
 
   var getDataSum = function () {
@@ -704,43 +691,45 @@ Chartmander.models.pie = function (layer) {
     return (sliceValue/getDataSum())*Math.PI*2;
   }
 
-  var drawComponents = function (_perc_) {
-    drawSlices(_perc_);
+  var centerize = function () {
+    center.x = chart.margin().left + radius;
+    center.y = chart.margin().top  + radius;
   }
 
-  var drawFull = function () {
-    chart.draw(drawComponents, true);
-  }
+  var drawComponents = function (_perc_) {
+    drawSlices(_perc_);
+  };
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
   chart.render = render;
-  chart.drawFull = drawFull;
   chart.drawComponents = drawComponents;
 
   chart.center = function (_) {
-    if(!arguments.length) return center
+    if (!arguments.length) return center
     center.x = typeof _.x != 'undefined' ? _.x : center.x;
     center.y = typeof _.y != 'undefined' ? _.y : center.y;
     return chart;
   };
 
   chart.innerRadius = function (_) {
-    if(!arguments.length) return innerRadius;
+    if (!arguments.length) return innerRadius;
     innerRadius = _;
     return chart;
   };
 
   chart.radius = function (_) {
-    if(!arguments.length) return radius;
+    if (!arguments.length) return radius;
     radius = _;
+    chart.width(radius*2).height(radius*2);
+    centerize();
     return chart;
   };
 
   chart.startAngle = function (_) {
-    if(!arguments.length) return startAngle;
+    if (!arguments.length) return startAngle;
     startAngle = _;
     return chart;
   };
@@ -1389,6 +1378,43 @@ Chartmander.models.line = function () {
     hoveredItems.push(_);
     return chart;
   };
+
+  return chart;
+};
+
+Chartmander.charts.pie = function (canvas) {
+
+  ///////////////////////////////////
+  // Use Layer and Model(s)
+  ///////////////////////////////////
+
+  var layer = new Chartmander.components.layer(canvas)
+    , chart = new Chartmander.models.pie()
+    ;
+
+  // Set chart layer
+  chart.layer = layer;
+
+  layer
+  	.onHover(function(){
+      chart.draw(true);
+    })
+  	.onLeave(function(){
+  		if (chart.completed() ) {
+  			chart.draw(true);
+  		}
+  	})
+    ;
+
+  // Setup chart
+  chart
+    .radius(layer.width()/2)
+    ;
+
+  // Setup drawing
+  chart.drawModel(function (_perc_) {
+    chart.drawComponents(_perc_);
+  });
 
   return chart;
 };
@@ -2185,8 +2211,8 @@ Chartmander.components.slice = function (data, title) {
   slice.set(title).label(data.label).value(data.value);
 
   var sliceIsHovered = function (pie) {
-    var x = pie.layer().mouse().x - pie.center().x
-      , y = pie.layer().mouse().y - pie.center().y
+    var x = pie.layer.mouse().x - pie.center().x
+      , y = pie.layer.mouse().y - pie.center().y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
@@ -2207,7 +2233,7 @@ Chartmander.components.slice = function (data, title) {
   var drawInto = function (ctx, pie, set) {
     ctx.beginPath();
     // Check if this slice was hovered
-    if (pie.layer().hovered()) {
+    if (pie.layer.hovered()) {
       if (sliceIsHovered(pie)) {
         ctx.fillStyle = set.hoverColor();
         // pie.tooltip.addItem({

@@ -26,7 +26,7 @@
       , isUnique = true;
 
     forEach(Chartmander.charts, function (chart) {
-      if (newChart.layer().id() === chart.layer().id())
+      if (newChart.layer.id() === chart.layer.id())
         isUnique = false;
     });
 
@@ -39,7 +39,7 @@
   Chartmander.select = function (id, model) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].layer().id()) {
+      if (id === Chartmander.charts[i].layer.id()) {
         // Do update...
         return Chartmander.charts[i].updated(true);
       }
