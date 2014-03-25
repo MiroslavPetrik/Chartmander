@@ -23,7 +23,7 @@ Chartmander.models.line = function () {
         if (chart.updated()) {
           point.savePosition();
         } else {
-          point.savePosition(grid.width()/2, chart.base());
+          point.savePosition(chart.margin().left + grid.width()/2, chart.base());
         }
         point.moveTo(x, y);
       });
