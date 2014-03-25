@@ -39,10 +39,16 @@ Chartmander.models.base = function () {
     var easingFunction = easings[easing]
       , animationIncrement = 1/animationSteps
       , _perc_
+      , ctx = chart.layer.ctx
       ;
 
     if (!updated)
       animationCompleted = animate ? 0 : 1;
+
+    ctx.save();
+    ctx.rect(margin.left, margin.top, width+5, height+5);
+    ctx.stroke();
+    ctx.clip();
 
     function loop () {
 
@@ -62,7 +68,7 @@ Chartmander.models.base = function () {
 
       // Model specific drawings
       drawChart(_perc_);
-
+      
       // if (hovered && tooltip.hasItems()) {
       //   // tooltip.recalc(ctx);
       //   layer.tooltip.drawInto(chart);
@@ -79,6 +85,7 @@ Chartmander.models.base = function () {
     }
     // Ignite
     requestAnimationFrame(loop);
+    ctx.restore(); // clear canvas clip
   }
 
   ///////////////////////////////////

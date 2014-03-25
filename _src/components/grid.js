@@ -19,12 +19,11 @@ Chartmander.components.grid = function () {
   var adapt = function (chart) {
     width = chart.width() - margin.left - margin.right;
     height = chart.height() - margin.top - margin.bottom;
-
     grid.bound({
-      top: chart.margin().top + margin.top,
-      right: chart.margin().left + margin.left + width - margin.right,
-      bottom: chart.margin().top + margin.top + height - margin.bottom,
-      left: chart.margin().left + margin.left
+      top:    chart.margin().top  + margin.top,
+      right:  chart.margin().left + margin.left + width  - margin.right,
+      bottom: chart.margin().top  + margin.top  + height,
+      left:   chart.margin().left + margin.left
     });
   }
 

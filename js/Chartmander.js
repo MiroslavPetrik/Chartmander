@@ -331,7 +331,7 @@ Chartmander.components.layer = function (canvasID) {
   // Public Methods & Variables
   ///////////////////////////////
 
-  layer.ctx     = ctx;
+  layer.ctx = ctx;
   // layer.tooltip = tooltip;
 
   layer.id = function (_) {
@@ -373,6 +373,10 @@ Chartmander.components.layer = function (canvasID) {
 
   layer.erase = function (x, y, width, height) {
     ctx.clearRect(x, y, width, height);
+    // ctx.save();
+    // ctx.rect(x, y, width, height);
+    // ctx.clip();
+    // ctx.strokeRect(x, y, width, height);
     return layer;
   }
 
@@ -430,10 +434,16 @@ Chartmander.models.base = function () {
     var easingFunction = easings[easing]
       , animationIncrement = 1/animationSteps
       , _perc_
+      , ctx = chart.layer.ctx
       ;
 
     if (!updated)
       animationCompleted = animate ? 0 : 1;
+
+    ctx.save();
+    ctx.rect(margin.left, margin.top, width+5, height+5);
+    ctx.stroke();
+    ctx.clip();
 
     function loop () {
 
@@ -453,7 +463,7 @@ Chartmander.models.base = function () {
 
       // Model specific drawings
       drawChart(_perc_);
-
+      
       // if (hovered && tooltip.hasItems()) {
       //   // tooltip.recalc(ctx);
       //   layer.tooltip.drawInto(chart);
@@ -470,6 +480,7 @@ Chartmander.models.base = function () {
     }
     // Ignite
     requestAnimationFrame(loop);
+    ctx.restore(); // clear canvas clip
   }
 
   ///////////////////////////////////
@@ -732,6 +743,7 @@ Chartmander.models.bar = function () {
     , barWidth       = 0  // calculated so all sets can fit in chart
     , userBarWidth   = 30 // used only if default barwidth is higher
     , datasetSpacing = 0
+    , base = 0
     ;
 
   chart.margin({ top: 30, right: 40, bottom: 30, left: 70 });
@@ -749,7 +761,7 @@ Chartmander.models.bar = function () {
 
     forEach(chart.datasets(), function (set) {
       set.each(function (bar) {
-        x = grid.left() + (bar.label() - xAxis.min())/xAxis.scale() + counter*barWidth;
+        x = grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + counter*barWidth;
         y = -bar.value()/yAxis.scale();
         if (chart.updated()) {
           bar.savePosition();
@@ -761,6 +773,7 @@ Chartmander.models.bar = function () {
       });
       counter++;
     });
+    return chart;
   }
 
   var drawBars = function (_perc_) {
@@ -790,14 +803,20 @@ Chartmander.models.bar = function () {
   chart.drawModel = drawBars;
 
   chart.barWidth = function (_) {
-    if(!arguments.length) return barWidth; // Internal
+    if (!arguments.length) return barWidth; // Internal
     userBarWidth = _; // User defined
     return chart;
   };
 
   chart.datasetSpacing = function (_) {
-    if(!arguments.length) return datasetSpacing;
+    if (!arguments.length) return datasetSpacing;
     datasetSpacing = _;
+    return chart;
+  };
+
+  chart.base = function (_) {
+    if (!arguments.length) return base;
+    base = _;
     return chart;
   };
 
@@ -1011,6 +1030,7 @@ Chartmander.models.line = function () {
     , areaOpacity      = .29
     , mergeHover       = true
     , hoveredItems     = []
+    , base             = 0
     ;
 
   chart.margin({ top: 30, right: 50, bottom: 50, left: 50 });
@@ -1029,6 +1049,7 @@ Chartmander.models.line = function () {
         point.moveTo(x, y);
       });
     });
+    return chart;
   }
 
   var updatePoints = function (set, _perc_) {
@@ -1171,6 +1192,12 @@ Chartmander.models.line = function () {
     return chart;
   };
 
+  chart.base = function (_) {
+    if (!arguments.length) return base;
+    base = _;
+    return chart;
+  };
+
   return chart;
 };
 
@@ -1290,11 +1317,11 @@ Chartmander.charts.bar = function (canvas) {
       oldYScale = y0.scale;
     }
     // grid before axes
-    grid.adapt(bars.width(), bars.height(), bars.margin());
+    grid.adapt(bars);
     // axes use grid height to calculate their scale
     xAxis.adapt(bars, xrange);
     yAxis.adapt(bars, yrange, oldYScale);
-
+    bars.base(grid.bound().bottom - yAxis.zeroLevel())
     // recalc old labels to new position
     if (bars.updated()) {
       forEach(y0.labels, function (label) {
@@ -1302,9 +1329,10 @@ Chartmander.charts.bar = function (canvas) {
       });
     }
 
-    bars.recalc(xAxis, yAxis, grid);
-    bars.completed(0);
-    bars.draw(false);
+    bars
+      .recalc(xAxis, yAxis, grid)
+      .completed(0)
+      .draw(false);
   }
 
   bars.drawChart(function (_perc_) {
@@ -1338,7 +1366,7 @@ Chartmander.charts.bar = function (canvas) {
         ctx.globalAlpha = y0.state;
         forEach(y0.labels, function (label) {
           label.updatePosition(_perc_);
-          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.left() - yAxis.margin(), label.y());
+          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
         });
         ctx.restore();
         y0.state -= .01;
@@ -1354,10 +1382,6 @@ Chartmander.charts.bar = function (canvas) {
   bars.crosshair = crosshair;
 
   bars.render = render;
-
-  bars.base = function (_) {
-    return grid.bottom() - yAxis.zeroLevel();
-  };
 
   bars.showXAxis = function (_) {
     if (!arguments.length) return xAxisVisible;
@@ -1434,14 +1458,16 @@ Chartmander.charts.line = function (canvas) {
     }());
 
     // grid before axes
-    grid.adapt(lines.width(), lines.height(), lines.margin());
+    grid.adapt(lines);
     // axes use grid height to calculate their scale
     xAxis.adapt(lines, xrange);
     yAxis.adapt(lines, yrange);
+    lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
-    lines.recalc(xAxis, yAxis, grid);
-    lines.completed(0);
-    lines.draw(false);
+    lines
+      .recalc(xAxis, yAxis, grid)
+      .completed(0)
+      .draw(false);
   }
 
   ///////////////////////////////////
@@ -1480,10 +1506,6 @@ Chartmander.charts.line = function (canvas) {
   lines.crosshair = crosshair;
 
   lines.render    = render;
-
-  lines.base = function (_) {
-    return grid.bottom() - yAxis.zeroLevel();
-  }
 
   lines.showXAxis = function (_) {
     if (!arguments.length) return xAxisVisible;
@@ -1549,13 +1571,14 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
     .easing("linear")
     .width(layer.width()-250)
     .height(250)
-    .margin({left: 250, bottom: 0})
+    .margin({top: 20, left: 250, bottom: 0, right: 30})
     ;
 
   circle
     .easing("linear")
     .radius(100)
     .innerRadius(.97)
+    .margin({top: 20, left: 30})
     ;
 
   function sine (points, startAngle) {
@@ -1869,12 +1892,11 @@ Chartmander.components.grid = function () {
   var adapt = function (chart) {
     width = chart.width() - margin.left - margin.right;
     height = chart.height() - margin.top - margin.bottom;
-
     grid.bound({
-      top: chart.margin().top + margin.top,
-      right: chart.margin().left + margin.left + width - margin.right,
-      bottom: chart.margin().top + margin.top + height - margin.bottom,
-      left: chart.margin().left + margin.left
+      top:    chart.margin().top  + margin.top,
+      right:  chart.margin().left + margin.left + width  - margin.right,
+      bottom: chart.margin().top  + margin.top  + height,
+      left:   chart.margin().left + margin.left
     });
   }
 

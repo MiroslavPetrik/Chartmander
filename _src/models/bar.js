@@ -6,6 +6,7 @@ Chartmander.models.bar = function () {
     , barWidth       = 0  // calculated so all sets can fit in chart
     , userBarWidth   = 30 // used only if default barwidth is higher
     , datasetSpacing = 0
+    , base = 0
     ;
 
   chart.margin({ top: 30, right: 40, bottom: 30, left: 70 });
@@ -23,7 +24,7 @@ Chartmander.models.bar = function () {
 
     forEach(chart.datasets(), function (set) {
       set.each(function (bar) {
-        x = grid.left() + (bar.label() - xAxis.min())/xAxis.scale() + counter*barWidth;
+        x = grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + counter*barWidth;
         y = -bar.value()/yAxis.scale();
         if (chart.updated()) {
           bar.savePosition();
@@ -35,6 +36,7 @@ Chartmander.models.bar = function () {
       });
       counter++;
     });
+    return chart;
   }
 
   var drawBars = function (_perc_) {
@@ -64,14 +66,20 @@ Chartmander.models.bar = function () {
   chart.drawModel = drawBars;
 
   chart.barWidth = function (_) {
-    if(!arguments.length) return barWidth; // Internal
+    if (!arguments.length) return barWidth; // Internal
     userBarWidth = _; // User defined
     return chart;
   };
 
   chart.datasetSpacing = function (_) {
-    if(!arguments.length) return datasetSpacing;
+    if (!arguments.length) return datasetSpacing;
     datasetSpacing = _;
+    return chart;
+  };
+
+  chart.base = function (_) {
+    if (!arguments.length) return base;
+    base = _;
     return chart;
   };
 

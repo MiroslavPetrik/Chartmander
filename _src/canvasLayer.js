@@ -66,7 +66,7 @@ Chartmander.components.layer = function (canvasID) {
   // Public Methods & Variables
   ///////////////////////////////
 
-  layer.ctx     = ctx;
+  layer.ctx = ctx;
   // layer.tooltip = tooltip;
 
   layer.id = function (_) {
@@ -108,6 +108,10 @@ Chartmander.components.layer = function (canvasID) {
 
   layer.erase = function (x, y, width, height) {
     ctx.clearRect(x, y, width, height);
+    // ctx.save();
+    // ctx.rect(x, y, width, height);
+    // ctx.clip();
+    // ctx.strokeRect(x, y, width, height);
     return layer;
   }
 

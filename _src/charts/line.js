@@ -58,14 +58,16 @@ Chartmander.charts.line = function (canvas) {
     }());
 
     // grid before axes
-    grid.adapt(lines.width(), lines.height(), lines.margin());
+    grid.adapt(lines);
     // axes use grid height to calculate their scale
     xAxis.adapt(lines, xrange);
     yAxis.adapt(lines, yrange);
+    lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
-    lines.recalc(xAxis, yAxis, grid);
-    lines.completed(0);
-    lines.draw(false);
+    lines
+      .recalc(xAxis, yAxis, grid)
+      .completed(0)
+      .draw(false);
   }
 
   ///////////////////////////////////
@@ -104,10 +106,6 @@ Chartmander.charts.line = function (canvas) {
   lines.crosshair = crosshair;
 
   lines.render    = render;
-
-  lines.base = function (_) {
-    return grid.bottom() - yAxis.zeroLevel();
-  }
 
   lines.showXAxis = function (_) {
     if (!arguments.length) return xAxisVisible;

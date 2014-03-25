@@ -59,11 +59,11 @@ Chartmander.charts.bar = function (canvas) {
       oldYScale = y0.scale;
     }
     // grid before axes
-    grid.adapt(bars.width(), bars.height(), bars.margin());
+    grid.adapt(bars);
     // axes use grid height to calculate their scale
     xAxis.adapt(bars, xrange);
     yAxis.adapt(bars, yrange, oldYScale);
-
+    bars.base(grid.bound().bottom - yAxis.zeroLevel())
     // recalc old labels to new position
     if (bars.updated()) {
       forEach(y0.labels, function (label) {
@@ -71,9 +71,10 @@ Chartmander.charts.bar = function (canvas) {
       });
     }
 
-    bars.recalc(xAxis, yAxis, grid);
-    bars.completed(0);
-    bars.draw(false);
+    bars
+      .recalc(xAxis, yAxis, grid)
+      .completed(0)
+      .draw(false);
   }
 
   bars.drawChart(function (_perc_) {
@@ -107,7 +108,7 @@ Chartmander.charts.bar = function (canvas) {
         ctx.globalAlpha = y0.state;
         forEach(y0.labels, function (label) {
           label.updatePosition(_perc_);
-          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.left() - yAxis.margin(), label.y());
+          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
         });
         ctx.restore();
         y0.state -= .01;
@@ -123,10 +124,6 @@ Chartmander.charts.bar = function (canvas) {
   bars.crosshair = crosshair;
 
   bars.render = render;
-
-  bars.base = function (_) {
-    return grid.bottom() - yAxis.zeroLevel();
-  };
 
   bars.showXAxis = function (_) {
     if (!arguments.length) return xAxisVisible;

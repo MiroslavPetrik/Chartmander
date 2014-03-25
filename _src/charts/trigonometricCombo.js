@@ -47,13 +47,14 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
     .easing("linear")
     .width(layer.width()-250)
     .height(250)
-    .margin({left: 250, bottom: 0})
+    .margin({top: 20, left: 250, bottom: 0, right: 30})
     ;
 
   circle
     .easing("linear")
     .radius(100)
     .innerRadius(.97)
+    .margin({top: 20, left: 30})
     ;
 
   function sine (points, startAngle) {

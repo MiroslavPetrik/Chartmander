@@ -10,6 +10,7 @@ Chartmander.models.line = function () {
     , areaOpacity      = .29
     , mergeHover       = true
     , hoveredItems     = []
+    , base             = 0
     ;
 
   chart.margin({ top: 30, right: 50, bottom: 50, left: 50 });
@@ -28,6 +29,7 @@ Chartmander.models.line = function () {
         point.moveTo(x, y);
       });
     });
+    return chart;
   }
 
   var updatePoints = function (set, _perc_) {
@@ -167,6 +169,12 @@ Chartmander.models.line = function () {
 
   chart.addHoveredItem = function (_) {
     hoveredItems.push(_);
+    return chart;
+  };
+
+  chart.base = function (_) {
+    if (!arguments.length) return base;
+    base = _;
     return chart;
   };
 
