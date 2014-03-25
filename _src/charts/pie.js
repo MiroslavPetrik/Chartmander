@@ -31,16 +31,6 @@ Chartmander.charts.pie = function (canvas) {
 
   var render =  function (data) {
     pie.parse(data, Chartmander.components.slice);
-    var xrange = getRange(getArrayBy(data, "label"));
-    var yrange = getRange(function(){
-      var values = [];
-      forEach(pie.datasets(), function (set) {
-        values.push(set.min());
-        values.push(set.max());
-      });
-      return values;
-    }());
-
     pie.recalc();
     pie.completed(0);
     pie.draw(false);

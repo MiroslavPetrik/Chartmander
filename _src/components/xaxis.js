@@ -27,6 +27,7 @@ Chartmander.components.xAxis = function () {
   // rename to timeAxis ?
   // make another numberAxis and category
   // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
+  // YES BUT WE HAVE NOT MUCH TIME VERY BUSY ARE WE
 
   var recalc = function (chart) {
     var startDate = moment(axis.min())

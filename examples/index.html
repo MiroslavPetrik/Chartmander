@@ -13,39 +13,51 @@ title: Chartmander.js Examples
     <button class="btn btn-default" id="update">Update</button>
   </div>
 </div>
+<canvas id="sine" width="960" height="400"></canvas>
 <canvas id="bar" width="800" height="400"></canvas>
 <canvas id="line" width="800" height="400"></canvas>
 <script>
 
-  var testData = dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300);
+  // var testData = dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300);
 
   Chartmander.addChart(function(){
-    var chart = Chartmander.select("bar", "bar");
-      // Data after settings
+    var chart = Chartmander.select("sine", "trigonometricCombo");
       chart
-        .colors(["yellow", "orange"])
-        .render(testData);
-      return chart;
-  }).addChart(function(){
-    var chart = Chartmander.select("line", "line");
-      chart
-        .render(testData);
+        .render({
+          "pie": dataFactory(["Used","Ready"], ["Ram Usage"], 200),
+          "line": dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300)
+        });
+
       return chart;
   });
 
-  $("#update").on('click', function () {
-    Chartmander.addChart(function(){
-      var chart = Chartmander.select("bar", "bar");
-        chart
-          .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
-        return chart;
-    }).addChart(function(){
-      var chart = Chartmander.select("line", "line");
-        chart
-          .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
-        return chart;
-    });
-  });
+  // Chartmander.addChart(function(){
+  //   var chart = Chartmander.select("bar", "bar");
+  //     // Data after settings
+  //     chart
+  //       .colors(["yellow", "orange"])
+  //       .render(testData);
+  //     return chart;
+  // }).addChart(function(){
+  //   var chart = Chartmander.select("line", "line");
+  //     chart
+  //       .render(testData);
+  //     return chart;
+  // });
+
+  // $("#update").on('click', function () {
+  //   Chartmander.addChart(function(){
+  //     var chart = Chartmander.select("bar", "bar");
+  //       chart
+  //         .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
+  //       return chart;
+  //   }).addChart(function(){
+  //     var chart = Chartmander.select("line", "line");
+  //       chart
+  //         .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
+  //       return chart;
+  //   });
+  // });
 
   // var angleStep = 2*Math.PI/100
   //  , currAngle = angleStep

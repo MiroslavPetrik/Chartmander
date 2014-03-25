@@ -19,7 +19,7 @@ Chartmander.charts.line = function (canvas) {
     ;
 
   ///////////////////////////////////
-  // Setup defaults
+  // Setup Defaults
   ///////////////////////////////////
 
   layer

@@ -36,7 +36,7 @@
     return Chartmander;
   };
 
-  Chartmander.select = function (id, userModel) {
+  Chartmander.select = function (id, userChart) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
       if (id === Chartmander.charts[i].layer.id()) {
@@ -45,13 +45,13 @@
       }
     }
     // Provide new chart
-    for (var model in Chartmander.models) {
-      if (userModel === model) {
-        return new Chartmander.charts[userModel](id);
+    for (var chart in Chartmander.charts) {
+      if (userChart === chart) {
+        return new Chartmander.charts[userChart](id);
       }
     }
 
-    throw new Error("Unknown model of chart.");
+    throw new Error('Unknown chart \"' + userChart + '\" requested.');
   };
 
   var easings = {

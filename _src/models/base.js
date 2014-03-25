@@ -56,7 +56,7 @@ Chartmander.models.base = function () {
 
       // FAUX if layer not connected to model in chart!
       chart.layer
-        .erase(0, 0, width+5, height+5)
+        .erase(margin.left, margin.top, width+5, height+5)
         .hoverFinished(true)
         ;
 

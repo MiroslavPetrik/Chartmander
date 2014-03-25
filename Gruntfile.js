@@ -14,6 +14,7 @@ module.exports = function (grunt) {
                     '_src/charts/pie.js',
                     '_src/charts/bar.js',
                     '_src/charts/line.js',
+                    '_src/charts/trigonometricCombo.js',
                     '_src/components/animatedPart.js',
                     '_src/components/dataset.js',
                     '_src/components/grid.js',
