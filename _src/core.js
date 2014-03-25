@@ -36,7 +36,7 @@
     return Chartmander;
   };
 
-  Chartmander.select = function (id, model) {
+  Chartmander.select = function (id, userModel) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
       if (id === Chartmander.charts[i].layer.id()) {
@@ -45,23 +45,11 @@
       }
     }
     // Provide new chart
-    if (model === "pie")
-      return new Chartmander.charts.pie(id);
-
-    if (model === "bar")
-      return new Chartmander.charts.bar(id);
-
-    // if (model === "categoryBar")
-    //   return new Chartmander.charts.categoryBar(id);
-
-    if (model === "line")
-      return new Chartmander.charts.line(id);
-
-    // if (model === "categoryLine")
-    //   return new Chartmander.charts.categoryLine(id);
-
-    // if (model === "trigonometric")
-    //   return new Chartmander.charts.trigonometricCombo(id);
+    for (var model in Chartmander.models) {
+      if (userModel === model) {
+        return new Chartmander.charts[userModel](id);
+      }
+    }
 
     throw new Error("Unknown model of chart.");
   };
