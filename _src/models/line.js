@@ -13,7 +13,7 @@ Chartmander.models.line = function () {
     , base             = 0
     ;
 
-  chart.margin({ top: 30, right: 50, bottom: 50, left: 50 });
+  chart.margin({ top: 10, right: 10, bottom: 10, left: 10 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;

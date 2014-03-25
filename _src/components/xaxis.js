@@ -62,7 +62,7 @@ Chartmander.components.xAxis = function () {
     ctx.font = chart.font();
     ctx.globalAlpha = 1;
     axis.each(function (label) {
-      var leftOffset = chart.margin().left + (label-chart.xAxis.min())/chart.xAxis.scale();
+      var leftOffset = chart.grid.bound().left + (label-chart.xAxis.min())/chart.xAxis.scale();
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
     });
     ctx.restore();

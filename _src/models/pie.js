@@ -37,7 +37,6 @@ Chartmander.models.pie = function () {
     forEach(chart.datasets(), function (set) {
       var slice = set.getElement(0);
       ctx.fillStyle = set.color();
-      
       slice
         .updatePosition(rotateAnimation ? _perc_ : 1)
         .drawInto(ctx, chart, set);

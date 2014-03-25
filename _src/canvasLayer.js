@@ -59,7 +59,7 @@ Chartmander.components.layer = function (canvasID) {
     hovered = false;
     // chart.tooltip.removeItems();
     // if (animationCompleted >= 1)
-      onLeave();
+    onLeave();
   }
 
   ///////////////////////////////
@@ -108,22 +108,18 @@ Chartmander.components.layer = function (canvasID) {
 
   layer.erase = function (x, y, width, height) {
     ctx.clearRect(x, y, width, height);
-    // ctx.save();
-    // ctx.rect(x, y, width, height);
-    // ctx.clip();
-    // ctx.strokeRect(x, y, width, height);
     return layer;
-  }
+  };
 
   layer.onHover = function (f) {
     onHover = f;
     return layer;
-  }
+  };
 
   layer.onLeave = function (f) {
     onLeave = f;
     return layer;
-  }
+  };
 
   return layer;
 };

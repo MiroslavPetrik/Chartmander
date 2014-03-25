@@ -324,7 +324,7 @@ Chartmander.components.layer = function (canvasID) {
     hovered = false;
     // chart.tooltip.removeItems();
     // if (animationCompleted >= 1)
-      onLeave();
+    onLeave();
   }
 
   ///////////////////////////////
@@ -373,22 +373,18 @@ Chartmander.components.layer = function (canvasID) {
 
   layer.erase = function (x, y, width, height) {
     ctx.clearRect(x, y, width, height);
-    // ctx.save();
-    // ctx.rect(x, y, width, height);
-    // ctx.clip();
-    // ctx.strokeRect(x, y, width, height);
     return layer;
-  }
+  };
 
   layer.onHover = function (f) {
     onHover = f;
     return layer;
-  }
+  };
 
   layer.onLeave = function (f) {
     onLeave = f;
     return layer;
-  }
+  };
 
   return layer;
 };
@@ -440,10 +436,13 @@ Chartmander.models.base = function () {
     if (!updated)
       animationCompleted = animate ? 0 : 1;
 
-    ctx.save();
+    ctx.save(); // prepare for clipping
+    // ctx.beginPath();
     ctx.rect(margin.left, margin.top, width+5, height+5);
-    ctx.stroke();
+    // ctx.closePath();
+    // ctx.stroke();
     ctx.clip();
+    // ctx.fillRect(0,0,500,100);
 
     function loop () {
 
@@ -454,7 +453,13 @@ Chartmander.models.base = function () {
       }
 
       _perc_ = easingFunction(animationCompleted);
-
+      
+      ctx.save(); // prepare for clipping
+      ctx.beginPath();
+      ctx.rect(margin.left, margin.top, width+5, height+5);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.clip();
       // FAUX if layer not connected to model in chart!
       chart.layer
         .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
@@ -468,6 +473,7 @@ Chartmander.models.base = function () {
       //   // tooltip.recalc(ctx);
       //   layer.tooltip.drawInto(chart);
       // }
+      ctx.restore(); // clear canvas clip
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
@@ -480,7 +486,7 @@ Chartmander.models.base = function () {
     }
     // Ignite
     requestAnimationFrame(loop);
-    ctx.restore(); // clear canvas clip
+    // ctx.restore(); // clear canvas clip
   }
 
   ///////////////////////////////////
@@ -624,7 +630,7 @@ Chartmander.models.base = function () {
            mouse.x <= chart.margin().left + chart.width() &&
            mouse.y >= chart.margin().top &&
            mouse.y <= chart.margin().top + chart.height();
-  }
+  };
 
   return chart;
 };
@@ -668,7 +674,6 @@ Chartmander.models.pie = function () {
     forEach(chart.datasets(), function (set) {
       var slice = set.getElement(0);
       ctx.fillStyle = set.color();
-      
       slice
         .updatePosition(rotateAnimation ? _perc_ : 1)
         .drawInto(ctx, chart, set);
@@ -746,7 +751,7 @@ Chartmander.models.bar = function () {
     , base = 0
     ;
 
-  chart.margin({ top: 30, right: 40, bottom: 30, left: 70 });
+  chart.margin({ top: 10, right: 40, bottom: 30, left: 10 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var counter = 0, leftFix, x, y;
@@ -1033,7 +1038,7 @@ Chartmander.models.line = function () {
     , base             = 0
     ;
 
-  chart.margin({ top: 30, right: 50, bottom: 50, left: 50 });
+  chart.margin({ top: 10, right: 10, bottom: 10, left: 10 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
@@ -1433,6 +1438,8 @@ Chartmander.charts.line = function (canvas) {
     })
     ;
 
+  grid.margin({left: 70, top: 20});
+  crosshair.color("red")
   lines
     .width(layer.width())
     .height(layer.height())
@@ -2129,7 +2136,7 @@ Chartmander.components.xAxis = function () {
     ctx.font = chart.font();
     ctx.globalAlpha = 1;
     axis.each(function (label) {
-      var leftOffset = chart.margin().left + (label-chart.xAxis.min())/chart.xAxis.scale();
+      var leftOffset = chart.grid.bound().left + (label-chart.xAxis.min())/chart.xAxis.scale();
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
     });
     ctx.restore();

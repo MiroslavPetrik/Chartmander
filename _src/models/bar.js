@@ -9,7 +9,7 @@ Chartmander.models.bar = function () {
     , base = 0
     ;
 
-  chart.margin({ top: 30, right: 40, bottom: 30, left: 70 });
+  chart.margin({ top: 10, right: 40, bottom: 30, left: 10 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var counter = 0, leftFix, x, y;

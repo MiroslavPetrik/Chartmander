@@ -45,10 +45,13 @@ Chartmander.models.base = function () {
     if (!updated)
       animationCompleted = animate ? 0 : 1;
 
-    ctx.save();
+    ctx.save(); // prepare for clipping
+    // ctx.beginPath();
     ctx.rect(margin.left, margin.top, width+5, height+5);
-    ctx.stroke();
+    // ctx.closePath();
+    // ctx.stroke();
     ctx.clip();
+    // ctx.fillRect(0,0,500,100);
 
     function loop () {
 
@@ -59,7 +62,13 @@ Chartmander.models.base = function () {
       }
 
       _perc_ = easingFunction(animationCompleted);
-
+      
+      ctx.save(); // prepare for clipping
+      ctx.beginPath();
+      ctx.rect(margin.left, margin.top, width+5, height+5);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.clip();
       // FAUX if layer not connected to model in chart!
       chart.layer
         .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
@@ -73,6 +82,7 @@ Chartmander.models.base = function () {
       //   // tooltip.recalc(ctx);
       //   layer.tooltip.drawInto(chart);
       // }
+      ctx.restore(); // clear canvas clip
 
       // Request self-repaint if chart or tooltip or data element has not finished animating yet
       // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
@@ -85,7 +95,7 @@ Chartmander.models.base = function () {
     }
     // Ignite
     requestAnimationFrame(loop);
-    ctx.restore(); // clear canvas clip
+    // ctx.restore(); // clear canvas clip
   }
 
   ///////////////////////////////////
@@ -229,7 +239,7 @@ Chartmander.models.base = function () {
            mouse.x <= chart.margin().left + chart.width() &&
            mouse.y >= chart.margin().top &&
            mouse.y <= chart.margin().top + chart.height();
-  }
+  };
 
   return chart;
 };
