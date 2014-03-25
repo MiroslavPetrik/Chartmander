@@ -126,7 +126,7 @@ Chartmander.components.yAxis = function () {
     forEach(axis.labels(), function (label) {
       // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " " + unit, grid.left() - margin, label.y());
+      ctx.fillText(label.label().toString() + " " + unit, grid.bound().left - margin, label.y());
     });
     ctx.restore();
     return axis;

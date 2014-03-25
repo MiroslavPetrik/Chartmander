@@ -11,7 +11,9 @@ Chartmander.components.crosshair = function () {
     ;
 
   var drawInto = function (chart) {
-    var ctx = chart.layer.ctx;
+    var ctx = chart.layer.ctx
+      , bound = chart.grid.bound();
+
 
     ctx.save();
     ctx.strokeStyle = color;
@@ -24,8 +26,8 @@ Chartmander.components.crosshair = function () {
     // }
 
     ctx.beginPath();
-    ctx.moveTo(x, chart.grid.top());
-    ctx.lineTo(x, chart.grid.bottom());
+    ctx.moveTo(x, bound.top);
+    ctx.lineTo(x, bound.bottom);
     ctx.stroke();
     ctx.restore();
   }

@@ -18,7 +18,7 @@ Chartmander.models.line = function () {
     var x, y;
     forEach(chart.datasets(), function (set) {
       set.each(function (point) {
-        x = Math.ceil(grid.left() + (point.label() - xAxis.min())/xAxis.scale());
+        x = Math.ceil(grid.bound().left + (point.label() - xAxis.min())/xAxis.scale());
         y = chart.base() - point.value()/yAxis.scale();
         if (chart.updated()) {
           point.savePosition();

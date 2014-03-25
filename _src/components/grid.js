@@ -2,32 +2,30 @@ Chartmander.components.grid = function () {
 
   var grid = this;
 
-  var horizontalLines = true
+  var horizontalLines = false
     , verticalLines = true
     , lineColor = "#ddd"
     , lineWidth = 1
-    ;
-
-  // Properties/margins
-  var width = 0
-    , height = 0
-    , top = 0
-    , right = 0
-    , bottom = 0
-    , left = 0
+    , width  = null
+    , height = null
+    , margin = { top: 0, right: 0, bottom: 50, left: 50 } // default margin for axes
+    , bound = { top: 0, right: 0, bottom: 0, left: 0 } // pixels relative to layer
     ;
 
   ///////////////////////
   // Func
   ///////////////////////
 
-  var adapt = function (w, h, margin) {
-    top    = margin.top;
-    right  = w - margin.right;
-    bottom = h - margin.bottom;
-    left   = margin.left;
-    width  = w - margin.right - margin.left;
-    height = h - margin.bottom - margin.top;
+  var adapt = function (chart) {
+    width = chart.width() - margin.left - margin.right;
+    height = chart.height() - margin.top - margin.bottom;
+
+    grid.bound({
+      top: chart.margin().top + margin.top,
+      right: chart.margin().left + margin.left + width - margin.right,
+      bottom: chart.margin().top + margin.top + height - margin.bottom,
+      left: chart.margin().left + margin.left
+    });
   }
 
   var drawInto = function (chart, _perc_) {
@@ -42,18 +40,18 @@ Chartmander.components.grid = function () {
       forEach(chart.yAxis.labels(), function (line) {
         var y = Math.ceil(line.y());
         ctx.beginPath();
-        ctx.moveTo(left, y);
-        ctx.lineTo(right, y);
+        ctx.moveTo(bound.left, y);
+        ctx.lineTo(bound.right, y);
         ctx.stroke();
       });
     }
 
     if (verticalLines) {
       for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
-        var xOffset = Math.ceil( chart.grid.left() + i*(chart.grid.width() / chart.xAxis.labels().length) );
+        var xOffset = Math.ceil( chart.margin().left + margin.left + i*(width / chart.xAxis.labels().length) );
         ctx.beginPath();
-        ctx.moveTo(xOffset, top);
-        ctx.lineTo(xOffset, bottom);
+        ctx.moveTo(xOffset, bound.top);
+        ctx.lineTo(xOffset, bound.bottom);
         ctx.stroke();
       }
     }
@@ -61,7 +59,7 @@ Chartmander.components.grid = function () {
   }
 
   var hovered = function (mouse) {
-     return mouse.x >= left && mouse.x <= right && mouse.y >= top && mouse.y <= bottom;
+     return mouse.x >= bound.left && mouse.x <= bound.right && mouse.y >= bound.top && mouse.y <= bound.bottom;
   }
 
   ///////////////////////////////
@@ -84,21 +82,21 @@ Chartmander.components.grid = function () {
     return grid;
   };
 
-  grid.bottom = function (_) {
-    if (!arguments.length) return bottom;
-    bottom = _;
+  grid.margin = function (_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     return grid;
   };
 
-  grid.left = function (_) {
-    if (!arguments.length) return left;
-    left = _;
-    return grid;
-  };
-
-  grid.top = function (_) {
-    if (!arguments.length) return top;
-    top = _;
+  grid.bound = function (_) {
+    if (!arguments.length) return bound;
+    bound.top    = typeof _.top    != 'undefined' ? _.top    : bound.top;
+    bound.right  = typeof _.right  != 'undefined' ? _.right  : bound.right;
+    bound.bottom = typeof _.bottom != 'undefined' ? _.bottom : bound.bottom;
+    bound.left   = typeof _.left   != 'undefined' ? _.left   : bound.left;
     return grid;
   };
 

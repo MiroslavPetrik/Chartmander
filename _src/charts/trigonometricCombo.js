@@ -28,8 +28,10 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
 
   layer
     .onHover(function () {
-      circle.draw(true);
-      line.draw(true);
+      if (circle.hovered())
+        circle.draw(true);
+      if (line.hovered())
+        line.draw(true);
     })
     .onLeave(function () {
       if ( circle.completed() ) {
@@ -45,7 +47,7 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
     .easing("linear")
     .width(layer.width()-250)
     .height(250)
-    .margin({left: 250})
+    .margin({left: 250, bottom: 0})
     ;
 
   circle
@@ -89,7 +91,7 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
       return values;
     }());
     // grid before axes
-    grid.adapt(line.width(), line.height(), line.margin());
+    grid.adapt(line);
     xAxis.adapt(line, xrange);
     yAxis.adapt(line, yrange);
 
@@ -143,7 +145,7 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
   chart.render = render;
 
   line.base = function (_) {
-    return grid.bottom() - yAxis.zeroLevel();
+    return grid.bound().bottom - yAxis.zeroLevel();
   }
 
   chart.showXAxis = function (_) {

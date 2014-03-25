@@ -56,7 +56,7 @@ Chartmander.models.base = function () {
 
       // FAUX if layer not connected to model in chart!
       chart.layer
-        .erase(margin.left, margin.top, width+5, height+5)
+        .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
         .hoverFinished(true)
         ;
 
@@ -212,6 +212,17 @@ Chartmander.models.base = function () {
     updated = _;
     return chart;
   };
+
+  // Interaction
+
+  chart.hovered = function () {
+    var mouse = chart.layer.mouse()
+
+    return mouse.x >= chart.margin().left && 
+           mouse.x <= chart.margin().left + chart.width() &&
+           mouse.y >= chart.margin().top &&
+           mouse.y <= chart.margin().top + chart.height();
+  }
 
   return chart;
 };

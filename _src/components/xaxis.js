@@ -55,7 +55,7 @@ Chartmander.components.xAxis = function () {
 
   var drawInto = function (chart, _perc_) {
     var ctx = chart.layer.ctx
-      , topOffset = chart.grid.bottom() + 25;
+      , topOffset = chart.grid.bound().bottom + 25;
 
     ctx.save();
     ctx.fillStyle = chart.fontColor();
