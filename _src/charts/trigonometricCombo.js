@@ -9,8 +9,8 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
   var layer     = new Chartmander.components.layer(canvas)
     , circle    = new Chartmander.models.pie()
     , line      = new Chartmander.models.line()
-    , xAxis     = new Chartmander.components.xAxis()
-    , yAxis     = new Chartmander.components.yAxis()
+    , xAxis     = new Chartmander.components.numberAxis()
+    , yAxis     = new Chartmander.components.numberAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
     ;
@@ -47,32 +47,40 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
     .easing("linear")
     .width(layer.width()-250)
     .height(250)
+    .pointRadius(0)
     .margin({top: 20, left: 250, bottom: 0, right: 30})
     ;
 
   circle
     .easing("linear")
+    .margin({top: 20, left: 30})
     .radius(100)
     .innerRadius(.97)
-    .margin({top: 20, left: 30})
     ;
 
-  function sine (points, startAngle) {
-    var result = []
+  xAxis.orientation("horizontal");
+
+  function sineWave (points, startAngle) {
+    var set = {
+          "title": "sinx",
+          "values": []
+        }
       , incrementAngle = (Math.PI*2)/points
       ;
     for (var i = 0; i < Math.PI*2; i += incrementAngle) {
-      result.push({
+      set.values.push({
         label: i,
         value: parseFloat(Math.sin(i).toFixed(5))
       })
     };
-    return result;
+    return [set];
   }
 
   var render =  function (data) {
     var circleData = data.pie
-      , sineData = data.line;
+      // , sineData = data.line;
+      , sine = sineWave(100, 0);
+
 
     // render unit circle
     circle.parse(circleData, Chartmander.components.slice);
@@ -81,20 +89,20 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
     circle.draw(false);
 
     // render line
-    line.parse(sineData, Chartmander.components.point);
-    var xrange = getRange(getArrayBy(sineData, "label"));
-    var yrange = getRange(function(){
-      var values = [];
-      forEach(line.datasets(), function (set) {
-        values.push(set.min());
-        values.push(set.max());
-      });
-      return values;
-    }());
+    line.parse(sine, Chartmander.components.point);
+    // var xrange = getRange(getArrayBy(sine, "label"));
+    // var yrange = getRange(function(){
+    //   var values = [];
+    //   forEach(line.datasets(), function (set) {
+    //     values.push(set.min());
+    //     values.push(set.max());
+    //   });
+    //   return values;
+    // }());
     // grid before axes
     grid.adapt(line);
-    xAxis.adapt(line, xrange);
-    yAxis.adapt(line, yrange);
+    xAxis.adapt(line, {min:0, max:Math.PI*2});
+    yAxis.adapt(line, {min:-1, max:1});
 
     line.recalc(xAxis, yAxis, grid);
     line.completed(0);

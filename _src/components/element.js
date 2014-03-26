@@ -60,7 +60,7 @@ Chartmander.components.element = function () {
   element.moveTo = function (x, y) {
     if (x!=false)
       to.x = x;
-    if(y!=false)
+    if (y!=false)
       to.y = y;
     return element;
   };

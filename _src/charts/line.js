@@ -35,6 +35,7 @@ Chartmander.charts.line = function (canvas) {
 
   grid.margin({left: 70, top: 20});
   crosshair.color("red")
+
   lines
     .width(layer.width())
     .height(layer.height())

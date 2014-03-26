@@ -45,13 +45,13 @@ Chartmander.models.base = function () {
     if (!updated)
       animationCompleted = animate ? 0 : 1;
 
-    ctx.save(); // prepare for clipping
-    // ctx.beginPath();
-    ctx.rect(margin.left, margin.top, width+5, height+5);
-    // ctx.closePath();
-    // ctx.stroke();
-    ctx.clip();
-    // ctx.fillRect(0,0,500,100);
+    // ctx.save(); // prepare for clipping
+    // // ctx.beginPath();
+    // ctx.rect(margin.left, margin.top, width+5, height+5);
+    // // ctx.closePath();
+    // // ctx.stroke();
+    // ctx.clip();
+    // // ctx.fillRect(0,0,500,100);
 
     function loop () {
 
@@ -67,11 +67,12 @@ Chartmander.models.base = function () {
       ctx.beginPath();
       ctx.rect(margin.left, margin.top, width+5, height+5);
       ctx.closePath();
+      ctx.lineWidth = "3";
       ctx.stroke();
       ctx.clip();
       // FAUX if layer not connected to model in chart!
       chart.layer
-        .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
+        .erase(margin.left, margin.top, width, height) // introduce smudge factor variable/object
         .hoverFinished(true)
         ;
 

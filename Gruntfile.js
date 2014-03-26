@@ -19,6 +19,7 @@ module.exports = function (grunt) {
                     '_src/components/dataset.js',
                     '_src/components/grid.js',
                     '_src/components/axis.js',
+                    '_src/components/numberAxis.js',
                     '_src/components/xaxis.js',
                     '_src/components/yaxis.js',
                     '_src/components/categoryAxis.js',
