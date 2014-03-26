@@ -14,15 +14,10 @@ title: Chartmander.js Examples
 <canvas id="line" width="800" height="400"></canvas>
 <script>
 
-  // var testData = dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300);
-
   Chartmander.addChart(function(){
     var chart = Chartmander.select("sine", "trigonometricCombo");
       chart
-        .render({
-          "pie": dataFactory(["Used","Ready"], ["Ram Usage"], 200),
-          "line": dataFactory(["Hau", "Mnau"], yearByMonths(10), 20+Math.random()*300)
-        });
+        .render(0); // angle in radians <0;2PI>
 
       return chart;
   });

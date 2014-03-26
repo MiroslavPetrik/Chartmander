@@ -459,11 +459,11 @@ Chartmander.models.base = function () {
       ctx.rect(margin.left, margin.top, width+5, height+5);
       ctx.closePath();
       ctx.lineWidth = "3";
-      ctx.stroke();
+      // ctx.stroke();
       ctx.clip();
       // FAUX if layer not connected to model in chart!
       chart.layer
-        .erase(margin.left, margin.top, width, height) // introduce smudge factor variable/object
+        .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
         .hoverFinished(true)
         ;
 
@@ -611,6 +611,12 @@ Chartmander.models.base = function () {
     return chart;
   };
 
+  chart.animate = function (_) {
+    if (!arguments.length) return animate;
+    animate = _;
+    return chart;
+  };
+
   chart.drawChart = function (f) {
     drawChart = f;
     return chart;
@@ -645,6 +651,7 @@ Chartmander.models.pie = function () {
     , innerRadius     = .6
     , rotateAnimation = true
     , startAngle      = 0
+    , clockWise       = false
     ;
 
   chart.easing("easeOutBounce");
@@ -735,11 +742,14 @@ Chartmander.models.pie = function () {
     return chart;
   };
 
+  chart.clockWise = function (_) {
+    if (!arguments.length) return clockWise;
+    clockWise = _;
+    return chart;
+  };
+
   return chart;
 };
-
-
-
 
 Chartmander.models.bar = function () {
 
@@ -1029,6 +1039,7 @@ Chartmander.models.line = function () {
   var chart = new Chartmander.models.base();
 
   var lineWidth        = 2
+    , showPoint        = true
     , pointRadius      = 5
     , pointHoverRadius = 20
     , pointHoverColor  = "orange"
@@ -1037,6 +1048,7 @@ Chartmander.models.line = function () {
     , mergeHover       = true
     , hoveredItems     = []
     , base             = 0
+    , startPosition    = "center" // or direct
     ;
 
   chart.margin({ top: 10, right: 10, bottom: 10, left: 10 });
@@ -1050,7 +1062,10 @@ Chartmander.models.line = function () {
         if (chart.updated()) {
           point.savePosition();
         } else {
-          point.savePosition(chart.margin().left + grid.width()/2, chart.base());
+          if (startPosition == "center")
+            point.savePosition(chart.margin().left + grid.width()/2, chart.base());
+          if (startPosition == "direct")
+            point.savePosition(x, y);
         }
         point.moveTo(x, y);
       });
@@ -1134,7 +1149,8 @@ Chartmander.models.line = function () {
         drawArea(set);
       }
       drawLines(set);
-      drawPoints(set);
+      if (showPoint)
+        drawPoints(set);
     });
   }
 
@@ -1201,6 +1217,18 @@ Chartmander.models.line = function () {
   chart.base = function (_) {
     if (!arguments.length) return base;
     base = _;
+    return chart;
+  };
+
+  chart.showPoint = function (_) {
+    if (!arguments.length) return showPoint;
+    showPoint = _;
+    return chart;
+  };
+
+  chart.startPosition = function (_) {
+    if (!arguments.length) return startPosition;
+    startPosition = _;
     return chart;
   };
 
@@ -1553,6 +1581,8 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
 
   var xAxisVisible = true
     , yAxisVisible = true
+    , angleColor   = "#fff"
+    , hoverAngle   = 0;
     ;
 
   ///////////////////////////////////
@@ -1561,10 +1591,16 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
 
   layer
     .onHover(function () {
+      // circle.updated(true);
+
       if (circle.hovered())
         circle.draw(true);
       if (line.hovered())
         line.draw(true);
+
+      hoverAngle = crossToAngle(crosshair.x());
+
+      chart.render(hoverAngle);
     })
     .onLeave(function () {
       if ( circle.completed() ) {
@@ -1577,43 +1613,88 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
     ;
 
   line
+    .animate(false)
+    .startPosition("direct")
     .easing("linear")
-    .width(layer.width()-250)
+    .width(layer.width()-300)
     .height(250)
-    .pointRadius(0)
+    .showPoint(false)
+    .lineWidth(3)
+    .areaVisible(false)
     .margin({top: 20, left: 250, bottom: 0, right: 30})
     ;
 
   circle
+    .animate(false)
     .easing("linear")
-    .margin({top: 20, left: 30})
+    .margin({top: 30, left: 30})
     .radius(100)
     .innerRadius(.97)
+    .colors(["blue", angleColor])
     ;
+
+  grid.margin({top: 10});
 
   xAxis.orientation("horizontal");
 
-  function sineWave (points, startAngle) {
+  function sinMe (angle) {
+    return parseFloat(Math.sin(angle).toFixed(3));
+  }
+
+  function sineWave (points, endAngle) {
     var set = {
           "title": "sinx",
+          "values": []
+        },
+        hoverSet = {
+          "title": "hovered sinx",
           "values": []
         }
       , incrementAngle = (Math.PI*2)/points
       ;
-    for (var i = 0; i < Math.PI*2; i += incrementAngle) {
+    for (var currAngle = 0; currAngle < Math.PI*2; currAngle += incrementAngle) {
+      var sin = sinMe(currAngle);
       set.values.push({
-        label: i,
-        value: parseFloat(Math.sin(i).toFixed(5))
-      })
+        label: currAngle,
+        value: sin
+      });
+      if (currAngle <= endAngle) {
+        hoverSet.values.push({
+          label: currAngle,
+          value: sin
+        });
+      }
     };
-    return [set];
+    return [set, hoverSet];
   }
 
-  var render =  function (data) {
-    var circleData = data.pie
-      // , sineData = data.line;
-      , sine = sineWave(100, 0);
+  function crossToAngle (x) {
+    return (x - grid.bound().left)*xAxis.scale();
+  }
 
+  var render = function (activeAngle) {
+    var passiveAngle = Math.PI*2 - activeAngle
+      , circleData = [
+          {
+            title: "passive",
+            values: [
+              {
+                label: "passive angle",
+                value: passiveAngle
+              }
+            ]
+          },
+          {
+            title: "active",
+            values: [
+              {
+                label: "active angle",
+                value: activeAngle
+              }
+            ]
+          }
+        ]
+      ;
 
     // render unit circle
     circle.parse(circleData, Chartmander.components.slice);
@@ -1621,25 +1702,21 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
     circle.completed(0);
     circle.draw(false);
 
-    // render line
-    line.parse(sine, Chartmander.components.point);
-    // var xrange = getRange(getArrayBy(sine, "label"));
-    // var yrange = getRange(function(){
-    //   var values = [];
-    //   forEach(line.datasets(), function (set) {
-    //     values.push(set.min());
-    //     values.push(set.max());
-    //   });
-    //   return values;
-    // }());
-    // grid before axes
-    grid.adapt(line);
-    xAxis.adapt(line, {min:0, max:Math.PI*2});
-    yAxis.adapt(line, {min:-1, max:1});
+    // if (!circle.updated()) {
+      var sineData = sineWave(100, 0)
+      // render line
+      line.parse(sineData, Chartmander.components.point);
 
-    line.recalc(xAxis, yAxis, grid);
-    line.completed(0);
-    line.draw(false);
+      // grid before axes
+      grid.adapt(line);
+      xAxis.adapt(line, {min:0, max:Math.PI*2});
+      yAxis.adapt(line, {min:-1, max:1});
+
+      line.base(grid.bound().bottom - yAxis.zeroLevel());
+      line.recalc(xAxis, yAxis, grid);
+      line.completed(0);
+      line.draw(false);
+    // }
   }
 
   ///////////////////////////////////
@@ -1647,10 +1724,30 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
   ///////////////////////////////////
 
   circle.drawChart(function (_perc_) {
+    var ctx = layer.ctx;
+
+    var cx = circle.center().x
+      , cy = circle.center().y
+      , cr = cx + Math.cos(hoverAngle)*circle.radius()
+      , sr = cy - Math.sin(hoverAngle)*circle.radius()
+      ;
+
     circle.drawModel(_perc_);
+    // draw inner triangle
+    ctx.save();
+    ctx.beginPath();
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = 2;
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cr, cy);
+    ctx.lineTo(cr, sr);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+    ctx.restore();
   });
 
   line.drawChart(function (_perc_) {
+    var ctx = layer.ctx;
     grid.drawInto(line, _perc_);
     
     if (xAxisVisible) {
@@ -1666,10 +1763,24 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
     }
 
     if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
+      /// todo stick cross to line only
       crosshair.drawInto(line);
     }
     
     line.drawModel(_perc_);
+
+    // draw circle rotation on Xaxis
+    if (grid.hovered(layer.mouse())) {
+      ctx.save();
+      ctx.strokeStyle = angleColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(grid.bound().left, line.base());
+      ctx.lineTo(crosshair.x(), line.base());
+      ctx.stroke();
+      ctx.restore();
+    }
+
   });
 
   ///////////////////////////////
@@ -1699,6 +1810,12 @@ Chartmander.charts.trigonometricCombo = function (canvas) {
   chart.showYAxis = function (_) {
     if (!arguments.length) return yAxisVisible;
     yAxisVisible = _;
+    return chart;
+  }
+
+  chart.angleColor = function (_) {
+    if (!arguments.length) return angleColor;
+    angleColor = _;
     return chart;
   }
 
@@ -1788,7 +1905,6 @@ Chartmander.components.dataset = function (data, color, element) {
     max = yRange.max;
   }
 
-
   var merge = function (data, chart, element) {
     // Test equality of datastream
     if (title != data.title) {
@@ -1801,7 +1917,7 @@ Chartmander.components.dataset = function (data, color, element) {
       }
       else {
         var element = new element(data.values[i], dataset.title);
-        elements.push(element.savePosition(chart.grid.width(), chart.getBase()));
+        elements.push(element.savePosition(chart.grid.width(), chart.base()));
       }
     }
     // Delete
@@ -1892,7 +2008,7 @@ Chartmander.components.grid = function () {
 
   var grid = this;
 
-  var horizontalLines = false
+  var horizontalLines = true
     , verticalLines = true
     , lineColor = "#ddd"
     , lineWidth = 1
@@ -2711,8 +2827,8 @@ Chartmander.components.slice = function (data, title) {
         // });
       }
     }
-    ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y());
-    ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), true);
+    ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y(), pie.clockWise());
+    ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), !pie.clockWise());
     ctx.fill();
   }
 

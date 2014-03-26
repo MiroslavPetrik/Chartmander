@@ -29,7 +29,6 @@ Chartmander.components.dataset = function (data, color, element) {
     max = yRange.max;
   }
 
-
   var merge = function (data, chart, element) {
     // Test equality of datastream
     if (title != data.title) {
@@ -42,7 +41,7 @@ Chartmander.components.dataset = function (data, color, element) {
       }
       else {
         var element = new element(data.values[i], dataset.title);
-        elements.push(element.savePosition(chart.grid.width(), chart.getBase()));
+        elements.push(element.savePosition(chart.grid.width(), chart.base()));
       }
     }
     // Delete

@@ -2,7 +2,7 @@ Chartmander.components.grid = function () {
 
   var grid = this;
 
-  var horizontalLines = false
+  var horizontalLines = true
     , verticalLines = true
     , lineColor = "#ddd"
     , lineWidth = 1

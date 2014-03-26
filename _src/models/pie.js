@@ -7,6 +7,7 @@ Chartmander.models.pie = function () {
     , innerRadius     = .6
     , rotateAnimation = true
     , startAngle      = 0
+    , clockWise       = false
     ;
 
   chart.easing("easeOutBounce");
@@ -97,8 +98,11 @@ Chartmander.models.pie = function () {
     return chart;
   };
 
+  chart.clockWise = function (_) {
+    if (!arguments.length) return clockWise;
+    clockWise = _;
+    return chart;
+  };
+
   return chart;
 };
-
-
-

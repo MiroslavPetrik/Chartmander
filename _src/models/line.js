@@ -3,6 +3,7 @@ Chartmander.models.line = function () {
   var chart = new Chartmander.models.base();
 
   var lineWidth        = 2
+    , showPoint        = true
     , pointRadius      = 5
     , pointHoverRadius = 20
     , pointHoverColor  = "orange"
@@ -11,6 +12,7 @@ Chartmander.models.line = function () {
     , mergeHover       = true
     , hoveredItems     = []
     , base             = 0
+    , startPosition    = "center" // or direct
     ;
 
   chart.margin({ top: 10, right: 10, bottom: 10, left: 10 });
@@ -24,7 +26,10 @@ Chartmander.models.line = function () {
         if (chart.updated()) {
           point.savePosition();
         } else {
-          point.savePosition(chart.margin().left + grid.width()/2, chart.base());
+          if (startPosition == "center")
+            point.savePosition(chart.margin().left + grid.width()/2, chart.base());
+          if (startPosition == "direct")
+            point.savePosition(x, y);
         }
         point.moveTo(x, y);
       });
@@ -108,7 +113,8 @@ Chartmander.models.line = function () {
         drawArea(set);
       }
       drawLines(set);
-      drawPoints(set);
+      if (showPoint)
+        drawPoints(set);
     });
   }
 
@@ -175,6 +181,18 @@ Chartmander.models.line = function () {
   chart.base = function (_) {
     if (!arguments.length) return base;
     base = _;
+    return chart;
+  };
+
+  chart.showPoint = function (_) {
+    if (!arguments.length) return showPoint;
+    showPoint = _;
+    return chart;
+  };
+
+  chart.startPosition = function (_) {
+    if (!arguments.length) return startPosition;
+    startPosition = _;
     return chart;
   };
 

@@ -68,11 +68,11 @@ Chartmander.models.base = function () {
       ctx.rect(margin.left, margin.top, width+5, height+5);
       ctx.closePath();
       ctx.lineWidth = "3";
-      ctx.stroke();
+      // ctx.stroke();
       ctx.clip();
       // FAUX if layer not connected to model in chart!
       chart.layer
-        .erase(margin.left, margin.top, width, height) // introduce smudge factor variable/object
+        .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
         .hoverFinished(true)
         ;
 
@@ -217,6 +217,12 @@ Chartmander.models.base = function () {
   chart.easing = function (_) {
     if (!arguments.length) return easing;
     easing = _;
+    return chart;
+  };
+
+  chart.animate = function (_) {
+    if (!arguments.length) return animate;
+    animate = _;
     return chart;
   };
 
