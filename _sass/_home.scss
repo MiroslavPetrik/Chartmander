@@ -45,3 +45,13 @@
 		color: #758690;
 	}
 }
+
+footer {
+	@include rem(padding-bottom, 4);
+	text-align: center;
+	background: #f0f3f6;
+
+	i {
+		@include font(6);
+	}
+}
