@@ -1,4 +1,4 @@
-.nav {
+#navigation {
 	position: absolute;
 	@include rem(top, 2.4);
 	left: 0;
@@ -28,4 +28,8 @@
 			}
 		}
 	}
+}
+
+#docs-sidebar {
+	@include rem(margin-top, 4);
 }

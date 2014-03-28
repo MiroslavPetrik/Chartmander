@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>PRESS Chartmander.js - Data visualization HTML5 Canvas</title>
+		<meta name="description" content="Attractive charts for your new webapp or design mockup">
+		<meta name="author" content="Miroslav Petrik">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/ionicons.min.css">
+		<link rel="stylesheet" href="css/fontello.css">
+		<link rel="stylesheet" href="css/fontello-codes.css">
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+		<link href='http://fonts.googleapis.com/css?family=Roboto:400,500,700' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Patrick+Hand+SC' rel='stylesheet' type='text/css'>
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+<!-- 		<style>
+			body {
+				width: 80%;
+				margin: 0 auto;
+			}
+		</style> -->
+	</head>
+
+	<body>
+		<div class="reveal">
+			<div class="maximo" id="intro">
+				<canvas id="chart-intro" width='1300' height='400'></canvas>
+			</div>
+			<div class="maximo" id="circuit"></div>
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section id="intro">
+					<h2>Chartmander.js</h2>
+					<h2>Vizualizácia dát na webe</h2>
+					<h3>Miroslav Petrik</h3>
+				</section>
+					<section class="idea blacky">
+						<h2>Projekt stredoškolskej odbornej činnosti</h2>
+						<div class="row">
+							<div class="col-sm-4">
+								<i class="ion-speedometer ion-xl longo"></i>
+								<p>zistenie stavu, trendu</p>
+							</div>
+							<div class="col-sm-4">
+								<i class="ion-stats-bars ion-xl longo wise"></i>
+								<p>vizualizácia</p>
+							</div>
+							<div class="col-sm-4">
+								<i class="ion-flash ion-xl longo"></i>
+								<p>akcia</p>
+							</div>
+						</div>
+						<ul>
+							<li>čo nevieš odmerať nevieš manažovať</li>
+							<li>vizualizácia je najrýchlejšia cesta ako odkomunikovať informáciu človeku</li>
+						</ul>
+					</section>	
+
+				<section data-background="#2d2d55" data-background-transition="slide" data-transition="linear" class="whitey technologie">
+					<section id="technologie">
+						<h1>Použité technológie</h1>
+					</section>
+					<section>
+						<h2>Webové štandardy</h2>
+						<div class="row">
+							<div class="col-sm-4">
+								<img src="img/html.png" width="200px" alt="html logo">
+								<p>HTML5</p>
+							</div>
+							<div class="col-sm-4">
+								<img src="img/js.png" width="200px" alt="javascript logo">
+									<p>JavaScript</p>
+							</div>
+							<div class="col-sm-4">
+								<img src="img/css.png" width="200px" alt="css logo">
+									<p>CSS3</p>
+							</div>
+						</div>
+					</section>
+					<section>
+						<h2>Komponenty stránky</h2>
+						<div class="row">
+							<div class="col-sm-4">
+								<div style="height:250px">
+								<img src="img/sass.png" width="250px">
+								</div>
+								<p>preprocesor SCSS</p>
+							</div>
+							<div class="col-sm-4">
+								<div style="height:270px">
+								<img src="img/bs.png" width="200px">
+								<p>framework Bootstrap 3</p>
+								</div>
+							</div>
+							<div class="col-sm-4">
+								<div style="height:250px">
+									<img src="img/jekyll.png" width="400px">
+								</div>
+								<p>blogovacia platforma</p>
+							</div>
+						</div>
+					</section>
+				</section>
+
+				<section data-background="#702FA8" class="metodika whitey">
+					<h2>Obsah stránky</h2>
+					<div class="row">
+						<div class="col-sm-4">
+							<i class="ion-xl longo ion-star"></i>
+							<p>Predstavenie knižnice</p>
+						</div>
+						<div class="col-sm-4">
+							<i class="ion-xl longo ion-document"></i>
+							<p>Dokumentacia knižnice</p>
+						</div>
+						<div class="col-sm-4">
+							<img src="img/sochi.png" width="250px">
+							<p>Štatistiky zimnej olympiády</p>
+						</div>
+					</div>
+				</section>
+
+				<section data-background="img/mock1.png"></section>
+				<section data-background="img/mock2.png"></section>
+				<section data-background="img/mock3.png"></section>
+
+				<section data-background="#0e83cd" class="whitey">
+					<section>
+						<i class="ion-xl longo ion-github"></i>
+						<h2>Open source</h2>
+						<h2>11th.github.io/Chartmander/</h2>
+					</section>
+					<section>
+						<h1>Ďakujem za pozornosť</h1>
+					</section>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script src="js/moment.min.js"></script>
+		<script src="js/tinycolor.js"></script>
+		<script src="js/Chartmander.js"></script>
+		<script src="js/jquery-2.1.0.min.js"></script>
+		<script src="js/dataFactory.js"></script>
+
+		<script>
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				minScale: 0.8,
+				maxScale: 0.8,
+
+				width: window.innerWidth,
+				height: window.innerHeight,
+				theme: 'mine', // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+			////////////////////////////
+			// SETUP CHARTS
+			////////////////////////////
+
+			$('#chart-intro').attr("width", window.innerWidth).attr("height", window.innerHeight/2.666);	
+
+			function introChart () {
+				console.log("intro chart called")
+				Chartmander.addChart(function(){
+					var chart = Chartmander.select("chart-intro", "line");
+					chart
+						.colors(['#a0abbf', '#15a4fa'])
+						.pointRadius(10)
+						.lineWidth(4)
+						.showXAxis(false)
+						.showYAxis(false)
+						.margin({top:10,right:0,bottom:0,left:0})
+						;
+
+					chart.grid
+						.horizontalLines(false)
+						.verticalLines(false)
+						;
+
+					chart.render(bonvoyage(["Last week", "This week"], yearByMonths(1)));
+					return chart;
+				});
+			}
+
+			function chartTypes () {
+				console.log("chart types called")
+				Chartmander.addChart(function(){
+					var chart = Chartmander.select("chart-line", "line");
+
+					chart
+						.colors(["#1a5631", "#fff"])
+						.easing("easeOutBounce")
+						.pointRadius(10)
+						.lineWidth(5)
+						.areaOpacity(.11)
+						.showXAxis(false)
+						.showYAxis(false)
+						;
+					chart.grid.verticalLines(false).horizontalLines(false);
+					chart.render(dataFactory(["Prijmy","Vydavky"], months(3), 100))
+					return chart;
+
+				}).addChart(function(){
+					var chart = Chartmander.select("chart-pie", "pie");
+
+					chart
+						.colors(["#1a5631", "#fff", "#fff"])
+						.innerRadius(0.8)
+						.render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200))
+					return chart;
+
+				}).addChart(function(){
+					var chart = Chartmander.select("chart-bar", "bar");
+
+					chart
+						.colors(["#1a5631","#fff"])
+						.showXAxis(false)
+						.easing("easeOutBounce")
+						.showYAxis(false)
+						;
+					chart.grid.verticalLines(false).horizontalLines(false);
+					chart.render(dataFactory(["Prijmy","Vydavky"], months(3), 100))
+
+					return chart;
+				});
+			}
+
+			var introInterval, chartsInterval;
+
+			////////////////////////////////////
+			// Control special backgrounds
+			////////////////////////////////////
+
+			var $intro = $('#intro')
+				, $techno = $('#circuit')
+				;
+
+			$intro.hide();
+			$techno.hide();
+
+			function slide (slide, was) {
+				var s = $(slide)
+				return s.attr('id') === was || s.parent().hasClass(was);
+			}
+
+			Reveal.addEventListener('ready', function( event ) {
+				var curr = event.currentSlide;
+
+				if(slide(curr, "intro")) {
+					introChart();
+					introInterval = setInterval(introChart, 3000);
+					$intro.fadeIn();
+				}
+
+				if(slide(curr, "technologie")) {
+					$techno.fadeIn();
+				}
+			});
+
+			Reveal.addEventListener('slidechanged', function( event ) {
+				var prev = event.previousSlide,
+						curr = event.currentSlide;
+
+				if (slide(curr, "intro")) {
+					$intro.fadeIn();
+					introInterval = setInterval(introChart, 3000);
+				} else {
+					$intro.fadeOut();
+					clearInterval(introInterval);
+					introInterval = null;
+				}
+
+				if(slide(curr, "chartTypes")) {
+					chartsInterval = setInterval(chartTypes, 3000);
+				} else {
+					clearInterval(chartsInterval);
+					chartsInterval = null;
+				}
+
+				if(slide(curr, "technologie")) {
+					$techno.delay(500).fadeIn();
+				} else {
+					$techno.fadeOut("fast");
+				}
+
+			  // event.previousSlide, event.currentSlide, event.indexh, event.indexv
+			});
+
+			Reveal.addEventListener( 'chart-types', function() {
+				chartTypes();
+			}, false );
+		</script>
+	</body>
+</html>
