@@ -2,18 +2,14 @@ Chartmander.components.numberAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
-  var unit = ""
-    , abbr = false
-    , margin = 10 // Offset from grid
+  var margin = 10 // Offset from grid
     , zeroLevel = 0
     , labelSteps = [1, 2, 5]
-    , orientation = "vertical"
     ;
 
-  // generate?
-  var recalc = function (chart, oldScale) {
+  var generate = function (chart, oldScale) {
 
-    var height = orientation == "vertical" ? chart.grid.height() : chart.grid.width()
+    var height = axis.orientation() == "vertical" ? chart.grid.height() : chart.grid.width()
       , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
       , stepBase = axis.delta().toExponential().split("e")
       , stepExponent = parseInt(stepBase[1])
@@ -35,22 +31,22 @@ Chartmander.components.numberAxis = function () {
       else if (label.value() > 0)
         previous = axis.getLabel(i-1);
       else if (label.value() == 0) {
-        if (orientation == "vertical")
+        if (axis.orientation() == "vertical")
           label.startAtY(chart.base()).moveTo(false, chart.base());
-        if (orientation == "horizontal")
+        if (axis.orientation() == "horizontal")
           label.startAtX(chart.grid.bound().left).moveTo(chart.grid.bound().left, false);
         continue;
       }
       // where to start animating labels
       if (!isNaN(oldScale)) {
-        if (orientation == "vertical")
+        if (axis.orientation() == "vertical")
           label.startAtY(chart.base() - label.value()/oldScale).moveTo(false, chart.base() - label.value()/axis.scale());
-        if (orientation == "horizontal")
+        if (axis.orientation() == "horizontal")
           label.startAtX(chart.grid.bound().left - label.value()/oldScale).moveTo(chart.grid.bound().left - label.value()/axis.scale(), false);
       } else {
-        if (orientation == "vertical")
+        if (axis.orientation() == "vertical")
           label.startAtY(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
-        if (orientation == "horizontal")
+        if (axis.orientation() == "horizontal")
           label.startAtX(chart.grid.bound().left - previous.value()/axis.scale()).moveTo(chart.grid.bound().left - label.value()/axis.scale(), false);
       }
     }
@@ -136,7 +132,7 @@ Chartmander.components.numberAxis = function () {
     forEach(axis.labels(), function (label) {
       // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " " + unit, grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " ", grid.bound().left - margin, label.y());
     });
     ctx.restore();
     return axis;
@@ -148,17 +144,12 @@ Chartmander.components.numberAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.unit = function (_) {
-    if(!arguments.length) return unit;
-    unit = _;
-    return axis;
-  };
-
-  axis.orientation = function (_) {
-    if(!arguments.length) return orientation;
-    orientation = _;
-    return axis;
-  };
+  // include to format
+  // axis.unit = function (_) {
+  //   if(!arguments.length) return unit;
+  //   unit = _;
+  //   return axis;
+  // };
 
   axis.zeroLevel = function (_) {
     if(!arguments.length) return zeroLevel;
@@ -175,7 +166,7 @@ Chartmander.components.numberAxis = function () {
   // oldScale FAUX 
   axis.adapt = function (chart, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    recalc(chart, oldScale);
+    generate(chart, oldScale);
     return axis;
   };
 

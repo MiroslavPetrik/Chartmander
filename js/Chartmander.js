@@ -1559,269 +1559,6 @@ Chartmander.charts.line = function (canvas) {
   return lines;
 };
 
-Chartmander.charts.trigonometricCombo = function (canvas) {
-
-  var chart = this;
-  
-  ///////////////////////////////////
-  // Use Components
-  ///////////////////////////////////
-
-  var layer     = new Chartmander.components.layer(canvas)
-    , circle    = new Chartmander.models.pie()
-    , line      = new Chartmander.models.line()
-    , xAxis     = new Chartmander.components.numberAxis()
-    , yAxis     = new Chartmander.components.numberAxis()
-    , grid      = new Chartmander.components.grid()
-    , crosshair = new Chartmander.components.crosshair()
-    ;
-
-  circle.layer = layer;
-  line.layer = layer;
-
-  var xAxisVisible = true
-    , yAxisVisible = true
-    , angleColor   = "#fff"
-    , hoverAngle   = 0;
-    ;
-
-  ///////////////////////////////////
-  // Setup Defaults
-  ///////////////////////////////////
-
-  layer
-    .onHover(function () {
-      // circle.updated(true);
-
-      if (circle.hovered())
-        circle.draw(true);
-      if (line.hovered())
-        line.draw(true);
-
-      hoverAngle = crossToAngle(crosshair.x());
-
-      chart.render(hoverAngle);
-    })
-    .onLeave(function () {
-      if ( circle.completed() ) {
-        circle.draw(true);
-      }
-      if ( line.completed() ) {
-        line.draw(true);
-      }
-    })
-    ;
-
-  line
-    .animate(false)
-    .startPosition("direct")
-    .easing("linear")
-    .width(layer.width()-300)
-    .height(250)
-    .showPoint(false)
-    .lineWidth(3)
-    .areaVisible(false)
-    .margin({top: 20, left: 250, bottom: 0, right: 30})
-    ;
-
-  circle
-    .animate(false)
-    .easing("linear")
-    .margin({top: 30, left: 30})
-    .radius(100)
-    .innerRadius(.97)
-    .colors(["blue", angleColor])
-    ;
-
-  grid.margin({top: 10});
-
-  xAxis.orientation("horizontal");
-
-  function sinMe (angle) {
-    return parseFloat(Math.sin(angle).toFixed(3));
-  }
-
-  function sineWave (points, endAngle) {
-    var set = {
-          "title": "sinx",
-          "values": []
-        },
-        hoverSet = {
-          "title": "hovered sinx",
-          "values": []
-        }
-      , incrementAngle = (Math.PI*2)/points
-      ;
-    for (var currAngle = 0; currAngle < Math.PI*2; currAngle += incrementAngle) {
-      var sin = sinMe(currAngle);
-      set.values.push({
-        label: currAngle,
-        value: sin
-      });
-      if (currAngle <= endAngle) {
-        hoverSet.values.push({
-          label: currAngle,
-          value: sin
-        });
-      }
-    };
-    return [set, hoverSet];
-  }
-
-  function crossToAngle (x) {
-    return (x - grid.bound().left)*xAxis.scale();
-  }
-
-  var render = function (activeAngle) {
-    var passiveAngle = Math.PI*2 - activeAngle
-      , circleData = [
-          {
-            title: "passive",
-            values: [
-              {
-                label: "passive angle",
-                value: passiveAngle
-              }
-            ]
-          },
-          {
-            title: "active",
-            values: [
-              {
-                label: "active angle",
-                value: activeAngle
-              }
-            ]
-          }
-        ]
-      ;
-
-    // render unit circle
-    circle.parse(circleData, Chartmander.components.slice);
-    circle.recalc();
-    circle.completed(0);
-    circle.draw(false);
-
-    // if (!circle.updated()) {
-      var sineData = sineWave(100, 0)
-      // render line
-      line.parse(sineData, Chartmander.components.point);
-
-      // grid before axes
-      grid.adapt(line);
-      xAxis.adapt(line, {min:0, max:Math.PI*2});
-      yAxis.adapt(line, {min:-1, max:1});
-
-      line.base(grid.bound().bottom - yAxis.zeroLevel());
-      line.recalc(xAxis, yAxis, grid);
-      line.completed(0);
-      line.draw(false);
-    // }
-  }
-
-  ///////////////////////////////////
-  // Extend Animation Loop(s)
-  ///////////////////////////////////
-
-  circle.drawChart(function (_perc_) {
-    var ctx = layer.ctx;
-
-    var cx = circle.center().x
-      , cy = circle.center().y
-      , cr = cx + Math.cos(hoverAngle)*circle.radius()
-      , sr = cy - Math.sin(hoverAngle)*circle.radius()
-      ;
-
-    circle.drawModel(_perc_);
-    // draw inner triangle
-    ctx.save();
-    ctx.beginPath();
-    ctx.strokeStyle = "yellow";
-    ctx.lineWidth = 2;
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cr, cy);
-    ctx.lineTo(cr, sr);
-    ctx.lineTo(cx, cy);
-    ctx.stroke();
-    ctx.restore();
-  });
-
-  line.drawChart(function (_perc_) {
-    var ctx = layer.ctx;
-    grid.drawInto(line, _perc_);
-    
-    if (xAxisVisible) {
-      xAxis
-        .animIn()
-        .drawInto(line, _perc_);
-    }
-
-    if (yAxisVisible) {
-      yAxis
-        .animIn()
-        .drawInto(line, _perc_);
-    }
-
-    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
-      /// todo stick cross to line only
-      crosshair.drawInto(line);
-    }
-    
-    line.drawModel(_perc_);
-
-    // draw circle rotation on Xaxis
-    if (grid.hovered(layer.mouse())) {
-      ctx.save();
-      ctx.strokeStyle = angleColor;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(grid.bound().left, line.base());
-      ctx.lineTo(crosshair.x(), line.base());
-      ctx.stroke();
-      ctx.restore();
-    }
-
-  });
-
-  ///////////////////////////////
-  // Public Methods
-  ///////////////////////////////
-
-  line.xAxis = xAxis;
-  line.yAxis = yAxis;
-  line.grid = grid;
-  line.crosshair = crosshair;
-
-  chart.sineWave = line;  // models accessible from outside
-  chart.unitCircle = circle;
-
-  chart.render = render;
-
-  line.base = function (_) {
-    return grid.bound().bottom - yAxis.zeroLevel();
-  }
-
-  chart.showXAxis = function (_) {
-    if (!arguments.length) return xAxisVisible;
-    xAxisVisible = _;
-    return chart;
-  }
-
-  chart.showYAxis = function (_) {
-    if (!arguments.length) return yAxisVisible;
-    yAxisVisible = _;
-    return chart;
-  }
-
-  chart.angleColor = function (_) {
-    if (!arguments.length) return angleColor;
-    angleColor = _;
-    return chart;
-  }
-
-  return chart;
-}
-
 Chartmander.components.animatedPart = function () {
 
   var part = this;
@@ -2130,46 +1867,22 @@ Chartmander.components.axis = function () {
 
   var axis = new Chartmander.components.animatedPart();
 
-  var labels = []
+  // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
+
+  var labels      = [] // stored labels
     // , labelSpace = 0
-    , dataMin = 0
-    , dataMax = 0
-    , scale = 1
-    , delta = 0
-    , format = ""
+    , min         = 0 // lowest value
+    , max         = 0 // largest value 
+    , scale       = 1 // value per pixel || time per pixel etc... (delta divided by chart height)
+    , delta       = 0 // maxVal - min value
+    , format      = "" // moment.js format string
+    , orientation = "horizontal" // or vertical
+    , margin      = 10 // distance from grid 
     ;
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
-
-  axis.min = function (_) {
-    if (!arguments.length) return dataMin;
-    dataMin = _;
-    return axis; 
-  };
-
-  axis.max = function (_) {
-    if (!arguments.length) return dataMax;
-    dataMax = _;
-    return axis;
-  };
-
-  axis.scale = function (_) {
-    if (!arguments.length) return scale;
-    scale = _;
-    return axis; 
-  };
-  
-  axis.format = function (_) {
-    if (!arguments.length) return format;
-    format = _;
-    return axis;
-  };
-
-  axis.each = function (action) {
-    forEach(labels, action);
-  };
 
   axis.labels = function (_) {
     if (!arguments.length) return labels;
@@ -2181,19 +1894,60 @@ Chartmander.components.axis = function () {
     return labels[index];
   };
 
+  axis.each = function (action) {
+    forEach(labels, action);
+  };
+
+  axis.min = function (_) {
+    if (!arguments.length) return min;
+    min = _;
+    return axis; 
+  };
+
+  axis.max = function (_) {
+    if (!arguments.length) return max;
+    max = _;
+    return axis;
+  };
+
+  axis.scale = function (_) {
+    if (!arguments.length) return scale;
+    scale = _;
+    return axis; 
+  };
+  
   axis.delta = function (_) {
     if (!arguments.length) return delta;
     delta = _;
     return axis;
   };
+  
+  axis.format = function (_) {
+    if (!arguments.length) return format;
+    format = _;
+    return axis;
+  };
 
+  axis.orientation = function (_) {
+    if (!arguments.length) return orientation;
+    orientation = _;
+    return axis;
+  };
+
+  axis.margin = function (_) {
+    if(!arguments.length) return margin;
+    margin = _;
+    return axis;
+  };
+
+  // faux
   axis.copy = function () {
     return {
       state: axis.getState(),
       labels: labels,
       scale: scale
     };
-  }
+  };
 
   return axis;
 }
@@ -2202,18 +1956,14 @@ Chartmander.components.numberAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
-  var unit = ""
-    , abbr = false
-    , margin = 10 // Offset from grid
+  var margin = 10 // Offset from grid
     , zeroLevel = 0
     , labelSteps = [1, 2, 5]
-    , orientation = "vertical"
     ;
 
-  // generate?
-  var recalc = function (chart, oldScale) {
+  var generate = function (chart, oldScale) {
 
-    var height = orientation == "vertical" ? chart.grid.height() : chart.grid.width()
+    var height = axis.orientation() == "vertical" ? chart.grid.height() : chart.grid.width()
       , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
       , stepBase = axis.delta().toExponential().split("e")
       , stepExponent = parseInt(stepBase[1])
@@ -2235,22 +1985,22 @@ Chartmander.components.numberAxis = function () {
       else if (label.value() > 0)
         previous = axis.getLabel(i-1);
       else if (label.value() == 0) {
-        if (orientation == "vertical")
+        if (axis.orientation() == "vertical")
           label.startAtY(chart.base()).moveTo(false, chart.base());
-        if (orientation == "horizontal")
+        if (axis.orientation() == "horizontal")
           label.startAtX(chart.grid.bound().left).moveTo(chart.grid.bound().left, false);
         continue;
       }
       // where to start animating labels
       if (!isNaN(oldScale)) {
-        if (orientation == "vertical")
+        if (axis.orientation() == "vertical")
           label.startAtY(chart.base() - label.value()/oldScale).moveTo(false, chart.base() - label.value()/axis.scale());
-        if (orientation == "horizontal")
+        if (axis.orientation() == "horizontal")
           label.startAtX(chart.grid.bound().left - label.value()/oldScale).moveTo(chart.grid.bound().left - label.value()/axis.scale(), false);
       } else {
-        if (orientation == "vertical")
+        if (axis.orientation() == "vertical")
           label.startAtY(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
-        if (orientation == "horizontal")
+        if (axis.orientation() == "horizontal")
           label.startAtX(chart.grid.bound().left - previous.value()/axis.scale()).moveTo(chart.grid.bound().left - label.value()/axis.scale(), false);
       }
     }
@@ -2336,7 +2086,7 @@ Chartmander.components.numberAxis = function () {
     forEach(axis.labels(), function (label) {
       // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " " + unit, grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " ", grid.bound().left - margin, label.y());
     });
     ctx.restore();
     return axis;
@@ -2348,17 +2098,12 @@ Chartmander.components.numberAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.unit = function (_) {
-    if(!arguments.length) return unit;
-    unit = _;
-    return axis;
-  };
-
-  axis.orientation = function (_) {
-    if(!arguments.length) return orientation;
-    orientation = _;
-    return axis;
-  };
+  // include to format
+  // axis.unit = function (_) {
+  //   if(!arguments.length) return unit;
+  //   unit = _;
+  //   return axis;
+  // };
 
   axis.zeroLevel = function (_) {
     if(!arguments.length) return zeroLevel;
@@ -2375,7 +2120,90 @@ Chartmander.components.numberAxis = function () {
   // oldScale FAUX 
   axis.adapt = function (chart, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    recalc(chart, oldScale);
+    generate(chart, oldScale);
+    return axis;
+  };
+
+  return axis;
+}
+
+Chartmander.components.timeAxis = function () {
+
+  var axis = new Chartmander.components.axis();
+
+  var steps = [
+        {
+          "days": 1,
+          "label": "days"
+        },
+        {
+          "days": 7,
+          "label": "weeks"
+        },
+        {
+          "days": 30,
+          "label": "months"
+        },
+        {
+          "days": 365,
+          "label": "years"
+        }
+      ]
+    , dayMSec = 60*60*24*1000
+    ;
+    
+  axis.format("MM/YYYY");
+
+  var generate = function (chart) {
+    var startDate = moment(axis.min())
+      , daysInRange = axis.delta()/dayMSec
+      , stepIndex = steps.length
+      , labelCount = 0
+      ;
+
+    // clear labels
+    axis.labels([]);
+    // Time per pixel
+    axis.scale(axis.delta()/chart.grid.width());
+
+    while (labelCount < 1) {
+      stepIndex--;
+      labelCount = daysInRange/steps[stepIndex].days;
+    }
+
+    labelCount = Math.round(labelCount);
+    for (var i = 0; i < labelCount; i++) {
+      var label = moment(startDate).add(steps[stepIndex].label, i);
+      axis.labels().push(label.valueOf());
+    }
+  }
+
+  var drawInto = function (chart, _perc_) {
+    var ctx = chart.layer.ctx
+      , topOffset = chart.grid.bound().bottom + axis.margin();
+
+    ctx.save();
+    ctx.fillStyle = chart.fontColor();
+    ctx.font = chart.font();
+    ctx.globalAlpha = 1;
+    axis.each(function (label) {
+      var leftOffset = chart.grid.bound().left + (label-chart.xAxis.min())/chart.xAxis.scale();
+      ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
+    });
+    ctx.restore();
+    return axis;
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  axis.drawInto = drawInto;
+
+  axis.adapt = function (chart, range) {
+    // Apply values required for label recalculation
+    axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
+    generate(chart);
     return axis;
   };
 

@@ -8,91 +8,10 @@ title: Chartmander.js Examples
 
 <div class="container">
   <h1>Examples</h1>
-  <canvas id="sine" style="background: #ccc;" width="960" height="400"></canvas>
+  <canvas id="bar" width="800" height="400"></canvas>
+  <canvas id="line" width="800" height="400"></canvas>
 </div>
-<canvas id="bar" width="800" height="400"></canvas>
-<canvas id="line" width="800" height="400"></canvas>
+
 <script>
-
-  Chartmander.addChart(function(){
-    var chart = Chartmander.select("sine", "trigonometricCombo");
-      chart
-        .render(0); // angle in radians <0;2PI>
-
-      return chart;
-  });
-
-  // Chartmander.addChart(function(){
-  //   var chart = Chartmander.select("bar", "bar");
-  //     // Data after settings
-  //     chart
-  //       .colors(["yellow", "orange"])
-  //       .render(testData);
-  //     return chart;
-  // }).addChart(function(){
-  //   var chart = Chartmander.select("line", "line");
-  //     chart
-  //       .render(testData);
-  //     return chart;
-  // });
-
-  // $("#update").on('click', function () {
-  //   Chartmander.addChart(function(){
-  //     var chart = Chartmander.select("bar", "bar");
-  //       chart
-  //         .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
-  //       return chart;
-  //   }).addChart(function(){
-  //     var chart = Chartmander.select("line", "line");
-  //       chart
-  //         .render(dataFactory(["Hau", "Mnau"], yearByMonths(1), 20+Math.random()*300));
-  //       return chart;
-  //   });
-  // });
-
-  // var angleStep = 2*Math.PI/100
-  //  , currAngle = angleStep
-  //  , dayStart = new Date().getTime()
-  //  , currDay = 0
-  //  , offset = 60*60*24*1000
-  //  , sineWave = {
-  //    "title": "sine",
-  //    "values": []
-  //  }
-  //  , cosineWave = {
-  //    "title": "cosine",
-  //    "values": []
-  //  }
-  //  ;
-
-  // for (var i = 0; i<100; i++) {
-  //  sineWave.values.push({
-  //    "label": dayStart + currDay*offset,
-  //    "value": 3*Math.sin(currAngle)
-  //  });
-  //  cosineWave.values.push({
-  //    "label": dayStart + currDay*offset,
-  //    "value": 3*Math.cos(currAngle)
-  //  });
-  //  currAngle += angleStep;
-  //  currDay++;
-  // }
-
-  // var realtime = new Chartmander("realtime").Line([sineWave, cosineWave]);
-  //  realtime.pointRadius(0).areaVisible(false).lineWidth(3)
-  //  setInterval(function () {
-  //    sineWave.values.shift();
-  //    cosineWave.values.shift();
-  //    sineWave.values.push({
-  //      label: dayStart + currDay*offset,
-  //      value: 3*Math.sin(currAngle)
-  //    }); 
-  //    cosineWave.values.push({
-  //      label: dayStart + currDay*offset,
-  //      value: 3*Math.cos(currAngle)
-  //    });
-  //    currAngle += angleStep;
-  //    currDay++;
-  //    realtime.update([sineWave, cosineWave])
-  //  }, 50)
+  
 </script>
