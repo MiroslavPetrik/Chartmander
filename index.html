@@ -8,6 +8,29 @@ title: Chartmander - HTML5 canvas charts
   <canvas id="chartmander-intro" style="background: rgb(79, 92, 102);" width="1200" height="400"></canvas>
 </header>
 
+<div class="features">
+  <div class="container">
+    <h2>Three key features of Chartmander.js</h2>
+    <div class="row">
+      <div class="col-sm-4">
+        <i class="ion-ios7-pie-outline"></i>
+        <h4>Interaction</h4>
+        <p>Explore your data. Touch it, hover it. Your data will show up in a nice tooltip. Tooltip is painted on cavas. For richer styling options a html/css based tooltip is planed.</p>
+      </div>
+      <div class="col-sm-4">
+        <i class="ion-film-marker"></i>
+        <h4>Animation</h4>
+        <p>Drag attention of your users. With chartmander you can aniamte your charts on load and on update. Choose easing function from a wide range.</p>
+      </div>
+      <div class="col-sm-4">
+        <i class="ion-ios7-gear-outline"></i>
+        <h4>Customization</h4>
+        <p>This library was built with attention to design. Customize points on line chart, donut hole in pie chart or switch between stacked or grouped bar chart.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="container">
   <div class="row">
     <div class="col-lg-10 col-lg-offset-1">
@@ -35,21 +58,36 @@ title: Chartmander - HTML5 canvas charts
       </div>
     </div>
   </div>
+</div>
 
-  <div class="row">
-    <div class="col-lg-10 col-lg-offset-1">
-      <h2 class="page-header"><i class="ion-person pull-right"></i>About author <small>see github</small></h2>
-      <div class="row">
-        <div class="col-lg-8">
-        <a href="https://github.com/11th">Miroslav Petrik</a>
-        <p>Student at <a href="http://www.spseke.sk">SPSE Kosice</a> Slovakia</p>
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-lg-offset-1">
+        <h2>About project</h2>
+        <div class="row">
+          <div class="col-sm-4">
+            <i class="ion-person"></i>
+            <h4>Author</h4>
+            <p>I am <a href="https://github.com/11th">Miroslav Petrik</a>, student at <a href="http://www.spseke.sk">SPSE Kosice</a>, Slovakia and this is my school project.</p>
+          </div>
+          <div class="col-sm-4">
+            <i class="ion-code-download"></i>
+            <h4>Open source</h4>
+            <p>Released under MIT Licence.</p>
+          </div>
+          <div class="col-sm-4">
+            <i class="ion-social-github-outline"></i>
+            <h4>Contribute</h4>
+            <p>Explore <a href="https://github.com/11th/Chartmander">GitHub repo</a> and feel free to fork it. In case of bug please create an issue.</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</footer>
+
 <script>
-  
   var myCharts = function () {
     Chartmander
     .addChart(function(){
@@ -58,6 +96,7 @@ title: Chartmander - HTML5 canvas charts
         .colors(["#fff", "darkblue"])
         .easing("easeOutQuint")
         .pointRadius(10)
+        .pointHoverColor("#f8cb4c")
         .fontColor("#fff")
         .font("14px Arial")
 

@@ -3,6 +3,7 @@
 	@include background-image(linear-gradient(left top, $blue, $green));
 	color: #FFF;
 	text-align: center;
+	margin-bottom: 0;
 
 	h1 {
 		@include font(3.6);
@@ -18,5 +19,39 @@
 		background: transparent;
 		border: 2px solid #555;
 		color: white;
+	}
+}
+
+.features {
+	@include rem(padding, 5, 0);
+	@include background-image(linear-gradient(left top, #13171a, #2f3a41));
+	text-align: center;
+
+	h2 {
+		color: #d2d7df;
+		font-weight: 300;
+	}
+
+	i {
+		color: #7c9caf;
+		@include font(7);
+	}
+
+	h4 {
+		color: #d2d7df;
+	}
+
+	p {
+		color: #758690;
+	}
+}
+
+footer {
+	@include rem(padding-bottom, 4);
+	text-align: center;
+	background: #f0f3f6;
+
+	i {
+		@include font(6);
 	}
 }
