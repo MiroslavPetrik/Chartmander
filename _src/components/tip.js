@@ -17,14 +17,13 @@ Chartmander.components.tip = function (id) {
   container.appendChild(content);
 
   var moveTo = function (pos) {
-    console.log(pos)
     container.style.top  = pos.y + 'px';
     container.style.left = pos.x + margin + 'px';
     return tooltip;
   }
 
   var generate = function () {
-    header.innerHTML = items[0].x + items[0].label;
+    header.innerHTML = moment(items[0]).format(dateFormat);
     forEach(items, function (item) {
       content.appendChild(new TipNode(item.color, item.value, item.set));
     });
@@ -34,7 +33,7 @@ Chartmander.components.tip = function (id) {
     var node = document.createElement('li')
       , val = document.createElement('strong')
       , icon = document.createElement('div')
-      , set = document.createTextNode(setTitle)
+      , set = document.createTextNode(" " + setTitle)
       ;
 
     val.innerHTML = value;

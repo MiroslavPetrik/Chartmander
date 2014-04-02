@@ -35,12 +35,12 @@ Chartmander.components.slice = function (data, title) {
     if (pie.layer.hovered()) {
       if (sliceIsHovered(pie)) {
         ctx.fillStyle = set.hoverColor();
-        // pie.tooltip.addItem({
-        //   "set": set.title,
-        //   "label": slice.label,
-        //   "value": slice.value,
-        //   "color": set.style.normal.color
-        // });
+        pie.layer.tooltip.addItem({
+          "set"  : set.title(),
+          "label": slice.label(),
+          "value": slice.value(),
+          "color": set.color()
+        });
       }
     }
     ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y(), pie.clockWise());

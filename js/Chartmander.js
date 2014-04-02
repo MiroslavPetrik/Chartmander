@@ -417,6 +417,11 @@ Chartmander.components.layer = function (canvasID) {
     return layer;
   };
 
+  layer.eraseFull = function () {
+    ctx.clearRect(0, 0, width, height);
+    return layer;
+  };
+
   layer.onHover = function (f) {
     onHover = f;
     return layer;
@@ -484,7 +489,7 @@ Chartmander.models.base = function () {
       }
 
       _perc_ = easingFunction(animationCompleted);
-      
+
       tip.clear();
       // ctx.save(); // prepare for clipping
       // ctx.beginPath();
@@ -496,7 +501,8 @@ Chartmander.models.base = function () {
 
       // FAUX if layer not connected to model in chart!
       chart.layer
-        .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
+        .eraseFull()
+        // .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
         .hoverFinished(true)
         ;
 
@@ -2679,12 +2685,12 @@ Chartmander.components.slice = function (data, title) {
     if (pie.layer.hovered()) {
       if (sliceIsHovered(pie)) {
         ctx.fillStyle = set.hoverColor();
-        // pie.tooltip.addItem({
-        //   "set": set.title,
-        //   "label": slice.label,
-        //   "value": slice.value,
-        //   "color": set.style.normal.color
-        // });
+        pie.layer.tooltip.addItem({
+          "set"  : set.title(),
+          "label": slice.label(),
+          "value": slice.value(),
+          "color": set.color()
+        });
       }
     }
     ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y(), pie.clockWise());
@@ -2722,7 +2728,7 @@ Chartmander.components.bar = function (data, title) {
       // chart.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
-      chart.tooltip.addItem({
+      chart.layer.tooltip.addItem({
         "set"  : set.title(),
         "label": bar.label(),
         "value": bar.value(),
@@ -2987,14 +2993,13 @@ Chartmander.components.tip = function (id) {
   container.appendChild(content);
 
   var moveTo = function (pos) {
-    console.log(pos)
     container.style.top  = pos.y + 'px';
     container.style.left = pos.x + margin + 'px';
     return tooltip;
   }
 
   var generate = function () {
-    header.innerHTML = items[0].x + items[0].label;
+    header.innerHTML = moment(items[0]).format(dateFormat);
     forEach(items, function (item) {
       content.appendChild(new TipNode(item.color, item.value, item.set));
     });
@@ -3004,7 +3009,7 @@ Chartmander.components.tip = function (id) {
     var node = document.createElement('li')
       , val = document.createElement('strong')
       , icon = document.createElement('div')
-      , set = document.createTextNode(setTitle)
+      , set = document.createTextNode(" " + setTitle)
       ;
 
     val.innerHTML = value;

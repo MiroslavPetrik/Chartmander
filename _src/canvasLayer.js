@@ -121,6 +121,11 @@ Chartmander.components.layer = function (canvasID) {
     return layer;
   };
 
+  layer.eraseFull = function () {
+    ctx.clearRect(0, 0, width, height);
+    return layer;
+  };
+
   layer.onHover = function (f) {
     onHover = f;
     return layer;

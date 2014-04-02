@@ -52,7 +52,7 @@ Chartmander.models.base = function () {
       }
 
       _perc_ = easingFunction(animationCompleted);
-      
+
       tip.clear();
       // ctx.save(); // prepare for clipping
       // ctx.beginPath();
@@ -64,7 +64,8 @@ Chartmander.models.base = function () {
 
       // FAUX if layer not connected to model in chart!
       chart.layer
-        .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
+        .eraseFull()
+        // .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
         .hoverFinished(true)
         ;
 
