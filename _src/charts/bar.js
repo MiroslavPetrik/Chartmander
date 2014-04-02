@@ -24,7 +24,8 @@ Chartmander.charts.bar = function (canvas) {
 
   layer
     .onHover(function () {
-      bars.draw(true);
+      if (bar.completed() >= 1)
+        bars.draw(true);
     })
     .onLeave(function () {
       if ( bars.completed() ) {

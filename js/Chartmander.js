@@ -1101,7 +1101,8 @@ Chartmander.charts.pie = function (canvas) {
 
   layer
     .onHover(function () {
-      pie.draw(true);
+      if (pie.completed() >= 1)
+        pie.draw(true);
     })
     .onLeave(function () {
       if ( pie.completed() ) {
@@ -1164,7 +1165,8 @@ Chartmander.charts.bar = function (canvas) {
 
   layer
     .onHover(function () {
-      bars.draw(true);
+      if (bar.completed() >= 1)
+        bars.draw(true);
     })
     .onLeave(function () {
       if ( bars.completed() ) {
@@ -2677,7 +2679,7 @@ Chartmander.components.bar = function (data, title) {
 
     ctx.save();
     if (layer.hovered() && isHovered(chart)) {
-      // chart.hoverFinished(false);
+      layer.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
       layer.tooltip.addItem({

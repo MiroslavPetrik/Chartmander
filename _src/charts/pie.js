@@ -16,7 +16,8 @@ Chartmander.charts.pie = function (canvas) {
 
   layer
     .onHover(function () {
-      pie.draw(true);
+      if (pie.completed() >= 1)
+        pie.draw(true);
     })
     .onLeave(function () {
       if ( pie.completed() ) {

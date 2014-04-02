@@ -16,7 +16,7 @@ Chartmander.components.bar = function (data, title) {
 
     ctx.save();
     if (layer.hovered() && isHovered(chart)) {
-      // chart.hoverFinished(false);
+      layer.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
       layer.tooltip.addItem({
