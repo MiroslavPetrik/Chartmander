@@ -54,22 +54,22 @@
 				</div>
 			</div>
 			<div class="maximo" id="circuit"></div>
-			<!-- Any section element inside of this container is displayed as a slide -->
+
 			<div class="slides">
 				<section id="intro" class="whitey">
 					<h2>Chartmander.js</h2>
 					<h2>Vizualizácia dát prostredníctvom <br/>HTML5 canvas elementu</h2>
-					<!-- <h3>Miroslav Petrik</h3> -->
+					<h3>Miroslav Petrik</h3>
 				</section>
 				<section>
 					<section class="quote whitey">
 						<h2><em>&ldquo;Čo nevieš odmerať nevieš manažovať.&rdquo;</em></h2>
-						<div class="row">
+						<div class="row fragment">
 							<div class="col-sm-4">
 								<i class="ion-speedometer ion-xl longo"></i>
-								<p>zistenie stavu, trendu</p>
+								<p>zistenie stavu</br>alebo trendu</p>
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-4 fragment">
 								<i class="ion-stats-bars ion-xl longo wise"></i>
 								<p>vizualizácia</p>
 							</div>
@@ -78,9 +78,9 @@
 								<p>akcia</p>
 							</div>
 						</div>
-						<p style="margin-top: 5rem;">najrýchlejšia cesta ako odkomunikovať informáciu človeku</p style="margin-top: 3rem;">
+						<h3 style="margin-top: 5rem;" class="fragment">najrýchlejšia cesta ako odkomunikovať informáciu človeku</h3>
 					</section>
-					<section data-background="img/compare.png">
+					<section data-background="img/fl.jpg">
 					</section>
 					<section data-background="img/dashboard.png">
 					</section>	
@@ -119,7 +119,6 @@
 							<li><h3>kruhový, čiarový, stĺpcový diagram</h3></li>
 							<li><h3>Dôraz na animáciu a interaktívne prvky</h3></li>
 							<li><h3>Zhotovenie prezetačnej stránky</h3></li>
-							<!-- <li>Priklad použitia knižnice vizualizovaním štatistík z OH Soči prostredníctvom API webovej služby Kimono</li> -->
 							<li><h3>Otvorený repozitár v službe GitHub</h3></li>
 						</ul>
 					</section>
@@ -129,14 +128,29 @@
 						<h3>Čo je potrebné aby sa z číslic a reťazcov stali grafy</h3>
 					</section>
 					<section>
-						<h3>
-							Proces vizualizácie dát je <strong>komplexný proces</strong>, ktorý môžeme rozdeliť na sedem krokov. V týchto krokoch je potrebné zapojiť do procesu <strong>zručnosti z odborov ako sú štatistika, matematika či grafický dizajn</strong>. Komplexnosť vizualizácie spočíva v <strong>čiastočnej obmene dát</strong> v rámci prechodu procesom. Prechod dát jedeným krokom môže spôsobiť to, že v ďalšom kroku budú tieto dáta nepoužiteľné.
-						</h3>
+						<h3 style="margin-bottom:3rem;">Ide o <strong>komplexný proces</strong>, ktorý môžeme rozdeliť na sedem krokov. Jeho komplexita spočíva v <strong>čiastočnej obmene dát</strong> v rámci prechodu procesom.</h3>
+						<div class="row">
+							<div class="col-sm-3">
+								<i class="icon-keyboard ion-md"></i>
+								<p>Počítačové vedy</p>
+							</div>
+							<div class="col-sm-3">
+								<i class="ion-stats-bars ion-md"></i>
+								<p>Štatistika</p>
+							</div>
+							<div class="col-sm-3">
+								<i class="ion-ios7-calculator ion-md"></i>
+								<p>Matematika</p>
+							</div>
+							<div class="col-sm-3">
+								<i class="icon-brush ion-md"></i>
+								<p>Grafický dizajn</p>
+							</div>
+						</div>
 					</section>
 					<section class="orange" data-state="ziskanie">
 						<div class="row">
 							<div class="col-sm-4">
-								<!-- <i class="ion-android-folder ion-xl"></i> -->
 								<i class="icon-database ion-xl"></i>
 							</div>
 							<div class="col-sm-8">
@@ -233,17 +247,6 @@
 							</div>
 						</div>
 					</section>
-<!-- 					<section data-background="#fac84b">
-						<h2>JavaScript</h2>
-						<p>jQuery</p>
-						<p>moment.js</p>
-						<p>tinycolors.js</p>
-					</section>
-					<section data-background="#86d5f1">
-						<h2>CSS3</h2>
-						<p>framework Bootstrap</p>
-						<p>preprocesor SCSS</p>
-					</section> -->
 					<section>
 						<h2>Správa projektu</h2>
 						<div class="row">
@@ -290,50 +293,18 @@
 							</div>
 						</div>
 					</section>
-<!-- 					<section>
-						<h2>Porovnanie knižníc <br />a testovanie ich náročnosí</h2> -->
-			<!-- 			<table>
-							<thead>
-								<tr>
-									<th></th>
-									<th>SVG</th>
-									<th>Canvas</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>Knižnica</td>
-									<td>X</td>
-									<td>y</td>
-								</tr>
-								<tr>
-									<td>Charakteristika</td>
-									<td>Áno</td>
-									<td>Nie</td>
-								</tr>
-							</tbody>
-						</table> -->
-<!-- 						<ul>
-							<li class="fragment">
-								<h3>Porovnanie: spôsob vykresľovania diagramov, komplexita, miera interakcie, stav dokumentácie, animovanie</h3>
-							</li>
-							<li class="fragment">
-								<h3>tri zaťažove testy pre tri typy diagramov v prehliadači Chrome</h3>
-							</li>
-						</ul>
-					</section> -->
 					<section>
 						<h2>Návrh a tvorba vlastnej<br/> experimentálnej knižnice</h2>
 						<div class="row">
-							<div class="col-sm-4 fragment">
+							<div class="col-sm-4">
 								<i class="ion-ios7-compose-outline ion-xl longo"></i>
 								<h3>Návrh algoritmu</h3>
 							</div>
-							<div class="col-sm-4 fragment">
+							<div class="col-sm-4">
 								<i class="ion-code ion-xl longo"></i>
 								<h3>Programovanie</h3>
 							</div>
-							<div class="col-sm-4 fragment">
+							<div class="col-sm-4">
 								<i class="ion-social-github-outline ion-xl longo"></i>
 								<h3>Uverejnenie projektu</h3>
 							</div>
@@ -392,7 +363,6 @@
 						</div>
 					</section>
 					<section>
-						<!-- <i class="ion-xl longo ion-grid"></i> -->
 						<i class="ion-xl longo icon-grid"></i>
 						<h2>Canvas knižnice</h2>
 						<div class="row">
@@ -429,79 +399,15 @@
 								<canvas id="chart-bar" width="400" height="300"></canvas>
 							</div>
 						</div>
-<!-- 						<ul>
-							<li class="fragment">
-								<h3>Stĺpcový, čiarový, kruhový diagram</h3>
-							</li>
-							<li class="fragment">
-								<h3>Historické dáta, dáta kategórií</h3>
-							</li>
-							<li class="fragment">
-								<h3>Široké možnosti grafickej úpravy diagramov</h3>
-							</li>
-							<li class="fragment">
-								<h3>Prvky animácie a interaktivity</h3>
-							</li>
-							<li class="fragment">
-								<h3>Nepodporuje staré prehliadače</h3>
-							</li>
-							<li class="fragment">
-								<h3>Závislosť na knižniciach <em>tinycolor</em> a <em>moment</em></h3>
-							</li>
-							<li class="fragment">
-								<h3>Otvorený zdrojový kód, MIT licencia</h3>
-							</li>
-						</ul> -->
 					</section>
-<!-- 					<section>
-						<h2>Proces vizualizácie vrámci Chartmander.js <br/> na prezentačnej stránke</h2>
-						<ol>
-							<li class="fragment">
-								<h3>Funkcia na generovanie náhodných dát prostredníctvom Math.random()</h3>
-							</li>
-							<li class="fragment">
-								<h3>Pužitie knižnice, definovanie typu diagramu</h3>
-							</li>
-							<li class="fragment">
-								<h3>Parsovanie dát bez filtrovania, členenie do množín a jednotlivých prvkov</h3>
-							</li>
-							<li class="fragment">
-								<h3>Proces dolovania dát - generovanie osí X a Y</h3>
-							</li>
-							<li class="fragment">
-								<h3>Animovanie pri interakcií s používateľom a pri vytváraní diagramu</h3>
-							</li>
-						</ol>
-					</section> -->
 					<section>
 						<h2>Prezentačná stránka</h2>
 						<img src="img/browser.png" width="110%" alt="">
-<!-- 						<ol>
-							<li class="fragment">
-								<h3>Statická, rýchla blogovacia platforma Jekyll</h3>
-							</li>
-							<li class="fragment">
-								<h3>Ukážky použitia knižnice Chartmander.js</h3>
-							</li>
-							<li class="fragment">
-								<h3>Odkaz na stiahnutie knižnice</h3>
-							</li>
-						</ol> -->
 					</section>
+					<section data-background="img/m1.jpg"></section>
 					<section>
 						<h2>Praktické použitie knižnice</h2>
 						<img src="img/sochi.png" width="110%" alt="">
-<!-- 						<ol>
-							<li class="fragment">
-								<h3>Statická, rýchla blogovacia platforma Jekyll</h3>
-							</li>
-							<li class="fragment">
-								<h3>Ukážky použitia knižnice Chartmander.js</h3>
-							</li>
-							<li class="fragment">
-								<h3>Odkaz na stiahnutie knižnice</h3>
-							</li>
-						</ol> -->
 					</section>
 					<section>
 						<h2>Testovanie knižníc</h2>
@@ -538,18 +444,24 @@
 						</ul>
 					</section>
 				</section>
+
 				<section class="whitey">
 					<section id="outro">
 						<h1>Záver</h1>
 					</section>
 					<section>
 						<h2>
-							Vo svojej práci som sa zaoberal <strong>problematikou dátovej vizualizácie</strong>. Zdokumentoval a otestoval som viaceré možnosti tohto procesu. Hlavným predmetom práce bolo <strong>zhotovenie vlastnej knižnice Chartmander.js</strong> schopnej dátovej vizualizácie zameranej na interakciu a animácie.
+							Vo svojej práci som sa zaoberal <strong>problematikou vizualizácie dát</strong>. Zdokumentoval a otestoval som viaceré možnosti tohto procesu. Predmetom vlastnej práce bolo <strong>zhotovenie vlastnej knižnice Chartmander.js</strong>. Knižnica dokáže vizualizovať data a zameriava sa na interakciu a animáciu.
 						</h2>
 					</section>
 					<section>
+						<i class="ion-xl longo ion-social-github"></i>
+						<h2>Open source</h2>
+						<h2>11th.github.io/Chartmander/</h2>
+					</section>
+					<section>
 						<h2>Budúcnosť tejto práce</h2>
-						<ol class="fragment">
+						<ol>
 							<li>
 								<h3>Testovanie knižnice</h3>
 							</li>
@@ -557,13 +469,10 @@
 								<h3>Doplnenie metód a dokumentácie</h3>
 							</li>
 							<li>
-								<h3>Zhotovenie tooltipu pomocou HTML/CSS</h3>
+								<h3>Animácia založená na čase</h3>
 							</li>
 							<li>
 								<h3>Responzivita</h3>
-							</li>
-							<li>
-								<h3>Vykresľovanie viacerých modelov</h3>
 							</li>
 						</ol>
 					</section>
@@ -571,7 +480,8 @@
 						<h2>Ďakujem za pomoc konzultantovi práce Ing. Lukášovi Kollárovi</h2>
 					</section>
 					<section>
-						<h1>Ďakujem za pozornosť</h1>
+						<h2>Ďakujem za pozornosť</h2>
+						<h3>Chartmander.js</br>Miroslav Petrik</h3>
 					</section>
 				</section>
 			</div>

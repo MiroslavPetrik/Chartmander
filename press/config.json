@@ -7,6 +7,12 @@
   "ascent": 850,
   "glyphs": [
     {
+      "uid": "ecb97add13804c190456025e43ec003b",
+      "css": "keyboard",
+      "code": 59403,
+      "src": "fontawesome"
+    },
+    {
       "uid": "4109c474ff99cad28fd5a2c38af2ec6f",
       "css": "filter",
       "code": 59393,
@@ -19,18 +25,6 @@
       "src": "fontawesome"
     },
     {
-      "uid": "44199a54057e6e264fde61a49b034171",
-      "css": "upload",
-      "code": 59395,
-      "src": "entypo"
-    },
-    {
-      "uid": "6a7b9d4863bb7e6c79e9457a72d689b6",
-      "css": "tools",
-      "code": 59396,
-      "src": "entypo"
-    },
-    {
       "uid": "97c6901d8db077614e77b089d4eedac8",
       "css": "mouse",
       "code": 59401,
@@ -40,6 +34,12 @@
       "uid": "39c4d0e225a1263a398a47523cb5b9bd",
       "css": "brush-1",
       "code": 59399,
+      "src": "entypo"
+    },
+    {
+      "uid": "7184d8171b6a9b18eabbace94cca21db",
+      "css": "chart-line",
+      "code": 59396,
       "src": "entypo"
     },
     {

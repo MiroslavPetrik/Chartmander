@@ -228,6 +228,9 @@ h2 {
   -webkit-text-fill-color: transparent;
 }
 
+.ion-md {
+  font-size: 4em;
+}
 
 .ion-xl {
   font-size: 5em;
