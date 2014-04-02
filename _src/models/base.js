@@ -97,7 +97,7 @@ Chartmander.models.base = function () {
 
   var parse = function (data, element) {
     if (data === undefined) {
-      throw new Error("No data specified for chart " + id);
+      throw new Error("No data specified for chart (canvas#id) - " + chart.layer.id());
     }
     // First render, create new datasets
     if (chart.setsCount() === 0) {

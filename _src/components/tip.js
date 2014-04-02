@@ -23,6 +23,7 @@ Chartmander.components.tip = function (id) {
   }
 
   var generate = function () {
+    container.style.opacity = 1;
     header.innerHTML = moment(items[0]).format(dateFormat);
     forEach(items, function (item) {
       content.appendChild(new TipNode(item.color, item.value, item.set));
@@ -59,6 +60,7 @@ Chartmander.components.tip = function (id) {
 
   tooltip.clear = function () {
     items = [];
+    container.style.opacity = 0;
     header.innerHTML = null;
     content.innerHTML = null;
   }

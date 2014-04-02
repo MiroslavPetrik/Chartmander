@@ -8,14 +8,14 @@ title: Chartmander.js Examples
 
 <div class="container">
   <h1>Examples</h1>
-  <canvas id="bar" width="800" height="400"></canvas>
+  <canvas id="bar" width="800" height="300"></canvas>
 </div>
 
 <script>
   Chartmander.addChart(function () {
   	var chart = Chartmander.select('bar', 'categoryBar');
 
-  	chart.render();
+  	chart.render(dataFactory(["Eat","Sleep","Rave"], ["Day in a fast Life"], 200));
 
   	return chart;
   });

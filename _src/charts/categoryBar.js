@@ -1,4 +1,4 @@
-Chartmander.charts.bar = function (canvas) {
+Chartmander.charts.categoryBar = function (canvas) {
 
   ///////////////////////////////////
   // Use Components
@@ -6,21 +6,21 @@ Chartmander.charts.bar = function (canvas) {
 
   var layer     = new Chartmander.components.layer(canvas)
     , bars      = new Chartmander.models.bar()
-    , xAxis     = new Chartmander.components.xAxis()
-    , yAxis     = new Chartmander.components.yAxis()
+    , xAxis     = new Chartmander.components.categoryAxis()
+    , yAxis     = new Chartmander.components.numberAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
     ;
 
   bars.layer = layer; // super important
 
-  var xAxisVisible = true
-    , yAxisVisible = true
+  var
+    // , datasetSpacing = 0
+    // , groupWidth     = 0
+    // , groupOffset    = 0
+      xAxisVisible   = true
+    , yAxisVisible   = true
     ;
-
-  ///////////////////////////////////
-  // Setup defaults
-  ///////////////////////////////////
 
   layer
     .onHover(function () {
@@ -38,12 +38,17 @@ Chartmander.charts.bar = function (canvas) {
     .height(layer.height())
     ;
 
-  var x0, y0;
+  var y0;
 
   var render =  function (data) {
     bars.parse(data, Chartmander.components.bar);
     var oldYScale; //undefined
-    var xrange = getRange(getArrayBy(data, "label"));
+    var xLabels = [];
+    // excract categories - just from #1 dataset
+    bars.dataset(0).each(function (element) {
+      xLabels.push(element.label());
+    });
+
     var yrange = getRange(function(){
       var values = [];
       forEach(bars.datasets(), function (set) {
@@ -54,17 +59,15 @@ Chartmander.charts.bar = function (canvas) {
     }());
 
     if (bars.updated()) {
-      x0 = xAxis.copy(); // just object with labels and scale
       y0 = yAxis.copy();
       oldYScale = y0.scale;
     }
-    // grid before axes
+
     grid.adapt(bars);
-    // axes use grid height to calculate their scale
-    xAxis.adapt(bars, xrange);
+    xAxis.adapt(bars, xLabels);
     yAxis.adapt(bars, yrange, oldYScale);
 
-    bars.base(grid.bound().bottom - yAxis.zeroLevel());
+    bars.base()
 
     // recalc old labels to new position
     if (bars.updated()) {
@@ -72,7 +75,7 @@ Chartmander.charts.bar = function (canvas) {
         label.savePosition().moveTo(false, bars.base() - label.value()/yAxis.scale());
       });
     }
-
+    
     bars
       .recalc(xAxis, yAxis, grid)
       .completed(0)
@@ -120,12 +123,20 @@ Chartmander.charts.bar = function (canvas) {
     bars.drawModel(_perc_);
   });
 
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
   bars.xAxis = xAxis;
   bars.yAxis = yAxis;
   bars.grid = grid;
   bars.crosshair = crosshair;
 
   bars.render = render;
+
+  bars.base = function (_) {
+    return grid.bound().bottom;
+  };
 
   bars.showXAxis = function (_) {
     if (!arguments.length) return xAxisVisible;
