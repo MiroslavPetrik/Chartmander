@@ -11,9 +11,9 @@ Chartmander.components.categoryAxis = function () {
   }
 
   axis.drawInto = function (chart, _perc_) {
-    var ctx = chart.ctx
-      , topOffset = chart.grid.bottom() + 25
-      , counter = 0
+    var ctx = chart.layer.ctx
+      , topOffset = chart.grid.bottom() + axis.margin()
+      , i = 0
       ;
 
     ctx.save();
@@ -21,9 +21,9 @@ Chartmander.components.categoryAxis = function () {
     ctx.globalAlpha = 1;
     ctx.font = chart.font();
     axis.each(function (label) {
-      var leftOffset = chart.grid.left() + counter*labelSpace + labelSpace/2 - ctx.measureText(label).width/2;
+      var leftOffset = chart.grid.left() + i*labelSpace + labelSpace/2 - ctx.measureText(label).width/2;
       ctx.fillText(label, leftOffset, topOffset);
-      counter++;
+      i++;
     });
     ctx.restore();
   }

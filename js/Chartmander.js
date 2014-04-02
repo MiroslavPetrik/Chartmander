@@ -263,6 +263,37 @@
     return indexOf.call(this, element);
   }
 
+  // jQuery wrap
+  // Wrap an HTMLElement around each element in an HTMLElement array.
+  HTMLElement.prototype.wrap = function(elms) {
+      // Convert `elms` to an array, if necessary.
+      if (!elms.length) elms = [elms];
+      
+      // Loops backwards to prevent having to clone the wrapper on the
+      // first element (see `child` below).
+      for (var i = elms.length - 1; i >= 0; i--) {
+          var child = (i > 0) ? this.cloneNode(true) : this;
+          var el    = elms[i];
+          
+          // Cache the current parent and sibling.
+          var parent  = el.parentNode;
+          var sibling = el.nextSibling;
+          
+          // Wrap the element (is automatically removed from its current
+          // parent).
+          child.appendChild(el);
+          
+          // If the element had a sibling, insert the wrapper before
+          // the sibling to maintain the HTML structure; otherwise, just
+          // append it to the parent.
+          if (sibling) {
+              parent.insertBefore(child, sibling);
+          } else {
+              parent.appendChild(child);
+          }
+      }
+  };
+
 Chartmander.components.layer = function (canvasID) {
 
   // main component for each chart or multiple charts
@@ -271,6 +302,7 @@ Chartmander.components.layer = function (canvasID) {
 
   var id = canvasID // unique ID selector
     , canvas = document.getElementById(canvasID)
+    , wrapper = document.createElement('div')
     , ctx = canvas.getContext('2d')
     , width = ctx.canvas.width
     , height = ctx.canvas.height
@@ -282,10 +314,19 @@ Chartmander.components.layer = function (canvasID) {
     ;
 
   ///////////////////////////////////
-  // Use Components
+  // Wrapper for layer
   ///////////////////////////////////
 
-  // var tooltip = new Chartmander.components.tooltip();
+  wrapper.id = "chartmander-"+id;
+  wrapper.className = "cm-wrapper";
+  wrapper.wrap(canvas);
+
+  ///////////////////////////////////
+  // Tooltip
+  ///////////////////////////////////
+
+  var tooltip = new Chartmander.components.tip(id);
+  wrapper.insertBefore(tooltip.container, canvas);
 
   ///////////////////////////////////
   // Interaction Setup
@@ -332,7 +373,7 @@ Chartmander.components.layer = function (canvasID) {
   ///////////////////////////////
 
   layer.ctx = ctx;
-  // layer.tooltip = tooltip;
+  layer.tooltip = tooltip;
 
   layer.id = function (_) {
     if(!arguments.length) return id;
@@ -417,10 +458,7 @@ Chartmander.models.base = function () {
   // Components
   ///////////////////////////////////
 
-  var tooltip = new Chartmander.components.tooltip();
-
-  chart.layer   = null; // each model need a layer
-  chart.tooltip = tooltip;
+  chart.layer = null; // each model need a layer
 
   ///////////////////////////////////
   // The Animating Loop
@@ -431,18 +469,11 @@ Chartmander.models.base = function () {
       , animationIncrement = 1/animationSteps
       , _perc_
       , ctx = chart.layer.ctx
+      , tip = chart.layer.tooltip
       ;
 
     if (!updated)
       animationCompleted = animate ? 0 : 1;
-
-    // ctx.save(); // prepare for clipping
-    // // ctx.beginPath();
-    // ctx.rect(margin.left, margin.top, width+5, height+5);
-    // // ctx.closePath();
-    // // ctx.stroke();
-    // ctx.clip();
-    // // ctx.fillRect(0,0,500,100);
 
     function loop () {
 
@@ -454,13 +485,15 @@ Chartmander.models.base = function () {
 
       _perc_ = easingFunction(animationCompleted);
       
-      ctx.save(); // prepare for clipping
-      ctx.beginPath();
-      ctx.rect(margin.left, margin.top, width+5, height+5);
-      ctx.closePath();
-      ctx.lineWidth = "3";
-      // ctx.stroke();
-      ctx.clip();
+      tip.clear();
+      // ctx.save(); // prepare for clipping
+      // ctx.beginPath();
+      // ctx.rect(margin.left, margin.top, width+5, height+5);
+      // ctx.closePath();
+      // ctx.lineWidth = "3";
+      // // ctx.stroke();
+      // ctx.clip();
+
       // FAUX if layer not connected to model in chart!
       chart.layer
         .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
@@ -470,14 +503,14 @@ Chartmander.models.base = function () {
       // Model specific drawings
       drawChart(_perc_);
       
-      // if (hovered && tooltip.hasItems()) {
-      //   // tooltip.recalc(ctx);
-      //   layer.tooltip.drawInto(chart);
-      // }
-      ctx.restore(); // clear canvas clip
+      if (chart.layer.hovered() && tip.hasItems()) {
+        tip.generate();
+        tip.moveTo(chart.layer.mouse());
+      }
 
-      // Request self-repaint if chart or tooltip or data element has not finished animating yet
-      // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
+      // ctx.restore(); // clear canvas clip
+
+      // Request self-repaint if chart or data element has not finished animating yet
       if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
         requestAnimationFrame(loop);
       }
@@ -487,7 +520,6 @@ Chartmander.models.base = function () {
     }
     // Ignite
     requestAnimationFrame(loop);
-    // ctx.restore(); // clear canvas clip
   }
 
   ///////////////////////////////////
@@ -635,8 +667,8 @@ Chartmander.models.base = function () {
 
     return mouse.x >= chart.margin().left && 
            mouse.x <= chart.margin().left + chart.width() &&
-           mouse.y >= chart.margin().top &&
-           mouse.y <= chart.margin().top + chart.height();
+           mouse.y >= chart.margin().top  &&
+           mouse.y <= chart.margin().top  + chart.height();
   };
 
   return chart;
@@ -648,7 +680,7 @@ Chartmander.models.pie = function () {
 
   var center          = { x: 0, y: 0 }
     , radius          = 0
-    , innerRadius     = .6
+    , innerRadius     = .6  // donut hole
     , rotateAnimation = true
     , startAngle      = 0
     , clockWise       = false
@@ -1129,7 +1161,7 @@ Chartmander.models.line = function () {
       }
       closestHovered = set.getElement(closestHovered.index);
       closestHovered.animIn();
-      chart.tooltip.addItem({
+      chart.layer.tooltip.addItem({
         "set"  : set.title(),
         "label": closestHovered.label(),
         "value": closestHovered.value(),
@@ -2478,9 +2510,9 @@ Chartmander.components.categoryAxis = function () {
   }
 
   axis.drawInto = function (chart, _perc_) {
-    var ctx = chart.ctx
-      , topOffset = chart.grid.bottom() + 25
-      , counter = 0
+    var ctx = chart.layer.ctx
+      , topOffset = chart.grid.bottom() + axis.margin()
+      , i = 0
       ;
 
     ctx.save();
@@ -2488,9 +2520,9 @@ Chartmander.components.categoryAxis = function () {
     ctx.globalAlpha = 1;
     ctx.font = chart.font();
     axis.each(function (label) {
-      var leftOffset = chart.grid.left() + counter*labelSpace + labelSpace/2 - ctx.measureText(label).width/2;
+      var leftOffset = chart.grid.left() + i*labelSpace + labelSpace/2 - ctx.measureText(label).width/2;
       ctx.fillText(label, leftOffset, topOffset);
-      counter++;
+      i++;
     });
     ctx.restore();
   }
@@ -2934,6 +2966,85 @@ Chartmander.components.crosshair = function () {
   };
 
   return crosshair;
+}
+
+Chartmander.components.tip = function (id) {
+
+  var tooltip = this;
+
+  var items      = []
+    , container  = document.createElement('div')
+    , header     = document.createElement('span')
+    , content    = document.createElement('ul')
+    , margin     = 30
+    , dateFormat = 'MMMM YYYY'
+    ;
+
+  // Build tooltip
+  container.id = "cm-tip-"+id;
+  container.className = "cm-tip";
+  container.appendChild(header);
+  container.appendChild(content);
+
+  var moveTo = function (pos) {
+    console.log(pos)
+    container.style.top  = pos.y + 'px';
+    container.style.left = pos.x + margin + 'px';
+    return tooltip;
+  }
+
+  var generate = function () {
+    header.innerHTML = items[0].x + items[0].label;
+    forEach(items, function (item) {
+      content.appendChild(new TipNode(item.color, item.value, item.set));
+    });
+  };
+
+  var TipNode = function (color, value, setTitle) {
+    var node = document.createElement('li')
+      , val = document.createElement('strong')
+      , icon = document.createElement('div')
+      , set = document.createTextNode(setTitle)
+      ;
+
+    val.innerHTML = value;
+    icon.style.backgroundColor = color;
+
+    node.appendChild(icon);
+    node.appendChild(val);
+    node.appendChild(set);
+    return node;
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  tooltip.container = container;
+  tooltip.moveTo = moveTo;
+  tooltip.generate = generate;
+
+  tooltip.addItem = function (_) {
+    items.push(_);
+  };
+
+  tooltip.clear = function () {
+    items = [];
+    header.innerHTML = null;
+    content.innerHTML = null;
+  }
+
+  tooltip.hasItems = function () {
+    return items.length > 0;
+  };
+
+  tooltip.dateFormat = function (_) {
+    if (!arguments.length) return dateFormat;
+    dateFormat = _;
+    return tooltip;
+  };
+
+  return tooltip;
 }
 
 Chartmander.components.tooltip = function (items) {

@@ -26,10 +26,7 @@ Chartmander.models.base = function () {
   // Components
   ///////////////////////////////////
 
-  var tooltip = new Chartmander.components.tooltip();
-
-  chart.layer   = null; // each model need a layer
-  chart.tooltip = tooltip;
+  chart.layer = null; // each model need a layer
 
   ///////////////////////////////////
   // The Animating Loop
@@ -40,18 +37,11 @@ Chartmander.models.base = function () {
       , animationIncrement = 1/animationSteps
       , _perc_
       , ctx = chart.layer.ctx
+      , tip = chart.layer.tooltip
       ;
 
     if (!updated)
       animationCompleted = animate ? 0 : 1;
-
-    // ctx.save(); // prepare for clipping
-    // // ctx.beginPath();
-    // ctx.rect(margin.left, margin.top, width+5, height+5);
-    // // ctx.closePath();
-    // // ctx.stroke();
-    // ctx.clip();
-    // // ctx.fillRect(0,0,500,100);
 
     function loop () {
 
@@ -63,13 +53,15 @@ Chartmander.models.base = function () {
 
       _perc_ = easingFunction(animationCompleted);
       
-      ctx.save(); // prepare for clipping
-      ctx.beginPath();
-      ctx.rect(margin.left, margin.top, width+5, height+5);
-      ctx.closePath();
-      ctx.lineWidth = "3";
-      // ctx.stroke();
-      ctx.clip();
+      tip.clear();
+      // ctx.save(); // prepare for clipping
+      // ctx.beginPath();
+      // ctx.rect(margin.left, margin.top, width+5, height+5);
+      // ctx.closePath();
+      // ctx.lineWidth = "3";
+      // // ctx.stroke();
+      // ctx.clip();
+
       // FAUX if layer not connected to model in chart!
       chart.layer
         .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
@@ -79,14 +71,14 @@ Chartmander.models.base = function () {
       // Model specific drawings
       drawChart(_perc_);
       
-      // if (hovered && tooltip.hasItems()) {
-      //   // tooltip.recalc(ctx);
-      //   layer.tooltip.drawInto(chart);
-      // }
-      ctx.restore(); // clear canvas clip
+      if (chart.layer.hovered() && tip.hasItems()) {
+        tip.generate();
+        tip.moveTo(chart.layer.mouse());
+      }
 
-      // Request self-repaint if chart or tooltip or data element has not finished animating yet
-      // if (animationCompleted < 1 || (tip.getState() > 0 && tip.getState() < 1) || hoverNotFinished ) {
+      // ctx.restore(); // clear canvas clip
+
+      // Request self-repaint if chart or data element has not finished animating yet
       if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
         requestAnimationFrame(loop);
       }
@@ -96,7 +88,6 @@ Chartmander.models.base = function () {
     }
     // Ignite
     requestAnimationFrame(loop);
-    // ctx.restore(); // clear canvas clip
   }
 
   ///////////////////////////////////
@@ -244,8 +235,8 @@ Chartmander.models.base = function () {
 
     return mouse.x >= chart.margin().left && 
            mouse.x <= chart.margin().left + chart.width() &&
-           mouse.y >= chart.margin().top &&
-           mouse.y <= chart.margin().top + chart.height();
+           mouse.y >= chart.margin().top  &&
+           mouse.y <= chart.margin().top  + chart.height();
   };
 
   return chart;

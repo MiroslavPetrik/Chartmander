@@ -93,7 +93,7 @@ Chartmander.models.line = function () {
       }
       closestHovered = set.getElement(closestHovered.index);
       closestHovered.animIn();
-      chart.tooltip.addItem({
+      chart.layer.tooltip.addItem({
         "set"  : set.title(),
         "label": closestHovered.label(),
         "value": closestHovered.value(),

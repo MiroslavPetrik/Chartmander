@@ -4,7 +4,7 @@ Chartmander.models.pie = function () {
 
   var center          = { x: 0, y: 0 }
     , radius          = 0
-    , innerRadius     = .6
+    , innerRadius     = .6  // donut hole
     , rotateAnimation = true
     , startAngle      = 0
     , clockWise       = false

@@ -6,6 +6,7 @@ Chartmander.components.layer = function (canvasID) {
 
   var id = canvasID // unique ID selector
     , canvas = document.getElementById(canvasID)
+    , wrapper = document.createElement('div')
     , ctx = canvas.getContext('2d')
     , width = ctx.canvas.width
     , height = ctx.canvas.height
@@ -17,10 +18,19 @@ Chartmander.components.layer = function (canvasID) {
     ;
 
   ///////////////////////////////////
-  // Use Components
+  // Wrapper for layer
   ///////////////////////////////////
 
-  // var tooltip = new Chartmander.components.tooltip();
+  wrapper.id = "chartmander-"+id;
+  wrapper.className = "cm-wrapper";
+  wrapper.wrap(canvas);
+
+  ///////////////////////////////////
+  // Tooltip
+  ///////////////////////////////////
+
+  var tooltip = new Chartmander.components.tip(id);
+  wrapper.insertBefore(tooltip.container, canvas);
 
   ///////////////////////////////////
   // Interaction Setup
@@ -67,7 +77,7 @@ Chartmander.components.layer = function (canvasID) {
   ///////////////////////////////
 
   layer.ctx = ctx;
-  // layer.tooltip = tooltip;
+  layer.tooltip = tooltip;
 
   layer.id = function (_) {
     if(!arguments.length) return id;

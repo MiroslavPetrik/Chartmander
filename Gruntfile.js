@@ -30,10 +30,11 @@ module.exports = function (grunt) {
                     '_src/components/point.js',
                     '_src/components/label.js',
                     '_src/components/crosshair.js',
+                    '_src/components/tip.js',
                     '_src/components/tooltip.js',
                     '_src/end.js'
                 ],
-                dest: 'js/Chartmander.js'
+                dest: 'js/chartmander.js'
             }
         },
         uglify: {
@@ -42,7 +43,7 @@ module.exports = function (grunt) {
             },
             js: {
                 files: {
-                    'js/Chartmander.min.js': ['js/Chartmander.js']
+                    'js/chartmander.min.js': ['js/chartmander.js']
                 }
             }
         },

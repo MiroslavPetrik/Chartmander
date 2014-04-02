@@ -1,9 +1,11 @@
-@import "compass";
-@import url(http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700);
-@import "_mixins.scss";
-@import "_variables.scss";
+/*
+	Chartmander.js component styling
+	chartmander abbreviated to cm
+*/
 
-@import "_navigation.scss";
-@import "_home.scss";
+.cm-wrapper {
+	position: relative;
+	display: inline-block;
+}
 
-@import "_common.scss";
+@import "components/tooltip";
