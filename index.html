@@ -5,7 +5,7 @@ title: Chartmander - HTML5 canvas charts
 <header class="jumbotron chartmander">
   {% include nav.html %}
   <h1>Attractive charts for your new webapp or design mockup</h1>
-  <canvas id="chartmander-intro" style="background: rgb(79, 92, 102);" width="1200" height="400"></canvas>
+  <canvas id="chartmander-intro" width="1200" height="400"></canvas>
 </header>
 
 <div class="features">
@@ -99,6 +99,8 @@ title: Chartmander - HTML5 canvas charts
         .pointHoverColor("#f8cb4c")
         .fontColor("#fff")
         .font("14px Arial")
+
+      chart.grid.lineColor("rgba(0,0,0,.11)");
 
       chart.render(dataFactory(["Petrol"], yearByMonths(1), 500));
       return chart;

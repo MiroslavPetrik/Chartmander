@@ -4,6 +4,7 @@
 	color: #FFF;
 	text-align: center;
 	margin-bottom: 0;
+	@include rem(padding, 2);
 
 	h1 {
 		@include font(3.6);
@@ -54,4 +55,8 @@ footer {
 	i {
 		@include font(6);
 	}
+}
+
+.charts {
+	text-align: center;
 }
