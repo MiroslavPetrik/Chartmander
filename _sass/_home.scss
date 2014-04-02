@@ -5,6 +5,7 @@
 	text-align: center;
 	margin-bottom: 0;
 	@include rem(padding, 2);
+	@include rem(padding-top, 5);
 
 	h1 {
 		@include font(3.6);
