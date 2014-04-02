@@ -31,9 +31,9 @@ Chartmander.components.tip = function (id) {
 
   var TipNode = function (color, value, setTitle) {
     var node = document.createElement('li')
-      , val = document.createElement('strong')
+      , val  = document.createElement('strong')
       , icon = document.createElement('div')
-      , set = document.createTextNode(" " + setTitle)
+      , set  = document.createTextNode(" " + setTitle)
       ;
 
     val.innerHTML = value;

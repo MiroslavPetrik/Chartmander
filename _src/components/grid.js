@@ -8,7 +8,7 @@ Chartmander.components.grid = function () {
     , lineWidth = 1
     , width  = null
     , height = null
-    , margin = { top: 0, right: 0, bottom: 50, left: 50 } // default margin for axes
+    , margin = { top: 100, right: 30, bottom: 40, left: 50 } // default margin for axes
     , bound = { top: 0, right: 0, bottom: 0, left: 0 } // pixels relative to layer
     ;
 
@@ -21,7 +21,7 @@ Chartmander.components.grid = function () {
     height = chart.height() - margin.top - margin.bottom;
     grid.bound({
       top:    chart.margin().top  + margin.top,
-      right:  chart.margin().left + margin.left + width  - margin.right,
+      right:  chart.margin().left + margin.left + width,
       bottom: chart.margin().top  + margin.top  + height,
       left:   chart.margin().left + margin.left
     });

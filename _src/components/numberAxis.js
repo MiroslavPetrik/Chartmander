@@ -3,14 +3,14 @@ Chartmander.components.numberAxis = function () {
   var axis = new Chartmander.components.axis();
 
   var margin = 10 // Offset from grid
-    , zeroLevel = 0
     , labelSteps = [1, 2, 5]
+    , spacing = 25 // minimum space between 2 labels
     ;
 
   var generate = function (chart, oldScale) {
 
     var height = axis.orientation() == "vertical" ? chart.grid.height() : chart.grid.width()
-      , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
+      , maxLabelCount = Math.floor(height / spacing)
       , stepBase = axis.delta().toExponential().split("e")
       , stepExponent = parseInt(stepBase[1])
       ;
@@ -19,7 +19,7 @@ Chartmander.components.numberAxis = function () {
     axis.labels( getLabels(getAxeSetup(stepBase, stepExponent)) );
 
     axis.scale(axis.delta()/height);
-    zeroLevel = height - axis.max()/axis.scale();
+    // zeroLevel = height - axis.max()/axis.scale();
 
     // Set Positions for labels
     for (var i=0, len=axis.labels().length; i<len; i++) {
@@ -121,8 +121,7 @@ Chartmander.components.numberAxis = function () {
   }
 
   var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx
-      , grid = chart.grid;
+    var ctx = chart.layer.ctx;
 
     ctx.save();
     ctx.textAlign = "right";
@@ -130,9 +129,8 @@ Chartmander.components.numberAxis = function () {
     ctx.font = chart.font();
     ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
-      // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " ", grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " ", chart.grid.bound().left - margin, label.y());
     });
     ctx.restore();
     return axis;
@@ -143,19 +141,6 @@ Chartmander.components.numberAxis = function () {
   ///////////////////////////////
 
   axis.drawInto = drawInto;
-
-  // include to format
-  // axis.unit = function (_) {
-  //   if(!arguments.length) return unit;
-  //   unit = _;
-  //   return axis;
-  // };
-
-  axis.zeroLevel = function (_) {
-    if(!arguments.length) return zeroLevel;
-    zeroLevel = _;
-    return axis;
-  };
 
   axis.margin = function (_) {
     if(!arguments.length) return margin;

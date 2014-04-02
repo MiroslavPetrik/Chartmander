@@ -793,39 +793,37 @@ Chartmander.models.bar = function () {
 
   var chart = new Chartmander.models.base();
 
-  var stacked        = false
+  var stacked        = false // grouped otherwise
     , barWidth       = 0  // calculated so all sets can fit in chart
     , userBarWidth   = 30 // used only if default barwidth is higher
     , datasetSpacing = 0
     , base = 0
     ;
 
-  chart.margin({ top: 10, right: 40, bottom: 30, left: 10 });
+  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
-    var counter = 0, leftFix, x, y;
+    var i = 0, leftFix, x, y;
 
     barWidth = Math.floor( grid.width()/chart.elementCount() );
 
+    // allow userBarWith only downscale so it won't break chart
     if (barWidth > userBarWidth) {
       barWidth = userBarWidth;
     }
 
-    // leftFix = (barWidth*bars.setsCount())/2;
-
     forEach(chart.datasets(), function (set) {
       set.each(function (bar) {
-        x = grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + counter*barWidth;
+        x = Math.ceil(grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + i*barWidth);
         y = -bar.value()/yAxis.scale();
         if (chart.updated()) {
           bar.savePosition();
         } else {
           bar.savePosition(x, 0);
-          // bar.savePosition(grid.width()/2, 0);
         }
         bar.moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
       });
-      counter++;
+      i++;
     });
     return chart;
   }
@@ -856,6 +854,12 @@ Chartmander.models.bar = function () {
   chart.recalc = recalc;
   chart.drawModel = drawBars;
 
+  chart.stacked = function (_) {
+    if (!arguments.length) return stacked;
+    stacked = _;
+    return chart;
+  };
+
   chart.barWidth = function (_) {
     if (!arguments.length) return barWidth; // Internal
     userBarWidth = _; // User defined
@@ -873,7 +877,7 @@ Chartmander.models.bar = function () {
     base = _;
     return chart;
   };
-
+  
   return chart;
 }
 
@@ -1086,15 +1090,16 @@ Chartmander.models.line = function () {
     , mergeHover       = true
     , hoveredItems     = []
     , base             = 0
-    , startPosition    = "center" // or direct
+    , startPosition    = "direct" // or direct
     ;
 
-  chart.margin({ top: 10, right: 10, bottom: 10, left: 10 });
+  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
     forEach(chart.datasets(), function (set) {
       set.each(function (point) {
+        // time axis specific
         x = Math.ceil(grid.bound().left + (point.label() - xAxis.min())/xAxis.scale());
         y = chart.base() - point.value()/yAxis.scale();
         if (chart.updated()) {
@@ -1103,7 +1108,7 @@ Chartmander.models.line = function () {
           if (startPosition == "center")
             point.savePosition(chart.margin().left + grid.width()/2, chart.base());
           if (startPosition == "direct")
-            point.savePosition(x, y);
+            point.savePosition(x, chart.base());
         }
         point.moveTo(x, y);
       });
@@ -1789,7 +1794,7 @@ Chartmander.components.grid = function () {
     , lineWidth = 1
     , width  = null
     , height = null
-    , margin = { top: 0, right: 0, bottom: 50, left: 50 } // default margin for axes
+    , margin = { top: 100, right: 30, bottom: 40, left: 50 } // default margin for axes
     , bound = { top: 0, right: 0, bottom: 0, left: 0 } // pixels relative to layer
     ;
 
@@ -1802,7 +1807,7 @@ Chartmander.components.grid = function () {
     height = chart.height() - margin.top - margin.bottom;
     grid.bound({
       top:    chart.margin().top  + margin.top,
-      right:  chart.margin().left + margin.left + width  - margin.right,
+      right:  chart.margin().left + margin.left + width,
       bottom: chart.margin().top  + margin.top  + height,
       left:   chart.margin().left + margin.left
     });
@@ -1995,14 +2000,14 @@ Chartmander.components.numberAxis = function () {
   var axis = new Chartmander.components.axis();
 
   var margin = 10 // Offset from grid
-    , zeroLevel = 0
     , labelSteps = [1, 2, 5]
+    , spacing = 25 // minimum space between 2 labels
     ;
 
   var generate = function (chart, oldScale) {
 
     var height = axis.orientation() == "vertical" ? chart.grid.height() : chart.grid.width()
-      , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
+      , maxLabelCount = Math.floor(height / spacing)
       , stepBase = axis.delta().toExponential().split("e")
       , stepExponent = parseInt(stepBase[1])
       ;
@@ -2011,7 +2016,7 @@ Chartmander.components.numberAxis = function () {
     axis.labels( getLabels(getAxeSetup(stepBase, stepExponent)) );
 
     axis.scale(axis.delta()/height);
-    zeroLevel = height - axis.max()/axis.scale();
+    // zeroLevel = height - axis.max()/axis.scale();
 
     // Set Positions for labels
     for (var i=0, len=axis.labels().length; i<len; i++) {
@@ -2113,8 +2118,7 @@ Chartmander.components.numberAxis = function () {
   }
 
   var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx
-      , grid = chart.grid;
+    var ctx = chart.layer.ctx;
 
     ctx.save();
     ctx.textAlign = "right";
@@ -2122,9 +2126,8 @@ Chartmander.components.numberAxis = function () {
     ctx.font = chart.font();
     ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
-      // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " ", grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " ", chart.grid.bound().left - margin, label.y());
     });
     ctx.restore();
     return axis;
@@ -2135,19 +2138,6 @@ Chartmander.components.numberAxis = function () {
   ///////////////////////////////
 
   axis.drawInto = drawInto;
-
-  // include to format
-  // axis.unit = function (_) {
-  //   if(!arguments.length) return unit;
-  //   unit = _;
-  //   return axis;
-  // };
-
-  axis.zeroLevel = function (_) {
-    if(!arguments.length) return zeroLevel;
-    zeroLevel = _;
-    return axis;
-  };
 
   axis.margin = function (_) {
     if(!arguments.length) return margin;
@@ -2728,7 +2718,7 @@ Chartmander.components.bar = function (data, title) {
       // chart.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
-      chart.layer.tooltip.addItem({
+      layer.tooltip.addItem({
         "set"  : set.title(),
         "label": bar.label(),
         "value": bar.value(),
@@ -3007,9 +2997,9 @@ Chartmander.components.tip = function (id) {
 
   var TipNode = function (color, value, setTitle) {
     var node = document.createElement('li')
-      , val = document.createElement('strong')
+      , val  = document.createElement('strong')
       , icon = document.createElement('div')
-      , set = document.createTextNode(" " + setTitle)
+      , set  = document.createTextNode(" " + setTitle)
       ;
 
     val.innerHTML = value;

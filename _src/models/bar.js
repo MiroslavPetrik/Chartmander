@@ -2,39 +2,37 @@ Chartmander.models.bar = function () {
 
   var chart = new Chartmander.models.base();
 
-  var stacked        = false
+  var stacked        = false // grouped otherwise
     , barWidth       = 0  // calculated so all sets can fit in chart
     , userBarWidth   = 30 // used only if default barwidth is higher
     , datasetSpacing = 0
     , base = 0
     ;
 
-  chart.margin({ top: 10, right: 40, bottom: 30, left: 10 });
+  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
-    var counter = 0, leftFix, x, y;
+    var i = 0, leftFix, x, y;
 
     barWidth = Math.floor( grid.width()/chart.elementCount() );
 
+    // allow userBarWith only downscale so it won't break chart
     if (barWidth > userBarWidth) {
       barWidth = userBarWidth;
     }
 
-    // leftFix = (barWidth*bars.setsCount())/2;
-
     forEach(chart.datasets(), function (set) {
       set.each(function (bar) {
-        x = grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + counter*barWidth;
+        x = Math.ceil(grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + i*barWidth);
         y = -bar.value()/yAxis.scale();
         if (chart.updated()) {
           bar.savePosition();
         } else {
           bar.savePosition(x, 0);
-          // bar.savePosition(grid.width()/2, 0);
         }
         bar.moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
       });
-      counter++;
+      i++;
     });
     return chart;
   }
@@ -65,6 +63,12 @@ Chartmander.models.bar = function () {
   chart.recalc = recalc;
   chart.drawModel = drawBars;
 
+  chart.stacked = function (_) {
+    if (!arguments.length) return stacked;
+    stacked = _;
+    return chart;
+  };
+
   chart.barWidth = function (_) {
     if (!arguments.length) return barWidth; // Internal
     userBarWidth = _; // User defined
@@ -82,6 +86,6 @@ Chartmander.models.bar = function () {
     base = _;
     return chart;
   };
-
+  
   return chart;
 }

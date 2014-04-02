@@ -19,7 +19,7 @@ Chartmander.components.bar = function (data, title) {
       // chart.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
-      chart.layer.tooltip.addItem({
+      layer.tooltip.addItem({
         "set"  : set.title(),
         "label": bar.label(),
         "value": bar.value(),

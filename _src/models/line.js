@@ -12,15 +12,16 @@ Chartmander.models.line = function () {
     , mergeHover       = true
     , hoveredItems     = []
     , base             = 0
-    , startPosition    = "center" // or direct
+    , startPosition    = "direct" // or direct
     ;
 
-  chart.margin({ top: 10, right: 10, bottom: 10, left: 10 });
+  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
     forEach(chart.datasets(), function (set) {
       set.each(function (point) {
+        // time axis specific
         x = Math.ceil(grid.bound().left + (point.label() - xAxis.min())/xAxis.scale());
         y = chart.base() - point.value()/yAxis.scale();
         if (chart.updated()) {
@@ -29,7 +30,7 @@ Chartmander.models.line = function () {
           if (startPosition == "center")
             point.savePosition(chart.margin().left + grid.width()/2, chart.base());
           if (startPosition == "direct")
-            point.savePosition(x, y);
+            point.savePosition(x, chart.base());
         }
         point.moveTo(x, y);
       });
