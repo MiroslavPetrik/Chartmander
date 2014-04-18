@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chartmander.js - Bar Chart</title>
+  <link rel="stylesheet" href="../css/chartmander.css">
+  <script src="../js/tinycolor.js"></script>
+  <script src="../js/moment.min.js"></script>
+  <script src="../js/chartmander.js"></script>
+  <script src="../js/dataFactory.js"></script>
+</head>
+<body>
+  <h1>Bar Chart</h1>
+  <ul>
+    <li><a href="index.html">All examples</a>
+  </ul>
+  <canvas id="bar-default" width="800" height="300"></canvas>
+  <script>
+  Chartmander
+    .addChart(function(){
+      var chart = Chartmander.select("bar-default", "bar");
+      chart
+        .render(dataFactory(["Petrol"], yearByMonths(1), 300))
+        ;
+      return chart;
+    })
+  </script>
+</body>
+</html>

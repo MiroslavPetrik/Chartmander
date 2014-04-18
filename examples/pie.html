@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chartmander.js - Pie Chart</title>
+  <link rel="stylesheet" href="../css/chartmander.css">
+  <script src="../js/tinycolor.js"></script>
+  <script src="../js/moment.min.js"></script>
+  <script src="../js/chartmander.js"></script>
+  <script src="../js/dataFactory.js"></script>
+</head>
+<body>
+  <h1>Pie Chart</h1>
+  <ul>
+    <li><a href="index.html">All examples</a>
+  </ul>
+  <canvas id="pie-default" width="300" height="300"></canvas>
+<script>
+  Chartmander
+    .addChart(function(){
+      var chart = Chartmander.select("pie-default", "pie");
+      chart
+        .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a fast Life"], 200))
+        ;
+      return chart;
+    })
+    // .addChart(function(){
+    //   var chart = Chartmander.select("pie2", "pie");
+    //   chart
+    //     .innerRadius(0)
+    //     .colors(["#f15a25", "#fbb03b", "#fdee21"])
+    //     .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200))
+    //     ;
+
+    //   return chart;
+    // })
+    // .addChart(function(){
+    //   var chart = Chartmander.select("pie3", "pie");
+    //   chart
+    //     .innerRadius(.8)
+    //     .colors(["#8cc63e", "#009345"])
+    //     .render(dataFactory(["Used","Ready"], ["Ram Usage"], 200))
+    //     ;
+
+    //   return chart;
+    // });
+  </script>
+</body>
+</html>
+

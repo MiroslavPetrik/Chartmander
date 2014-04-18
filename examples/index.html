@@ -1,22 +1,15 @@
----
-layout: default
-title: Chartmander.js Examples
----
-<div class="jumbotron chartmander">
-  {% include nav.html %}
-</div>
-
-<div class="container">
-  <h1>Examples</h1>
-  <canvas id="bar" width="800" height="300"></canvas>
-</div>
-
-<script>
-  Chartmander.addChart(function () {
-  	var chart = Chartmander.select('bar', 'categoryBar');
-
-  	chart.render(dataFactory(["Eat","Sleep","Rave"], ["Day in a fast Life"], 200));
-
-  	return chart;
-  });
-</script>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chartmander.js examples</title>
+</head>
+<body>
+  <h1>Current charts</h1>
+  <ul>
+    <li><a href="pie.html">Pie Chart</a>
+    <li><a href="bar.html">Bar Chart</a>
+    <li><a href="line.html">Line Chart</a>
+  </ul>
+</body>
+</html>
