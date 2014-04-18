@@ -4,35 +4,35 @@ module.exports = function (grunt) {
         concat: {
             js: {
                 src: [
-                    '_src/core.js',
-                    '_src/canvasLayer.js',
-                    '_src/models/base.js',
-                    '_src/models/pie.js',
-                    '_src/models/bar.js',
-                    '_src/models/line.js',
-                    '_src/charts/pie.js',
-                    '_src/charts/bar.js',
-                    '_src/charts/line.js',
-                    '_src/charts/categoryBar.js',
-                    // '_src/charts/trigonometricCombo.js',
-                    '_src/components/animatedPart.js',
-                    '_src/components/dataset.js',
-                    '_src/components/grid.js',
-                    '_src/components/axis.js',
-                    '_src/components/numberAxis.js',
-                    '_src/components/timeAxis.js',
-                    '_src/components/xaxis.js',
-                    '_src/components/yaxis.js',
-                    '_src/components/categoryAxis.js',
-                    '_src/components/element.js',
-                    '_src/components/slice.js',
-                    '_src/components/bar.js',
-                    '_src/components/point.js',
-                    '_src/components/label.js',
-                    '_src/components/crosshair.js',
-                    '_src/components/tip.js',
-                    '_src/components/tooltip.js',
-                    '_src/end.js'
+                    'src/core.js',
+                    'src/canvasLayer.js',
+                    'src/models/base.js',
+                    'src/models/pie.js',
+                    'src/models/bar.js',
+                    'src/models/line.js',
+                    'src/charts/pie.js',
+                    'src/charts/bar.js',
+                    'src/charts/line.js',
+                    'src/charts/categoryBar.js',
+                    // 'src/charts/trigonometricCombo.js',
+                    'src/components/animatedPart.js',
+                    'src/components/dataset.js',
+                    'src/components/grid.js',
+                    'src/components/axis.js',
+                    'src/components/numberAxis.js',
+                    'src/components/timeAxis.js',
+                    'src/components/xaxis.js',
+                    'src/components/yaxis.js',
+                    'src/components/categoryAxis.js',
+                    'src/components/element.js',
+                    'src/components/slice.js',
+                    'src/components/bar.js',
+                    'src/components/point.js',
+                    'src/components/label.js',
+                    'src/components/crosshair.js',
+                    'src/components/tip.js',
+                    'src/components/tooltip.js',
+                    'src/end.js'
                 ],
                 dest: 'js/chartmander.js'
             }
@@ -49,7 +49,7 @@ module.exports = function (grunt) {
         },
         watch: {
             scripts: {
-                files: ['_src/**/*.js'],
+                files: ['src/**/*.js'],
                 tasks: ['concat']
             }
         }
