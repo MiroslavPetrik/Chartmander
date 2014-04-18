@@ -93,39 +93,45 @@ title: Chartmander - HTML5 canvas charts
     .addChart(function(){
       var chart = Chartmander.select("chartmander-intro", "line");
       chart
-        .colors(["#fff", "darkblue"])
+        .colors(["#fafafa"])
         .easing("easeOutQuint")
         .pointRadius(10)
         .pointHoverColor("#f8cb4c")
         .fontColor("#fff")
         .font("14px Arial")
+        ;
 
-      chart.grid.lineColor("rgba(0,0,0,.11)");
+      chart.grid
+        .lineColor("rgba(0,0,0,.11)");
 
       chart.render(dataFactory(["Petrol"], yearByMonths(1), 500));
       return chart;
     })
     .addChart(function(){
       var chart = Chartmander.select("bar1", "bar");
+      chart
+        .colors(["#fbb03b"])
+        .render(dataFactory(["Petrol"], yearByMonths(1), 300))
+        ;
 
-      chart.colors(["#2e3192"]).render(dataFactory(["Petrol"], yearByMonths(1), 300));
       return chart;
 
     })
     .addChart(function(){
       var chart = Chartmander.select("pie1", "pie");
-
       chart
         .colors(["#28abe3", "#0071bd", "#2e3192"])
-        .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a fast Life"], 200));
+        .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a fast Life"], 200))
+        ;
 
       return chart;
     }).addChart(function(){
       var chart = Chartmander.select("pie2", "pie");
       chart
         .innerRadius(0)
-        .colors(["#f15a25", "#fbb03b","#fdee21"])
-        .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200));
+        .colors(["#f15a25", "#fbb03b", "#fdee21"])
+        .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200))
+        ;
 
       return chart;
     })
@@ -133,8 +139,9 @@ title: Chartmander - HTML5 canvas charts
       var chart = Chartmander.select("pie3", "pie");
       chart
         .innerRadius(.8)
-        .colors(["#8cc63e","#009345"])
-        .render(dataFactory(["Used","Ready"], ["Ram Usage"], 200));
+        .colors(["#8cc63e", "#009345"])
+        .render(dataFactory(["Used","Ready"], ["Ram Usage"], 200))
+        ;
 
       return chart;
     });

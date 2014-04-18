@@ -7,14 +7,16 @@ Chartmander.components.dataset = function (data, color, element) {
     , min = 0
     , max = 0
     , normal = {
-        color: tinycolor.lighten(color, 5).toHex(),
-        strokeColor: tinycolor.darken(color, 10).toHex()
+        color: tinycolor.lighten(color, 5).toHexString(),
+        strokeColor: tinycolor.darken(color, 10).toHexString()
       }
     , hover = {
-        color: tinycolor.lighten(color, 15).toHex(),
-        strokeColor: tinycolor.darken(color, 20).toHex()
+        color: tinycolor.lighten(color, 15).toHexString(),
+        strokeColor: tinycolor.darken(color, 20).toHexString()
       }
     ;
+
+  console.log(normal, hover);
 
   var getMaxMin = function () {
     var yRange = getRange(function () {
