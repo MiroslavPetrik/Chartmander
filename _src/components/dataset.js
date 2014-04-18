@@ -16,8 +16,6 @@ Chartmander.components.dataset = function (data, color, element) {
       }
     ;
 
-  console.log(normal, hover);
-
   var getMaxMin = function () {
     var yRange = getRange(function () {
       var result = [];
