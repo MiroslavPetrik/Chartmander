@@ -1,74 +1,41 @@
-Chartmander.models.lineChart = function (canvas) {
+Chartmander.models.line = function () {
 
-  var chart = new Chartmander.models.chart(canvas);
+  var chart = new Chartmander.models.base();
 
   var lineWidth        = 2
+    , showPoint        = true
     , pointRadius      = 5
     , pointHoverRadius = 20
     , pointHoverColor  = "orange"
     , areaVisible      = true
-    , areaOpacity      = .33
+    , areaOpacity      = .29
     , mergeHover       = true
-    , xAxisVisible     = true
-    , yAxisVisible     = true
     , hoveredItems     = []
+    , base             = 0
+    , startPosition    = "direct" // or direct
     ;
 
-  chart.type("line").margin({ top: 30, right: 50, bottom: 50, left: 50 })
+  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
-  // Shorthand for drawing functions
-  var ctx = chart.ctx;
-
-  ///////////////////////////////////
-  // Use components
-  ///////////////////////////////////
-
-  var xAxis     = new Chartmander.components.xAxis()
-    , yAxis     = new Chartmander.components.yAxis()
-    , grid      = new Chartmander.components.grid()
-    , crosshair = new Chartmander.components.crosshair()
-    ;
-
-  var x0, y0;
-
-  var render =  function (data) {
-    chart.parse(data, Chartmander.components.point);
-
-    var xrange = getRange(getArrayBy(data, "label"));
-    var yrange = getRange(function(){
-      var values = [];
-      forEach(chart.datasets(), function (set) {
-        values.push(set.min());
-        values.push(set.max());
-      });
-      return values;
-    }());
-
-    // grid before axes
-    grid.adapt(chart.width(), chart.height(), chart.margin());
-    // axes use grid height to calculate their scale
-    xAxis.adapt(chart, xrange);
-    yAxis.adapt(chart, yrange);
-
-    recalcPoints();
-    chart.completed(0);
-    chart.draw(drawComponents, false);
-  }
-
-  var recalcPoints = function () {
+  var recalc = function (xAxis, yAxis, grid) {
     var x, y;
     forEach(chart.datasets(), function (set) {
       set.each(function (point) {
-        x = Math.ceil(grid.left() + (point.label()-xAxis.min())/xAxis.scale());
-        y = chart.base()- point.value()/yAxis.scale();
+        // time axis specific
+        x = Math.ceil(grid.bound().left + (point.label() - xAxis.min())/xAxis.scale());
+        y = chart.base() - point.value()/yAxis.scale();
         if (chart.updated()) {
           point.savePosition();
         } else {
-          point.savePosition(grid.width()/2, chart.base());
+          if (startPosition == "center")
+            point.savePosition(chart.margin().left + grid.width()/2, chart.base());
+          if (startPosition == "direct")
+            point.savePosition(x, chart.base());
         }
         point.moveTo(x, y);
       });
     });
+    return chart;
   }
 
   var updatePoints = function (set, _perc_) {
@@ -78,6 +45,7 @@ Chartmander.models.lineChart = function (canvas) {
   }
 
   var drawArea = function (set) {
+    var ctx = chart.layer.ctx;
     ctx.save();
     ctx.fillStyle = set.color();
     ctx.globalAlpha = areaOpacity;
@@ -93,6 +61,7 @@ Chartmander.models.lineChart = function (canvas) {
   }
 
   var drawLines = function (set) {
+    var ctx = chart.layer.ctx;
     ctx.save();
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = set.color();
@@ -105,6 +74,7 @@ Chartmander.models.lineChart = function (canvas) {
   }
 
   var drawPoints = function (set) {
+    var ctx = chart.layer.ctx;
     ctx.save();
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
@@ -124,7 +94,7 @@ Chartmander.models.lineChart = function (canvas) {
       }
       closestHovered = set.getElement(closestHovered.index);
       closestHovered.animIn();
-      chart.tooltip.addItem({
+      chart.layer.tooltip.addItem({
         "set"  : set.title(),
         "label": closestHovered.label(),
         "value": closestHovered.value(),
@@ -136,23 +106,7 @@ Chartmander.models.lineChart = function (canvas) {
     ctx.restore();
   }
 
-  var drawComponents = function (_perc_) {
-    grid.drawInto(chart, _perc_);
-
-    if (xAxisVisible) {
-      xAxis.animIn()
-           .drawInto(chart, _perc_);
-    }
-
-    if (yAxisVisible) {
-      yAxis.animIn()
-           .drawInto(chart, _perc_);
-    }
-
-    if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse()) ) {
-      crosshair.drawInto(chart);
-    }
-
+  var drawModel = function (_perc_) {
     forEach(chart.datasets(), function (set) {
       hoveredItems = [];
       updatePoints(set, _perc_);
@@ -160,29 +114,17 @@ Chartmander.models.lineChart = function (canvas) {
         drawArea(set);
       }
       drawLines(set);
-      drawPoints(set);
+      if (showPoint)
+        drawPoints(set);
     });
   }
 
-  var drawFull = function () {
-    chart.draw(drawComponents, true);
-  }
-
   ///////////////////////////////
-  // Public Methods & Variables
+  // Public Methods
   ///////////////////////////////
 
-  chart.xAxis     = xAxis;
-  chart.yAxis     = yAxis;
-  chart.grid      = grid;
-  chart.crosshair = crosshair;
-  
-  chart.render    = render;
-  chart.drawFull  = drawFull;
-
-  chart.base = function (_) {
-    return grid.bottom() - yAxis.zeroLevel();
-  }
+  chart.recalc = recalc;
+  chart.drawModel = drawModel;
 
   chart.areaVisible = function (_) {
     if (!arguments.length) return areaVisible;
@@ -226,18 +168,6 @@ Chartmander.models.lineChart = function (canvas) {
     return chart;    
   }
 
-  chart.showXAxis = function (_) {
-    if (!arguments.length) return xAxisVisible;
-    xAxisVisible = _;
-    return chart;
-  }
-
-  chart.showYAxis = function (_) {
-    if (!arguments.length) return yAxisVisible;
-    yAxisVisible = _;
-    return chart;
-  }
-
   chart.hoveredItems = function (_) {
     if (!arguments.length) return hoveredItems;
     hoveredItems = _;
@@ -246,6 +176,24 @@ Chartmander.models.lineChart = function (canvas) {
 
   chart.addHoveredItem = function (_) {
     hoveredItems.push(_);
+    return chart;
+  };
+
+  chart.base = function (_) {
+    if (!arguments.length) return base;
+    base = _;
+    return chart;
+  };
+
+  chart.showPoint = function (_) {
+    if (!arguments.length) return showPoint;
+    showPoint = _;
+    return chart;
+  };
+
+  chart.startPosition = function (_) {
+    if (!arguments.length) return startPosition;
+    startPosition = _;
     return chart;
   };
 

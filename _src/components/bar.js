@@ -11,14 +11,15 @@ Chartmander.components.bar = function (data, title) {
     ;
 
   var drawInto = function (chart, set) {
-    var ctx = chart.ctx;
+    var layer = chart.layer
+      , ctx = layer.ctx;
 
     ctx.save();
-    if (chart.hovered() && isHovered(chart)) {
-      // chart.hoverFinished(false);
+    if (layer.hovered() && isHovered(chart)) {
+      layer.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
-      chart.tooltip.addItem({
+      layer.tooltip.addItem({
         "set"  : set.title(),
         "label": bar.label(),
         "value": bar.value(),
@@ -49,8 +50,8 @@ Chartmander.components.bar = function (data, title) {
   }
 
   var isHovered = function (chart) {
-    var x = chart.mouse().x
-      , y = chart.mouse().y
+    var x = chart.layer.mouse().x
+      , y = chart.layer.mouse().y
       , hovered = false
       , yRange = [bar.base(), bar.base()+bar.y()].sort(function(a,b){return a-b})
       ;

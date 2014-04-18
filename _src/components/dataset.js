@@ -7,14 +7,16 @@ Chartmander.components.dataset = function (data, color, element) {
     , min = 0
     , max = 0
     , normal = {
-        color: tinycolor.lighten(color, 5).toHex(),
-        strokeColor: tinycolor.darken(color, 10).toHex()
+        color: tinycolor.lighten(color, 5).toHexString(),
+        strokeColor: tinycolor.darken(color, 10).toHexString()
       }
     , hover = {
-        color: tinycolor.lighten(color, 15).toHex(),
-        strokeColor: tinycolor.darken(color, 20).toHex()
+        color: tinycolor.lighten(color, 15).toHexString(),
+        strokeColor: tinycolor.darken(color, 20).toHexString()
       }
     ;
+
+  console.log(normal, hover);
 
   var getMaxMin = function () {
     var yRange = getRange(function () {
@@ -29,7 +31,6 @@ Chartmander.components.dataset = function (data, color, element) {
     max = yRange.max;
   }
 
-
   var merge = function (data, chart, element) {
     // Test equality of datastream
     if (title != data.title) {
@@ -42,7 +43,7 @@ Chartmander.components.dataset = function (data, color, element) {
       }
       else {
         var element = new element(data.values[i], dataset.title);
-        elements.push(element.savePosition(chart.grid.width(), chart.getBase()));
+        elements.push(element.savePosition(chart.grid.width(), chart.base()));
       }
     }
     // Delete

@@ -16,7 +16,8 @@
   window.Chartmander = Chartmander;
 
   Chartmander.version    = '0.1.1';
-  Chartmander.models     = Chartmander.models     || {};
+  Chartmander.models     = Chartmander.models     || {}; // base models
+  Chartmander.charts     = Chartmander.charts     || {}; // models combined into charts
   Chartmander.components = Chartmander.components || {};
   Chartmander.charts     = []; // Store all rendered charts
 
@@ -25,7 +26,7 @@
       , isUnique = true;
 
     forEach(Chartmander.charts, function (chart) {
-      if (newChart.id() === chart.id())
+      if (newChart.layer.id() === chart.layer.id())
         isUnique = false;
     });
 
@@ -35,31 +36,22 @@
     return Chartmander;
   };
 
-  Chartmander.select = function (id, model) {
+  Chartmander.select = function (id, userChart) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].id()) {
+      if (id === Chartmander.charts[i].layer.id()) {
         // Do update...
         return Chartmander.charts[i].updated(true);
       }
     }
     // Provide new chart
-    if (model === "pie")
-      return new Chartmander.models.pieChart(id);
+    for (var chart in Chartmander.charts) {
+      if (userChart === chart) {
+        return new Chartmander.charts[userChart](id);
+      }
+    }
 
-    if (model === "bar")
-      return new Chartmander.models.barChart(id);
-
-    if (model === "categoryBar")
-      return new Chartmander.models.categoryBarChart(id);
-
-    if (model === "line")
-      return new Chartmander.models.lineChart(id);
-
-    if (model === "categoryLine")
-      return new Chartmander.models.categoryLineChart(id);
-
-    throw new Error("Unknown model of chart.");
+    throw new Error('Unknown chart \"' + userChart + '\" requested.');
   };
 
   var easings = {
@@ -270,3 +262,34 @@
 
     return indexOf.call(this, element);
   }
+
+  // jQuery wrap
+  // Wrap an HTMLElement around each element in an HTMLElement array.
+  HTMLElement.prototype.wrap = function(elms) {
+      // Convert `elms` to an array, if necessary.
+      if (!elms.length) elms = [elms];
+      
+      // Loops backwards to prevent having to clone the wrapper on the
+      // first element (see `child` below).
+      for (var i = elms.length - 1; i >= 0; i--) {
+          var child = (i > 0) ? this.cloneNode(true) : this;
+          var el    = elms[i];
+          
+          // Cache the current parent and sibling.
+          var parent  = el.parentNode;
+          var sibling = el.nextSibling;
+          
+          // Wrap the element (is automatically removed from its current
+          // parent).
+          child.appendChild(el);
+          
+          // If the element had a sibling, insert the wrapper before
+          // the sibling to maintain the HTML structure; otherwise, just
+          // append it to the parent.
+          if (sibling) {
+              parent.insertBefore(child, sibling);
+          } else {
+              parent.appendChild(child);
+          }
+      }
+  };

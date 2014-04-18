@@ -1,4 +1,4 @@
-Chartmander.components.xAxis = function () {
+Chartmander.components.timeAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
@@ -24,12 +24,8 @@ Chartmander.components.xAxis = function () {
     ;
     
   axis.format("MM/YYYY");
-  // rename to timeAxis ?
-  // make another numberAxis and category
-  // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
-  // YES BUT WE HAVE NOT MUCH TIME VERY BUSY ARE WE
 
-  var recalc = function (chart) {
+  var generate = function (chart) {
     var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec
       , stepIndex = steps.length
@@ -55,7 +51,7 @@ Chartmander.components.xAxis = function () {
 
   var drawInto = function (chart, _perc_) {
     var ctx = chart.layer.ctx
-      , topOffset = chart.grid.bound().bottom + 25;
+      , topOffset = chart.grid.bound().bottom + axis.margin();
 
     ctx.save();
     ctx.fillStyle = chart.fontColor();
@@ -78,7 +74,7 @@ Chartmander.components.xAxis = function () {
   axis.adapt = function (chart, range) {
     // Apply values required for label recalculation
     axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
-    recalc(chart);
+    generate(chart);
     return axis;
   };
 

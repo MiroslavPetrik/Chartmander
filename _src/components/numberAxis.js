@@ -1,19 +1,16 @@
-Chartmander.components.yAxis = function () {
+Chartmander.components.numberAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
-  var unit = ""
-    , abbr = false
-    , margin = 10 // Offset from grid
-    , zeroLevel = 0
+  var margin = 10 // Offset from grid
     , labelSteps = [1, 2, 5]
+    , spacing = 25 // minimum space between 2 labels
     ;
 
-  // generate?
-  var recalc = function (chart, oldScale) {
+  var generate = function (chart, oldScale) {
 
-    var height = chart.grid.height()
-      , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
+    var height = axis.orientation() == "vertical" ? chart.grid.height() : chart.grid.width()
+      , maxLabelCount = Math.floor(height / spacing)
       , stepBase = axis.delta().toExponential().split("e")
       , stepExponent = parseInt(stepBase[1])
       ;
@@ -22,7 +19,7 @@ Chartmander.components.yAxis = function () {
     axis.labels( getLabels(getAxeSetup(stepBase, stepExponent)) );
 
     axis.scale(axis.delta()/height);
-    zeroLevel = height - axis.max()/axis.scale();
+    // zeroLevel = height - axis.max()/axis.scale();
 
     // Set Positions for labels
     for (var i=0, len=axis.labels().length; i<len; i++) {
@@ -34,14 +31,23 @@ Chartmander.components.yAxis = function () {
       else if (label.value() > 0)
         previous = axis.getLabel(i-1);
       else if (label.value() == 0) {
-        label.startAt(chart.base()).moveTo(false, chart.base());
+        if (axis.orientation() == "vertical")
+          label.startAtY(chart.base()).moveTo(false, chart.base());
+        if (axis.orientation() == "horizontal")
+          label.startAtX(chart.grid.bound().left).moveTo(chart.grid.bound().left, false);
         continue;
       }
       // where to start animating labels
       if (!isNaN(oldScale)) {
-        label.startAt(chart.base() - label.value()/oldScale).moveTo(false, chart.base() - label.value()/axis.scale());
+        if (axis.orientation() == "vertical")
+          label.startAtY(chart.base() - label.value()/oldScale).moveTo(false, chart.base() - label.value()/axis.scale());
+        if (axis.orientation() == "horizontal")
+          label.startAtX(chart.grid.bound().left - label.value()/oldScale).moveTo(chart.grid.bound().left - label.value()/axis.scale(), false);
       } else {
-        label.startAt(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
+        if (axis.orientation() == "vertical")
+          label.startAtY(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
+        if (axis.orientation() == "horizontal")
+          label.startAtX(chart.grid.bound().left - previous.value()/axis.scale()).moveTo(chart.grid.bound().left - label.value()/axis.scale(), false);
       }
     }
 
@@ -115,8 +121,7 @@ Chartmander.components.yAxis = function () {
   }
 
   var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx
-      , grid = chart.grid;
+    var ctx = chart.layer.ctx;
 
     ctx.save();
     ctx.textAlign = "right";
@@ -124,9 +129,8 @@ Chartmander.components.yAxis = function () {
     ctx.font = chart.font();
     ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
-      // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " " + unit, grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " ", chart.grid.bound().left - margin, label.y());
     });
     ctx.restore();
     return axis;
@@ -138,18 +142,6 @@ Chartmander.components.yAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.unit = function (_) {
-    if(!arguments.length) return unit;
-    unit = _;
-    return axis;
-  };
-
-  axis.zeroLevel = function (_) {
-    if(!arguments.length) return zeroLevel;
-    zeroLevel = _;
-    return axis;
-  };
-
   axis.margin = function (_) {
     if(!arguments.length) return margin;
     margin = _;
@@ -159,7 +151,7 @@ Chartmander.components.yAxis = function () {
   // oldScale FAUX 
   axis.adapt = function (chart, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    recalc(chart, oldScale);
+    generate(chart, oldScale);
     return axis;
   };
 

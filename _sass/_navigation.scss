@@ -20,7 +20,7 @@
 			a {
 				padding: 8px 0;
 				@include font(1.6);
-				color: lighten($b, 50%);
+				color: lighten($blue, 50%);
 				&:hover {
 					color: #fff;
 					text-decoration: none;

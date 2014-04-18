@@ -6,11 +6,12 @@ Chartmander.components.slice = function (data, title) {
   */
 
   var slice = new Chartmander.components.element();
-      slice.set(title).label(data.label).value(data.value);
+
+  slice.set(title).label(data.label).value(data.value);
 
   var sliceIsHovered = function (pie) {
-    var x = pie.mouse().x - pie.center().x
-      , y = pie.mouse().y - pie.center().y
+    var x = pie.layer.mouse().x - pie.center().x
+      , y = pie.layer.mouse().y - pie.center().y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
@@ -25,32 +26,33 @@ Chartmander.components.slice = function (data, title) {
         hovered = true;
       }
     }
-
     return hovered;
+  }
+
+  var drawInto = function (ctx, pie, set) {
+    ctx.beginPath();
+    // Check if this slice was hovered
+    if (pie.layer.hovered()) {
+      if (sliceIsHovered(pie)) {
+        ctx.fillStyle = set.hoverColor();
+        pie.layer.tooltip.addItem({
+          "set"  : set.title(),
+          "label": slice.label(),
+          "value": slice.value(),
+          "color": set.color()
+        });
+      }
+    }
+    ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y(), pie.clockWise());
+    ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), !pie.clockWise());
+    ctx.fill();
   }
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
-  slice.drawInto = function (pie, set) {
-    pie.ctx.beginPath();
-    // Check if this slice was hovered
-    if (pie.hovered()) {
-      if (sliceIsHovered(pie)) {
-        pie.ctx.fillStyle = set.hoverColor();
-        // pie.tooltip.addItem({
-        //   "set": set.title,
-        //   "label": slice.label,
-        //   "value": slice.value,
-        //   "color": set.style.normal.color
-        // });
-      }
-    }
-    pie.ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y());
-    pie.ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), true);
-    pie.ctx.fill();
-  };
+  slice.drawInto = drawInto;
 
   return slice;
 };

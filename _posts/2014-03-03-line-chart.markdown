@@ -18,7 +18,7 @@ categories: chartmander linechart getting started
 Chartmander.addChart(function(){
 	// Select your bar model with select method
 	// first parameter is ID of your canvas element and the second one is model of chart
-	var chart = hartmander.select("line-example", "line");
+	var chart = Chartmander.select("line-example", "line");
 
 	// style your chart
 	chart.innerRadius(.8);
