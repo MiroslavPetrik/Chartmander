@@ -22,7 +22,7 @@ module.exports = function (grunt) {
                     'src/components/label.js',
                     'src/components/crosshair.js',
                     'src/components/tip.js',
-                    'src/models/base.js',
+                    'src/models/baseModel.js',
                     'src/models/pie.js',
                     'src/models/bar.js',
                     'src/models/line.js',

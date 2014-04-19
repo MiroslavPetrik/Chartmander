@@ -1,9 +1,7 @@
-Chartmander.models.base = function () {
+Chartmander.models.baseModel = function () {
   
   // parent for each chartmander model
-  // provides just logic
   // stores data and state
-  // animation is here
 
   var chart = this;
 
@@ -26,7 +24,7 @@ Chartmander.models.base = function () {
   // Components
   ///////////////////////////////////
 
-  chart.layer = null; // each model need a layer
+  chart.layer = null; // each model needs a layer
 
   ///////////////////////////////////
   // The Animating Loop

@@ -1,8 +1,5 @@
 Chartmander.components.layer = function (canvasID) {
 
-
-  // main component for each chart or multiple charts
-
   var layer = this;
 
   var id = canvasID // unique ID selector
