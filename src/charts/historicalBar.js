@@ -16,9 +16,9 @@ Chartmander.charts.historicalBar = function (canvas) {
 
   bars.layer = layer; // !! connect layer to model
 
-  var xAxisVisible = true
-    , yAxisVisible = true
-    ;
+  // var xAxisVisible = true
+  //   , yAxisVisible = true
+  //   ;
 
   ///////////////////////////////////
   // Setup defaults
@@ -37,7 +37,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     .drawChart(function (ctx, _perc_) {
       grid.drawInto(bars, _perc_);
 
-      if (xAxisVisible) {
+      // if (xAxisVisible) {
         xAxis
           .animIn()
           .drawInto(bars, _perc_);
@@ -48,9 +48,9 @@ Chartmander.charts.historicalBar = function (canvas) {
         //   });
         //   ctx.restore();
         // } 
-      }
+      // }
 
-      if (yAxisVisible) {
+      // if (yAxisVisible) {
         yAxis
           .animIn()
           .drawInto(bars, _perc_);
@@ -68,7 +68,7 @@ Chartmander.charts.historicalBar = function (canvas) {
           ctx.restore();
           y0.state -= .01;
         }
-      }
+      // }
 
       bars.draw(_perc_);
     });
@@ -136,17 +136,17 @@ Chartmander.charts.historicalBar = function (canvas) {
 
   chart.render = render;
 
-  chart.showXAxis = function (_) {
-    if (!arguments.length) return xAxisVisible;
-    xAxisVisible = _;
-    return chart;
-  };
+  // chart.showXAxis = function (_) {
+  //   if (!arguments.length) return xAxisVisible;
+  //   xAxisVisible = _;
+  //   return chart;
+  // };
 
-  chart.showYAxis = function (_) {
-    if (!arguments.length) return yAxisVisible;
-    yAxisVisible = _;
-    return chart;
-  };
+  // chart.showYAxis = function (_) {
+  //   if (!arguments.length) return yAxisVisible;
+  //   yAxisVisible = _;
+  //   return chart;
+  // };
 
   return chart;
 }

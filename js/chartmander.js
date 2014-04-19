@@ -2587,7 +2587,9 @@ Chartmander.charts.pie = function (canvas) {
   return pie;
 };
 
-Chartmander.charts.line = function (canvas) {
+Chartmander.charts.historicalBar = function (canvas) {
+
+  var chart = this;
 
   ///////////////////////////////////
   // Use Components
@@ -2598,120 +2600,145 @@ Chartmander.charts.line = function (canvas) {
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , lines     = new Chartmander.models.lines()
+    , bars      = new Chartmander.models.bars()
     ;
 
-  lines.layer = layer; // super important
+  bars.layer = layer; // !! connect layer to model
 
-  var xAxisVisible = true
-    , yAxisVisible = true
-    ;
-
-  ///////////////////////////////////
-  // Setup Defaults
-  ///////////////////////////////////
-
-  layer
-    .onHover(function () {
-      lines.draw(true);
-    })
-    .onLeave(function () {
-      if ( lines.completed() ) {
-        lines.draw(true);
-      }
-    })
-    ;
-
-  grid.margin({left: 70, top: 20});
-
-  lines
-    .width(layer.width())
-    .height(layer.height())
-    ;
+  // var xAxisVisible = true
+  //   , yAxisVisible = true
+  //   ;
 
   ///////////////////////////////////
   // Setup defaults
   ///////////////////////////////////
 
+  layer
+    .onHover(function () {
+      if (bar.completed() >= 1)
+        bars.draw(true);
+    })
+    .onLeave(function () {
+      if ( bars.completed() ) {
+        bars.draw(true);
+      }
+    })
+    .drawChart(function (ctx, _perc_) {
+      grid.drawInto(bars, _perc_);
+
+      // if (xAxisVisible) {
+        xAxis
+          .animIn()
+          .drawInto(bars, _perc_);
+        // if (x0 && x0.state > 0) {
+        //   ctx.save();
+        //   forEach(x0.labels, function (label) {
+
+        //   });
+        //   ctx.restore();
+        // } 
+      // }
+
+      // if (yAxisVisible) {
+        yAxis
+          .animIn()
+          .drawInto(bars, _perc_);
+
+        if (y0 && y0.state > 0) {
+          ctx.save();
+          ctx.textAlign = "right";
+          ctx.fillStyle = bars.fontColor();
+          ctx.font = bars.font();
+          ctx.globalAlpha = y0.state;
+          forEach(y0.labels, function (label) {
+            label.updatePosition(_perc_);
+            ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
+          });
+          ctx.restore();
+          y0.state -= .01;
+        }
+      // }
+
+      bars.draw(_perc_);
+    });
+
+  bars
+    .width(layer.width())
+    .height(layer.height())
+    ;
+
+  ///////////////////////////////
+  // Life cycle
+  ///////////////////////////////
+
   var x0, y0;
 
   var render =  function (data) {
-    lines.parse(data, Chartmander.components.point);
-
+    bars.parse(data, Chartmander.components.bar);
+    var oldYScale; //undefined
     var xrange = getRange(getArrayBy(data, "label"));
     var yrange = getRange(function(){
       var values = [];
-      forEach(lines.datasets(), function (set) {
+      forEach(bars.datasets(), function (set) {
         values.push(set.min());
         values.push(set.max());
       });
       return values;
     }());
 
-    // grid before axes
-    grid.adapt(lines);
-    // axes use grid height to calculate their scale
-    xAxis.adapt(lines, xrange);
-    yAxis.adapt(lines, yrange);
-    lines.base(grid.bound().bottom - yAxis.zeroLevel());
+    if (bars.updated()) {
+      x0 = xAxis.copy(); // just object with labels and scale
+      y0 = yAxis.copy();
 
-    lines
+      oldYScale = y0.scale;
+    }
+    // grid before axes
+    grid.adapt(bars);
+    // axes use grid height to calculate their scale
+    xAxis.adapt(bars, xrange);
+    yAxis.adapt(bars, yrange, oldYScale);
+
+    bars.base(grid.bound().bottom - yAxis.zeroLevel());
+
+    // recalc old labels to new position
+    if (bars.updated()) {
+      forEach(y0.labels, function (label) {
+        label.savePosition().moveTo(false, bars.base() - label.value()/yAxis.scale());
+      });
+    }
+
+    bars
       .recalc(xAxis, yAxis, grid)
       .completed(0)
       .draw(false);
   }
 
-  ///////////////////////////////////
-  // Extend Animation Loop(s)
-  ///////////////////////////////////
-
-  lines.drawChart(function (_perc_) {
-    grid.drawInto(lines, _perc_);
-    
-    if (xAxisVisible) {
-      xAxis
-        .animIn()
-        .drawInto(lines, _perc_);
-    }
-
-    if (yAxisVisible) {
-      yAxis
-        .animIn()
-        .drawInto(lines, _perc_);
-    }
-
-    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
-      crosshair.drawInto(lines);
-    }
-    
-    lines.drawModel(_perc_);
-  });
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Methods and Binding
   ///////////////////////////////
 
-  lines.xAxis     = xAxis;
-  lines.yAxis     = yAxis;
-  lines.grid      = grid;
-  lines.crosshair = crosshair;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+  chart.grid = grid;
+  chart.crosshair = crosshair;
 
-  lines.render    = render;
+  chart.render = render;
 
-  lines.showXAxis = function (_) {
-    if (!arguments.length) return xAxisVisible;
-    xAxisVisible = _;
-    return lines;
-  }
+  // chart.showXAxis = function (_) {
+  //   if (!arguments.length) return xAxisVisible;
+  //   xAxisVisible = _;
+  //   return chart;
+  // };
 
-  lines.showYAxis = function (_) {
-    if (!arguments.length) return yAxisVisible;
-    yAxisVisible = _;
-    return lines;
-  }
+  // chart.showYAxis = function (_) {
+  //   if (!arguments.length) return yAxisVisible;
+  //   yAxisVisible = _;
+  //   return chart;
+  // };
 
-  return lines;
-};
+  return chart;
+}
 
 Chartmander.charts.categoryBar = function (canvas) {
 
@@ -2867,5 +2894,131 @@ Chartmander.charts.categoryBar = function (canvas) {
 
   return bars;
 }
+
+Chartmander.charts.line = function (canvas) {
+
+  ///////////////////////////////////
+  // Use Components
+  ///////////////////////////////////
+
+  var layer     = new Chartmander.components.layer(canvas)
+    , xAxis     = new Chartmander.components.xAxis()
+    , yAxis     = new Chartmander.components.yAxis()
+    , grid      = new Chartmander.components.grid()
+    , crosshair = new Chartmander.components.crosshair()
+    , lines     = new Chartmander.models.lines()
+    ;
+
+  lines.layer = layer; // super important
+
+  var xAxisVisible = true
+    , yAxisVisible = true
+    ;
+
+  ///////////////////////////////////
+  // Setup Defaults
+  ///////////////////////////////////
+
+  layer
+    .onHover(function () {
+      lines.draw(true);
+    })
+    .onLeave(function () {
+      if ( lines.completed() ) {
+        lines.draw(true);
+      }
+    })
+    ;
+
+  grid.margin({left: 70, top: 20});
+
+  lines
+    .width(layer.width())
+    .height(layer.height())
+    ;
+
+  ///////////////////////////////////
+  // Setup defaults
+  ///////////////////////////////////
+
+  var x0, y0;
+
+  var render =  function (data) {
+    lines.parse(data, Chartmander.components.point);
+
+    var xrange = getRange(getArrayBy(data, "label"));
+    var yrange = getRange(function(){
+      var values = [];
+      forEach(lines.datasets(), function (set) {
+        values.push(set.min());
+        values.push(set.max());
+      });
+      return values;
+    }());
+
+    // grid before axes
+    grid.adapt(lines);
+    // axes use grid height to calculate their scale
+    xAxis.adapt(lines, xrange);
+    yAxis.adapt(lines, yrange);
+    lines.base(grid.bound().bottom - yAxis.zeroLevel());
+
+    lines
+      .recalc(xAxis, yAxis, grid)
+      .completed(0)
+      .draw(false);
+  }
+
+  ///////////////////////////////////
+  // Extend Animation Loop(s)
+  ///////////////////////////////////
+
+  lines.drawChart(function (_perc_) {
+    grid.drawInto(lines, _perc_);
+    
+    if (xAxisVisible) {
+      xAxis
+        .animIn()
+        .drawInto(lines, _perc_);
+    }
+
+    if (yAxisVisible) {
+      yAxis
+        .animIn()
+        .drawInto(lines, _perc_);
+    }
+
+    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
+      crosshair.drawInto(lines);
+    }
+    
+    lines.drawModel(_perc_);
+  });
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  lines.xAxis     = xAxis;
+  lines.yAxis     = yAxis;
+  lines.grid      = grid;
+  lines.crosshair = crosshair;
+
+  lines.render    = render;
+
+  lines.showXAxis = function (_) {
+    if (!arguments.length) return xAxisVisible;
+    xAxisVisible = _;
+    return lines;
+  }
+
+  lines.showYAxis = function (_) {
+    if (!arguments.length) return yAxisVisible;
+    yAxisVisible = _;
+    return lines;
+  }
+
+  return lines;
+};
 
 })();
