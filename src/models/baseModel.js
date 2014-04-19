@@ -53,7 +53,6 @@ Chartmander.models.baseModel = function () {
   ///////////////////////////////
 
   model.parse = parse;
-  model.draw  = draw;
 
   // Visual properties
 

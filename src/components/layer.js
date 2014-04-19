@@ -90,7 +90,6 @@ Chartmander.components.layer = function (canvasID) {
       animationCompleted = animate ? 0 : 1;
 
     function loop () {
-
       if (finished) {
         animationCompleted = 1;
       } else if (animationCompleted < 1) {
@@ -100,13 +99,9 @@ Chartmander.components.layer = function (canvasID) {
       _perc_ = easingFunction(animationCompleted);
 
       tooltip.clear();
+      ctx.clearRect(0, 0, width, height);
+      hoverFinished = true;
 
-      layer.eraseFull()
-        // .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
-        .hoverFinished(true)
-        ;
-
-      // Draw components and models in chart
       drawChart(ctx, _perc_);
       
       if (hovered && tooltip.hasItems()) {
@@ -115,14 +110,13 @@ Chartmander.components.layer = function (canvasID) {
       }
 
       // Request self-repaint if chart or data element has not finished animating yet
-      if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
+      if (animationCompleted < 1 || !hoverFinished) {
         requestAnimationFrame(loop);
       }
       else {
         console.log("Animation Finished.");
       }
     }
-    // Ignite
     requestAnimationFrame(loop);
   }
 
@@ -130,6 +124,7 @@ Chartmander.components.layer = function (canvasID) {
   // Public Methods & Variables
   ///////////////////////////////
 
+  layer.draw = draw;
   layer.ctx = ctx;
   layer.tooltip = tooltip;
 
@@ -191,16 +186,6 @@ Chartmander.components.layer = function (canvasID) {
   layer.updated = function (_) {
     if (!arguments.length) return updated;
     updated = _;
-    return layer;
-  };
-
-  layer.erase = function (x, y, width, height) {
-    ctx.clearRect(x, y, width, height);
-    return layer;
-  };
-
-  layer.eraseFull = function () {
-    ctx.clearRect(0, 0, width, height);
     return layer;
   };
 

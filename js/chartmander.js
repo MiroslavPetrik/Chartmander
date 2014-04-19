@@ -386,7 +386,6 @@ Chartmander.components.layer = function (canvasID) {
       animationCompleted = animate ? 0 : 1;
 
     function loop () {
-
       if (finished) {
         animationCompleted = 1;
       } else if (animationCompleted < 1) {
@@ -396,13 +395,9 @@ Chartmander.components.layer = function (canvasID) {
       _perc_ = easingFunction(animationCompleted);
 
       tooltip.clear();
+      ctx.clearRect(0, 0, width, height);
+      hoverFinished = true;
 
-      layer.eraseFull()
-        // .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
-        .hoverFinished(true)
-        ;
-
-      // Draw components and models in chart
       drawChart(ctx, _perc_);
       
       if (hovered && tooltip.hasItems()) {
@@ -411,14 +406,13 @@ Chartmander.components.layer = function (canvasID) {
       }
 
       // Request self-repaint if chart or data element has not finished animating yet
-      if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
+      if (animationCompleted < 1 || !hoverFinished) {
         requestAnimationFrame(loop);
       }
       else {
         console.log("Animation Finished.");
       }
     }
-    // Ignite
     requestAnimationFrame(loop);
   }
 
@@ -426,6 +420,7 @@ Chartmander.components.layer = function (canvasID) {
   // Public Methods & Variables
   ///////////////////////////////
 
+  layer.draw = draw;
   layer.ctx = ctx;
   layer.tooltip = tooltip;
 
@@ -487,16 +482,6 @@ Chartmander.components.layer = function (canvasID) {
   layer.updated = function (_) {
     if (!arguments.length) return updated;
     updated = _;
-    return layer;
-  };
-
-  layer.erase = function (x, y, width, height) {
-    ctx.clearRect(x, y, width, height);
-    return layer;
-  };
-
-  layer.eraseFull = function () {
-    ctx.clearRect(0, 0, width, height);
     return layer;
   };
 
@@ -2015,7 +2000,6 @@ Chartmander.models.baseModel = function () {
   ///////////////////////////////
 
   model.parse = parse;
-  model.draw  = draw;
 
   // Visual properties
 
@@ -2199,7 +2183,7 @@ Chartmander.models.slices = function () {
   ///////////////////////////////
 
   model.recalc = recalc;
-  model.drawModel = drawSlices;
+  model.draw = drawSlices;
 
   model.center = function (_) {
     if (!arguments.length) return center
@@ -2239,11 +2223,11 @@ Chartmander.models.slices = function () {
 
 Chartmander.models.bars = function () {
 
-  var model = new Chartmander.models.base();
+  var model = new Chartmander.models.baseModel();
 
   var stacked        = false // grouped otherwise
     , barWidth       = 0  // calculated so all sets can fit in chart
-    , userBarWidth   = 30 // used only if default barwidth is higher
+    , userBarWidth   = 30 // used only if default barWidth is higher
     , datasetSpacing = 0
     , base = 0
     ;
@@ -2277,21 +2261,17 @@ Chartmander.models.bars = function () {
   }
 
   var drawBars = function (_perc_) {
-    var counter = 0
-      , ctx = model.layer.ctx;
+    var ctx = model.layer.ctx;
 
     ctx.save();
     forEach(model.datasets(), function (set) {
       ctx.fillStyle = set.color();
-      // ctx.lineWidth = set.style.normal.stroke;
-      // ctx.strokeStyle = set.style.normal.strokeColor;
       set.each(function (bar) {
         bar.updatePosition(_perc_)
            .updatePositionBase(_perc_)
            .drawInto(model, set);
       });
-      counter++;
-    })
+    });
     ctx.restore();
   }
 
@@ -2300,7 +2280,7 @@ Chartmander.models.bars = function () {
   ///////////////////////////////
 
   model.recalc = recalc;
-  model.drawModel = drawBars;
+  model.draw = drawBars;
 
   model.stacked = function (_) {
     if (!arguments.length) return stacked;
@@ -2549,13 +2529,16 @@ Chartmander.charts.pie = function (canvas) {
 
   layer
     .onHover(function () {
-      if (pie.completed() >= 1)
+      if (layer.completed() >= 1)
         pie.draw(true);
     })
     .onLeave(function () {
-      if ( pie.completed() ) {
+      if (layer.completed()) {
         pie.draw(true);
       }
+    })
+    .drawChart(function (_perc_) {
+      pie.draw(_perc_);
     })
     ;
 
@@ -2566,21 +2549,15 @@ Chartmander.charts.pie = function (canvas) {
   var render =  function (data) {
     pie.parse(data, Chartmander.components.slice);
     pie.recalc();
-    pie.completed(0);
-    pie.draw(false);
+    
+    layer
+      .completed(0)
+      .draw(false);
   }
 
-  ///////////////////////////////////
-  // Extend Animation Loop
-  ///////////////////////////////////
-
-  pie.drawChart(function (_perc_) {
-    pie.drawModel(_perc_);
-  });
-
-  ///////////////////////////////////
-  // Methods
-  ///////////////////////////////////
+  ///////////////////////////////
+  // Methods and Binding
+  ///////////////////////////////
 
   pie.render = render;
 
@@ -2605,21 +2582,17 @@ Chartmander.charts.historicalBar = function (canvas) {
 
   bars.layer = layer; // !! connect layer to model
 
-  // var xAxisVisible = true
-  //   , yAxisVisible = true
-  //   ;
-
   ///////////////////////////////////
   // Setup defaults
   ///////////////////////////////////
 
   layer
     .onHover(function () {
-      if (bar.completed() >= 1)
+      if (layer.completed() >= 1)
         bars.draw(true);
     })
     .onLeave(function () {
-      if ( bars.completed() ) {
+      if (layer.completed()) {
         bars.draw(true);
       }
     })
@@ -2687,7 +2660,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     }());
 
     if (bars.updated()) {
-      x0 = xAxis.copy(); // just object with labels and scale
+      x0 = xAxis.copy();
       y0 = yAxis.copy();
 
       oldYScale = y0.scale;
@@ -2695,8 +2668,8 @@ Chartmander.charts.historicalBar = function (canvas) {
     // grid before axes
     grid.adapt(bars);
     // axes use grid height to calculate their scale
-    xAxis.adapt(bars, xrange);
-    yAxis.adapt(bars, yrange, oldYScale);
+    xAxis.adapt(chart, xrange);
+    yAxis.adapt(chart, yrange, oldYScale);
 
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
@@ -2709,7 +2682,8 @@ Chartmander.charts.historicalBar = function (canvas) {
 
     bars
       .recalc(xAxis, yAxis, grid)
-      .completed(0)
+    
+    layer.completed(0)
       .draw(false);
   }
 
@@ -2724,18 +2698,6 @@ Chartmander.charts.historicalBar = function (canvas) {
   chart.crosshair = crosshair;
 
   chart.render = render;
-
-  // chart.showXAxis = function (_) {
-  //   if (!arguments.length) return xAxisVisible;
-  //   xAxisVisible = _;
-  //   return chart;
-  // };
-
-  // chart.showYAxis = function (_) {
-  //   if (!arguments.length) return yAxisVisible;
-  //   yAxisVisible = _;
-  //   return chart;
-  // };
 
   return chart;
 }
@@ -2909,11 +2871,7 @@ Chartmander.charts.line = function (canvas) {
     , lines     = new Chartmander.models.lines()
     ;
 
-  lines.layer = layer; // super important
-
-  var xAxisVisible = true
-    , yAxisVisible = true
-    ;
+  lines.layer = layer;
 
   ///////////////////////////////////
   // Setup Defaults
@@ -2976,17 +2934,17 @@ Chartmander.charts.line = function (canvas) {
   lines.drawChart(function (_perc_) {
     grid.drawInto(lines, _perc_);
     
-    if (xAxisVisible) {
+    // if (xAxisVisible) {
       xAxis
         .animIn()
         .drawInto(lines, _perc_);
-    }
+    // }
 
-    if (yAxisVisible) {
+    // if (yAxisVisible) {
       yAxis
         .animIn()
         .drawInto(lines, _perc_);
-    }
+    // }
 
     if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
       crosshair.drawInto(lines);
@@ -2996,7 +2954,7 @@ Chartmander.charts.line = function (canvas) {
   });
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Methods and Binding
   ///////////////////////////////
 
   lines.xAxis     = xAxis;
@@ -3005,18 +2963,6 @@ Chartmander.charts.line = function (canvas) {
   lines.crosshair = crosshair;
 
   lines.render    = render;
-
-  lines.showXAxis = function (_) {
-    if (!arguments.length) return xAxisVisible;
-    xAxisVisible = _;
-    return lines;
-  }
-
-  lines.showYAxis = function (_) {
-    if (!arguments.length) return yAxisVisible;
-    yAxisVisible = _;
-    return lines;
-  }
 
   return lines;
 };

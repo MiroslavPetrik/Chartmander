@@ -12,11 +12,7 @@ Chartmander.charts.line = function (canvas) {
     , lines     = new Chartmander.models.lines()
     ;
 
-  lines.layer = layer; // super important
-
-  var xAxisVisible = true
-    , yAxisVisible = true
-    ;
+  lines.layer = layer;
 
   ///////////////////////////////////
   // Setup Defaults
@@ -79,17 +75,17 @@ Chartmander.charts.line = function (canvas) {
   lines.drawChart(function (_perc_) {
     grid.drawInto(lines, _perc_);
     
-    if (xAxisVisible) {
+    // if (xAxisVisible) {
       xAxis
         .animIn()
         .drawInto(lines, _perc_);
-    }
+    // }
 
-    if (yAxisVisible) {
+    // if (yAxisVisible) {
       yAxis
         .animIn()
         .drawInto(lines, _perc_);
-    }
+    // }
 
     if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
       crosshair.drawInto(lines);
@@ -99,7 +95,7 @@ Chartmander.charts.line = function (canvas) {
   });
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Methods and Binding
   ///////////////////////////////
 
   lines.xAxis     = xAxis;
@@ -108,18 +104,6 @@ Chartmander.charts.line = function (canvas) {
   lines.crosshair = crosshair;
 
   lines.render    = render;
-
-  lines.showXAxis = function (_) {
-    if (!arguments.length) return xAxisVisible;
-    xAxisVisible = _;
-    return lines;
-  }
-
-  lines.showYAxis = function (_) {
-    if (!arguments.length) return yAxisVisible;
-    yAxisVisible = _;
-    return lines;
-  }
 
   return lines;
 };

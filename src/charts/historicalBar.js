@@ -16,21 +16,17 @@ Chartmander.charts.historicalBar = function (canvas) {
 
   bars.layer = layer; // !! connect layer to model
 
-  // var xAxisVisible = true
-  //   , yAxisVisible = true
-  //   ;
-
   ///////////////////////////////////
   // Setup defaults
   ///////////////////////////////////
 
   layer
     .onHover(function () {
-      if (bar.completed() >= 1)
+      if (layer.completed() >= 1)
         bars.draw(true);
     })
     .onLeave(function () {
-      if ( bars.completed() ) {
+      if (layer.completed()) {
         bars.draw(true);
       }
     })
@@ -98,7 +94,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     }());
 
     if (bars.updated()) {
-      x0 = xAxis.copy(); // just object with labels and scale
+      x0 = xAxis.copy();
       y0 = yAxis.copy();
 
       oldYScale = y0.scale;
@@ -106,8 +102,8 @@ Chartmander.charts.historicalBar = function (canvas) {
     // grid before axes
     grid.adapt(bars);
     // axes use grid height to calculate their scale
-    xAxis.adapt(bars, xrange);
-    yAxis.adapt(bars, yrange, oldYScale);
+    xAxis.adapt(chart, xrange);
+    yAxis.adapt(chart, yrange, oldYScale);
 
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
@@ -120,7 +116,8 @@ Chartmander.charts.historicalBar = function (canvas) {
 
     bars
       .recalc(xAxis, yAxis, grid)
-      .completed(0)
+    
+    layer.completed(0)
       .draw(false);
   }
 
@@ -135,18 +132,6 @@ Chartmander.charts.historicalBar = function (canvas) {
   chart.crosshair = crosshair;
 
   chart.render = render;
-
-  // chart.showXAxis = function (_) {
-  //   if (!arguments.length) return xAxisVisible;
-  //   xAxisVisible = _;
-  //   return chart;
-  // };
-
-  // chart.showYAxis = function (_) {
-  //   if (!arguments.length) return yAxisVisible;
-  //   yAxisVisible = _;
-  //   return chart;
-  // };
 
   return chart;
 }

@@ -16,13 +16,16 @@ Chartmander.charts.pie = function (canvas) {
 
   layer
     .onHover(function () {
-      if (pie.completed() >= 1)
+      if (layer.completed() >= 1)
         pie.draw(true);
     })
     .onLeave(function () {
-      if ( pie.completed() ) {
+      if (layer.completed()) {
         pie.draw(true);
       }
+    })
+    .drawChart(function (_perc_) {
+      pie.draw(_perc_);
     })
     ;
 
@@ -33,21 +36,15 @@ Chartmander.charts.pie = function (canvas) {
   var render =  function (data) {
     pie.parse(data, Chartmander.components.slice);
     pie.recalc();
-    pie.completed(0);
-    pie.draw(false);
+    
+    layer
+      .completed(0)
+      .draw(false);
   }
 
-  ///////////////////////////////////
-  // Extend Animation Loop
-  ///////////////////////////////////
-
-  pie.drawChart(function (_perc_) {
-    pie.drawModel(_perc_);
-  });
-
-  ///////////////////////////////////
-  // Methods
-  ///////////////////////////////////
+  ///////////////////////////////
+  // Methods and Binding
+  ///////////////////////////////
 
   pie.render = render;
 

@@ -67,7 +67,7 @@ Chartmander.models.slices = function () {
   ///////////////////////////////
 
   model.recalc = recalc;
-  model.drawModel = drawSlices;
+  model.draw = drawSlices;
 
   model.center = function (_) {
     if (!arguments.length) return center
