@@ -1,4 +1,6 @@
-Chartmander.charts.bar = function (canvas) {
+Chartmander.charts.historicalBar = function (canvas) {
+
+  var chart = this;
 
   ///////////////////////////////////
   // Use Components
@@ -32,7 +34,7 @@ Chartmander.charts.bar = function (canvas) {
         bars.draw(true);
       }
     })
-    .drawChart(function (_perc_) {
+    .drawChart(function (ctx, _perc_) {
       grid.drawInto(bars, _perc_);
 
       if (xAxisVisible) {
@@ -127,24 +129,24 @@ Chartmander.charts.bar = function (canvas) {
   // Methods and Binding
   ///////////////////////////////
 
-  bars.xAxis = xAxis;
-  bars.yAxis = yAxis;
-  bars.grid = grid;
-  bars.crosshair = crosshair;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+  chart.grid = grid;
+  chart.crosshair = crosshair;
 
-  bars.render = render;
+  chart.render = render;
 
-  bars.showXAxis = function (_) {
+  chart.showXAxis = function (_) {
     if (!arguments.length) return xAxisVisible;
     xAxisVisible = _;
-    return bars;
+    return chart;
   };
 
-  bars.showYAxis = function (_) {
+  chart.showYAxis = function (_) {
     if (!arguments.length) return yAxisVisible;
     yAxisVisible = _;
-    return bars;
+    return chart;
   };
 
-  return bars;
+  return chart;
 }

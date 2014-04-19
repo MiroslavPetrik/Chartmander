@@ -27,9 +27,9 @@ module.exports = function (grunt) {
                     'src/models/bars.js',
                     'src/models/lines.js',
                     'src/charts/pie.js',
-                    'src/charts/bar.js',
-                    'src/charts/line.js',
+                    'src/charts/historicalBar.js',
                     'src/charts/categoryBar.js',
+                    'src/charts/line.js',
                     'src/end.js'
                 ],
                 dest: 'js/chartmander.js'
