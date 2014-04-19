@@ -5,7 +5,7 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
 
   var layer = new Chartmander.components.layer(canvas)
-    , pie   = new Chartmander.models.pie()
+    , pie   = new Chartmander.models.slices()
     ;
 
   pie.layer = layer;

@@ -2130,7 +2130,7 @@ Chartmander.models.baseModel = function () {
   return model;
 };
 
-Chartmander.models.pie = function () {
+Chartmander.models.slices = function () {
 
   var model = new Chartmander.models.baseModel();
 
@@ -2237,7 +2237,7 @@ Chartmander.models.pie = function () {
   return model;
 };
 
-Chartmander.models.bar = function () {
+Chartmander.models.bars = function () {
 
   var model = new Chartmander.models.base();
 
@@ -2538,7 +2538,7 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
 
   var layer = new Chartmander.components.layer(canvas)
-    , pie   = new Chartmander.models.pie()
+    , pie   = new Chartmander.models.slices()
     ;
 
   pie.layer = layer;
@@ -2598,7 +2598,7 @@ Chartmander.charts.bar = function (canvas) {
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , bars      = new Chartmander.models.bar()
+    , bars      = new Chartmander.models.bars()
     ;
 
   bars.layer = layer; // !! connect layer to model
@@ -2745,11 +2745,11 @@ Chartmander.charts.line = function (canvas) {
   ///////////////////////////////////
 
   var layer     = new Chartmander.components.layer(canvas)
-    , lines     = new Chartmander.models.line()
     , xAxis     = new Chartmander.components.xAxis()
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
+    , lines     = new Chartmander.models.lines()
     ;
 
   lines.layer = layer; // super important

@@ -9,7 +9,7 @@ Chartmander.charts.bar = function (canvas) {
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , bars      = new Chartmander.models.bar()
+    , bars      = new Chartmander.models.bars()
     ;
 
   bars.layer = layer; // !! connect layer to model

@@ -5,11 +5,11 @@ Chartmander.charts.line = function (canvas) {
   ///////////////////////////////////
 
   var layer     = new Chartmander.components.layer(canvas)
-    , lines     = new Chartmander.models.line()
     , xAxis     = new Chartmander.components.xAxis()
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
+    , lines     = new Chartmander.models.lines()
     ;
 
   lines.layer = layer; // super important
