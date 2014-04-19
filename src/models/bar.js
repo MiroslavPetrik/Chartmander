@@ -1,6 +1,6 @@
 Chartmander.models.bar = function () {
 
-  var chart = new Chartmander.models.base();
+  var model = new Chartmander.models.base();
 
   var stacked        = false // grouped otherwise
     , barWidth       = 0  // calculated so all sets can fit in chart
@@ -9,47 +9,47 @@ Chartmander.models.bar = function () {
     , base = 0
     ;
 
-  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
+  model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var i = 0, leftFix, x, y;
 
-    barWidth = Math.floor( grid.width()/chart.elementCount() );
+    barWidth = Math.floor( grid.width()/model.elementCount() );
 
-    // allow userBarWith only downscale so it won't break chart
+    // allow userBarWith only downscale so it won't break model
     if (barWidth > userBarWidth) {
       barWidth = userBarWidth;
     }
 
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       set.each(function (bar) {
         x = Math.ceil(grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + i*barWidth);
         y = -bar.value()/yAxis.scale();
-        if (chart.updated()) {
+        if (model.updated()) {
           bar.savePosition();
         } else {
           bar.savePosition(x, 0);
         }
-        bar.moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
+        bar.moveTo(x, y).saveBase(model.base()).moveBase(model.base());
       });
       i++;
     });
-    return chart;
+    return model;
   }
 
   var drawBars = function (_perc_) {
     var counter = 0
-      , ctx = chart.layer.ctx;
+      , ctx = model.layer.ctx;
 
     ctx.save();
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       ctx.fillStyle = set.color();
       // ctx.lineWidth = set.style.normal.stroke;
       // ctx.strokeStyle = set.style.normal.strokeColor;
       set.each(function (bar) {
         bar.updatePosition(_perc_)
            .updatePositionBase(_perc_)
-           .drawInto(chart, set);
+           .drawInto(model, set);
       });
       counter++;
     })
@@ -60,32 +60,32 @@ Chartmander.models.bar = function () {
   // Public Methods
   ///////////////////////////////
 
-  chart.recalc = recalc;
-  chart.drawModel = drawBars;
+  model.recalc = recalc;
+  model.drawModel = drawBars;
 
-  chart.stacked = function (_) {
+  model.stacked = function (_) {
     if (!arguments.length) return stacked;
     stacked = _;
-    return chart;
+    return model;
   };
 
-  chart.barWidth = function (_) {
+  model.barWidth = function (_) {
     if (!arguments.length) return barWidth; // Internal
     userBarWidth = _; // User defined
-    return chart;
+    return model;
   };
 
-  chart.datasetSpacing = function (_) {
+  model.datasetSpacing = function (_) {
     if (!arguments.length) return datasetSpacing;
     datasetSpacing = _;
-    return chart;
+    return model;
   };
 
-  chart.base = function (_) {
+  model.base = function (_) {
     if (!arguments.length) return base;
     base = _;
-    return chart;
+    return model;
   };
   
-  return chart;
+  return model;
 }

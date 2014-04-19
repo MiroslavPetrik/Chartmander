@@ -1,6 +1,6 @@
 Chartmander.models.line = function () {
 
-  var chart = new Chartmander.models.base();
+  var model = new Chartmander.models.baseModel();
 
   var lineWidth        = 2
     , showPoint        = true
@@ -15,27 +15,27 @@ Chartmander.models.line = function () {
     , startPosition    = "direct" // or direct
     ;
 
-  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
+  model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       set.each(function (point) {
         // time axis specific
         x = Math.ceil(grid.bound().left + (point.label() - xAxis.min())/xAxis.scale());
-        y = chart.base() - point.value()/yAxis.scale();
-        if (chart.updated()) {
+        y = model.base() - point.value()/yAxis.scale();
+        if (model.updated()) {
           point.savePosition();
         } else {
           if (startPosition == "center")
-            point.savePosition(chart.margin().left + grid.width()/2, chart.base());
+            point.savePosition(model.margin().left + grid.width()/2, model.base());
           if (startPosition == "direct")
-            point.savePosition(x, chart.base());
+            point.savePosition(x, model.base());
         }
         point.moveTo(x, y);
       });
     });
-    return chart;
+    return model;
   }
 
   var updatePoints = function (set, _perc_) {
@@ -45,23 +45,23 @@ Chartmander.models.line = function () {
   }
 
   var drawArea = function (set) {
-    var ctx = chart.layer.ctx;
+    var ctx = model.layer.ctx;
     ctx.save();
     ctx.fillStyle = set.color();
     ctx.globalAlpha = areaOpacity;
     ctx.beginPath();
-    ctx.moveTo(set.getElement(0).x(), chart.base());
+    ctx.moveTo(set.getElement(0).x(), model.base());
     ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
     set.each(function (point) {
       ctx.lineTo(point.x(), point.y());
     });
-    ctx.lineTo(set.getElement("last").x(), chart.base());
+    ctx.lineTo(set.getElement("last").x(), model.base());
     ctx.fill();
     ctx.restore();
   }
 
   var drawLines = function (set) {
-    var ctx = chart.layer.ctx;
+    var ctx = model.layer.ctx;
     ctx.save();
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = set.color();
@@ -74,12 +74,12 @@ Chartmander.models.line = function () {
   }
 
   var drawPoints = function (set) {
-    var ctx = chart.layer.ctx;
+    var ctx = model.layer.ctx;
     ctx.save();
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
     set.each(function (point) {
-      point.drawInto(chart, set);
+      point.drawInto(model, set);
     });
 
     // With high-density data there can be more hovered points
@@ -94,7 +94,7 @@ Chartmander.models.line = function () {
       }
       closestHovered = set.getElement(closestHovered.index);
       closestHovered.animIn();
-      chart.layer.tooltip.addItem({
+      model.layer.tooltip.addItem({
         "set"  : set.title(),
         "label": closestHovered.label(),
         "value": closestHovered.value(),
@@ -107,7 +107,7 @@ Chartmander.models.line = function () {
   }
 
   var drawModel = function (_perc_) {
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       hoveredItems = [];
       updatePoints(set, _perc_);
       if (areaVisible) {
@@ -123,79 +123,79 @@ Chartmander.models.line = function () {
   // Public Methods
   ///////////////////////////////
 
-  chart.recalc = recalc;
-  chart.drawModel = drawModel;
+  model.recalc = recalc;
+  model.draw = drawModel;
 
-  chart.areaVisible = function (_) {
+  model.areaVisible = function (_) {
     if (!arguments.length) return areaVisible;
     areaVisible = _;
-    return chart;
+    return model;
   }
 
-  chart.areaOpacity = function (_) {
+  model.areaOpacity = function (_) {
     if (!arguments.length) return areaOpacity;
     areaOpacity = _;
-    return chart;
+    return model;
   }
 
-  chart.lineWidth = function (_) {
+  model.lineWidth = function (_) {
     if (!arguments.length) return lineWidth;
     lineWidth = _;
-    return chart;
+    return model;
   }
 
-  chart.pointRadius = function (_) {
+  model.pointRadius = function (_) {
     if (!arguments.length) return pointRadius;
     pointRadius = _;
-    return chart;
+    return model;
   }
 
-  chart.pointHoverRadius = function (_) {
+  model.pointHoverRadius = function (_) {
     if (!arguments.length) return pointHoverRadius;
     pointHoverRadius = _;
-    return chart;
+    return model;
   }
 
-  chart.pointHoverColor = function (_) {
+  model.pointHoverColor = function (_) {
     if (!arguments.length) return pointHoverColor;
     pointHoverColor = _;
-    return chart;
+    return model;
   }
 
-  chart.mergeHover = function (_) {
+  model.mergeHover = function (_) {
     if (!arguments.length) return mergeHover;
     mergeHover = _;
-    return chart;    
+    return model;    
   }
 
-  chart.hoveredItems = function (_) {
+  model.hoveredItems = function (_) {
     if (!arguments.length) return hoveredItems;
     hoveredItems = _;
-    return chart;
+    return model;
   };
 
-  chart.addHoveredItem = function (_) {
+  model.addHoveredItem = function (_) {
     hoveredItems.push(_);
-    return chart;
+    return model;
   };
 
-  chart.base = function (_) {
+  model.base = function (_) {
     if (!arguments.length) return base;
     base = _;
-    return chart;
+    return model;
   };
 
-  chart.showPoint = function (_) {
+  model.showPoint = function (_) {
     if (!arguments.length) return showPoint;
     showPoint = _;
-    return chart;
+    return model;
   };
 
-  chart.startPosition = function (_) {
+  model.startPosition = function (_) {
     if (!arguments.length) return startPosition;
     startPosition = _;
-    return chart;
+    return model;
   };
 
-  return chart;
+  return model;
 };

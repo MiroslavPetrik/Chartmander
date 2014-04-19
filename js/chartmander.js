@@ -298,17 +298,23 @@ Chartmander.components.layer = function (canvasID) {
 
   var layer = this;
 
-  var id = canvasID // unique ID selector
-    , canvas = document.getElementById(canvasID)
-    , wrapper = document.createElement('div')
-    , ctx = canvas.getContext('2d')
-    , width = ctx.canvas.width
-    , height = ctx.canvas.height
-    , mouse = { x: 0, y: 0 }
-    , hovered = false
+  var id            = canvasID // unique ID selector
+    , canvas        = document.getElementById(canvasID) // DOM element
+    , wrapper       = document.createElement('div') // for canvas element (tooltip is relatively positioned to this element)
+    , ctx           = canvas.getContext('2d')
+    , width         = ctx.canvas.width
+    , height        = ctx.canvas.height
+    , mouse         = { x: 0, y: 0 }
+    , hovered       = false
     , hoverFinished = true
-    , onHover = null
-    , onLeave = null
+    , animate            = true
+    , animationSteps     = 100
+    , animationCompleted = 0
+    , easing             = "easeInQuint"
+    , updated            = false
+    , onHover       = null  // function specified by every chart (e.g. in /src/charts/pie.js)
+    , onLeave       = null  // detto
+    , drawChart     = null  // detto
     ;
 
   ///////////////////////////////////
@@ -367,6 +373,56 @@ Chartmander.components.layer = function (canvasID) {
   }
 
   ///////////////////////////////
+  // Animation loop
+  ///////////////////////////////
+
+  var draw = function (finished) {
+    var easingFunction = easings[easing]
+      , animationIncrement = 1/animationSteps
+      , _perc_
+      ;
+
+    if (!updated)
+      animationCompleted = animate ? 0 : 1;
+
+    function loop () {
+
+      if (finished) {
+        animationCompleted = 1;
+      } else if (animationCompleted < 1) {
+        animationCompleted += animationIncrement;
+      }
+
+      _perc_ = easingFunction(animationCompleted);
+
+      tooltip.clear();
+
+      layer.eraseFull()
+        // .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
+        .hoverFinished(true)
+        ;
+
+      // Draw components and models in chart
+      drawChart(ctx, _perc_);
+      
+      if (hovered && tooltip.hasItems()) {
+        tooltip.generate();
+        tooltip.moveTo(chart.layer.mouse());
+      }
+
+      // Request self-repaint if chart or data element has not finished animating yet
+      if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
+        requestAnimationFrame(loop);
+      }
+      else {
+        console.log("Animation Finished.");
+      }
+    }
+    // Ignite
+    requestAnimationFrame(loop);
+  }
+
+  ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
@@ -410,6 +466,30 @@ Chartmander.components.layer = function (canvasID) {
     return layer;
   };
 
+  layer.completed = function (_) {
+    if(!arguments.length) return animationCompleted;
+    animationCompleted = _;
+    return layer;
+  };
+
+  layer.easing = function (_) {
+    if (!arguments.length) return easing;
+    easing = _;
+    return layer;
+  };
+
+  layer.animate = function (_) {
+    if (!arguments.length) return animate;
+    animate = _;
+    return layer;
+  };
+
+  layer.updated = function (_) {
+    if (!arguments.length) return updated;
+    updated = _;
+    return layer;
+  };
+
   layer.erase = function (x, y, width, height) {
     ctx.clearRect(x, y, width, height);
     return layer;
@@ -427,6 +507,11 @@ Chartmander.components.layer = function (canvasID) {
 
   layer.onLeave = function (f) {
     onLeave = f;
+    return layer;
+  };
+
+  layer.drawChart = function (f) {
+    drawChart = f;
     return layer;
   };
 
@@ -1880,7 +1965,7 @@ Chartmander.models.baseModel = function () {
   // parent for each chartmander model
   // stores data and state
 
-  var chart = this;
+  var model = this;
 
   var datasets           = []
     , width              = null
@@ -1889,93 +1974,25 @@ Chartmander.models.baseModel = function () {
     , colors             = ["blue", "green", "red"]
     , font               = "13px Arial, sans-serif"
     , fontColor          = "#555"
-    , animate            = true
-    , animationSteps     = 100
-    , animationCompleted = 0
-    , easing             = "easeInQuint"
     , updated            = false
-    , drawChart          = null
     ;
 
   ///////////////////////////////////
   // Components
   ///////////////////////////////////
 
-  chart.layer = null; // each model needs a layer
+  model.layer = null; // each model needs a layer
 
   ///////////////////////////////////
-  // The Animating Loop
-  ///////////////////////////////////
-
-  var draw = function (finished) {
-    var easingFunction = easings[easing]
-      , animationIncrement = 1/animationSteps
-      , _perc_
-      , ctx = chart.layer.ctx
-      , tip = chart.layer.tooltip
-      ;
-
-    if (!updated)
-      animationCompleted = animate ? 0 : 1;
-
-    function loop () {
-
-      if (finished) {
-        animationCompleted = 1;
-      } else if (animationCompleted < 1) {
-        animationCompleted += animationIncrement;
-      }
-
-      _perc_ = easingFunction(animationCompleted);
-
-      tip.clear();
-      // ctx.save(); // prepare for clipping
-      // ctx.beginPath();
-      // ctx.rect(margin.left, margin.top, width+5, height+5);
-      // ctx.closePath();
-      // ctx.lineWidth = "3";
-      // // ctx.stroke();
-      // ctx.clip();
-
-      // FAUX if layer not connected to model in chart!
-      chart.layer
-        .eraseFull()
-        // .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
-        .hoverFinished(true)
-        ;
-
-      // Model specific drawings
-      drawChart(_perc_);
-      
-      if (chart.layer.hovered() && tip.hasItems()) {
-        tip.generate();
-        tip.moveTo(chart.layer.mouse());
-      }
-
-      // ctx.restore(); // clear canvas clip
-
-      // Request self-repaint if chart or data element has not finished animating yet
-      if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
-        requestAnimationFrame(loop);
-      }
-      else {
-        console.log("Animation Finished.");
-      }
-    }
-    // Ignite
-    requestAnimationFrame(loop);
-  }
-
-  ///////////////////////////////////
-  // Chart Update - Parse Data
+  // model Update - Parse Data
   ///////////////////////////////////
 
   var parse = function (data, element) {
     if (data === undefined) {
-      throw new Error("No data specified for chart (canvas#id) - " + chart.layer.id());
+      throw new Error("No data specified for model (canvas#id) - " + model.layer.id());
     }
     // First render, create new datasets
-    if (chart.setsCount() === 0) {
+    if (model.setsCount() === 0) {
       var i=0;
       forEach(data, function (set) {
         datasets.push(new Chartmander.components.dataset(set, colors[i], element));
@@ -1987,7 +2004,7 @@ Chartmander.models.baseModel = function () {
         if (data[i] === undefined) {
           throw new Error("Missing dataset. Dataset count on update must match.");
         }
-        set.merge(data[i], chart, element);
+        set.merge(data[i], model, element);
         i++;
       });
     }
@@ -1997,75 +2014,75 @@ Chartmander.models.baseModel = function () {
   // Methods and Binding
   ///////////////////////////////
 
-  chart.parse = parse;
-  chart.draw  = draw;
+  model.parse = parse;
+  model.draw  = draw;
 
   // Visual properties
 
-  chart.width = function (_) {
+  model.width = function (_) {
     if(!arguments.length) return width;
     width = _;
-    return chart;
+    return model;
   };
 
-  chart.height = function (_) {
+  model.height = function (_) {
     if(!arguments.length) return height;
     height = _;
-    return chart;
+    return model;
   };
 
-  chart.margin = function (_) {
+  model.margin = function (_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
     margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return chart;
+    return model;
   };
 
-  chart.colors = function (_) {
+  model.colors = function (_) {
     if(!arguments.length) return colors;
     colors = _;
-    return chart;
+    return model;
   };
 
   // FAUX
-  chart.color = function (i) {
+  model.color = function (i) {
     if (colors[i] !== undefined)
       return colors[i];
     else
       return "red";
   };
 
-  chart.fontColor = function (_) {
+  model.fontColor = function (_) {
     if (!arguments.length) return fontColor;
     fontColor = _;
-    return chart;
+    return model;
   };
 
-  chart.font = function (_) {
+  model.font = function (_) {
     if (!arguments.length) return font;
     font = _;
-    return chart;
+    return model;
   };
 
   // Data properties
 
-  chart.datasets = function (_) {
+  model.datasets = function (_) {
     if(!arguments.length) return datasets;
     datasets = _;
-    return chart;
+    return model;
   };
   
-  chart.dataset = function (_) {
+  model.dataset = function (_) {
     return datasets[_];
   };
   
-  chart.setsCount = function () {
+  model.setsCount = function () {
     return datasets.length;
   };
 
-  chart.elementCount = function () {
+  model.elementCount = function () {
     var total = 0;
     forEach(datasets, function (set) {
       total += set.elementCount();
@@ -2075,52 +2092,47 @@ Chartmander.models.baseModel = function () {
 
   // Animation properties
 
-  chart.completed = function (_) {
-    if(!arguments.length) return animationCompleted;
-    animationCompleted = _;
-    return chart;
-  };
+  // chart.completed = function (_) {
+  //   if(!arguments.length) return animationCompleted;
+  //   animationCompleted = _;
+  //   return chart;
+  // };
 
-  chart.easing = function (_) {
-    if (!arguments.length) return easing;
-    easing = _;
-    return chart;
-  };
+  // chart.easing = function (_) {
+  //   if (!arguments.length) return easing;
+  //   easing = _;
+  //   return chart;
+  // };
 
-  chart.animate = function (_) {
-    if (!arguments.length) return animate;
-    animate = _;
-    return chart;
-  };
+  // chart.animate = function (_) {
+  //   if (!arguments.length) return animate;
+  //   animate = _;
+  //   return chart;
+  // };
 
-  chart.drawChart = function (f) {
-    drawChart = f;
-    return chart;
-  };
-
-  chart.updated = function (_) {
+  model.updated = function (_) {
     if (!arguments.length) return updated;
     updated = _;
-    return chart;
+    return model;
   };
 
   // Interaction
 
-  chart.hovered = function () {
-    var mouse = chart.layer.mouse()
+  model.hovered = function () {
+    var mouse = model.layer.mouse()
 
-    return mouse.x >= chart.margin().left && 
-           mouse.x <= chart.margin().left + chart.width() &&
-           mouse.y >= chart.margin().top  &&
-           mouse.y <= chart.margin().top  + chart.height();
+    return mouse.x >= model.margin().left && 
+           mouse.x <= model.margin().left + model.width() &&
+           mouse.y >= model.margin().top  &&
+           mouse.y <= model.margin().top  + model.height();
   };
 
-  return chart;
+  return model;
 };
 
 Chartmander.models.pie = function () {
 
-  var chart = new Chartmander.models.base();
+  var model = new Chartmander.models.baseModel();
 
   var center          = { x: 0, y: 0 }
     , radius          = 0
@@ -2130,19 +2142,17 @@ Chartmander.models.pie = function () {
     , clockWise       = false
     ;
 
-  chart.easing("easeOutBounce");
-
   var recalc = function () {
     var slice
       , sliceStart = 0
       , sliceEnd
       ;
 
-    forEach(chart.datasets(), function (set) {
-      // There is always one element inside of dataset in pie chart
+    forEach(model.datasets(), function (set) {
+      // There is always one element inside of dataset in pie model
       slice = set.getElement(0);
       sliceEnd = sliceStart + getAngleOf(slice.value());
-      if (chart.updated()) {
+      if (model.updated()) {
         slice.savePosition();
       } else {
         slice.savePosition(0, 0);
@@ -2153,21 +2163,21 @@ Chartmander.models.pie = function () {
   }
   
   var drawSlices = function (_perc_) {
-    var ctx = chart.layer.ctx;
+    var ctx = model.layer.ctx;
     ctx.save();
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       var slice = set.getElement(0);
       ctx.fillStyle = set.color();
       slice
         .updatePosition(rotateAnimation ? _perc_ : 1)
-        .drawInto(ctx, chart, set);
+        .drawInto(ctx, model, set);
     });
     ctx.restore();
   }
 
   var getDataSum = function () {
     var total = 0;
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       set.each(function (e) {
         total += e.value();
       });
@@ -2180,56 +2190,56 @@ Chartmander.models.pie = function () {
   }
 
   var centerize = function () {
-    center.x = chart.margin().left + radius;
-    center.y = chart.margin().top  + radius;
+    center.x = model.margin().left + radius;
+    center.y = model.margin().top  + radius;
   }
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
-  chart.recalc = recalc;
-  chart.drawModel = drawSlices;
+  model.recalc = recalc;
+  model.drawModel = drawSlices;
 
-  chart.center = function (_) {
+  model.center = function (_) {
     if (!arguments.length) return center
     center.x = typeof _.x != 'undefined' ? _.x : center.x;
     center.y = typeof _.y != 'undefined' ? _.y : center.y;
-    return chart;
+    return model;
   };
 
-  chart.innerRadius = function (_) {
+  model.innerRadius = function (_) {
     if (!arguments.length) return innerRadius;
     innerRadius = _;
-    return chart;
+    return model;
   };
 
-  chart.radius = function (_) {
+  model.radius = function (_) {
     if (!arguments.length) return radius;
     radius = _;
-    chart.width(radius*2).height(radius*2);
+    model.width(radius*2).height(radius*2);
     centerize();
-    return chart;
+    return model;
   };
 
-  chart.startAngle = function (_) {
+  model.startAngle = function (_) {
     if (!arguments.length) return startAngle;
     startAngle = _;
-    return chart;
+    return model;
   };
 
-  chart.clockWise = function (_) {
+  model.clockWise = function (_) {
     if (!arguments.length) return clockWise;
     clockWise = _;
-    return chart;
+    return model;
   };
 
-  return chart;
+  return model;
 };
 
 Chartmander.models.bar = function () {
 
-  var chart = new Chartmander.models.base();
+  var model = new Chartmander.models.base();
 
   var stacked        = false // grouped otherwise
     , barWidth       = 0  // calculated so all sets can fit in chart
@@ -2238,47 +2248,47 @@ Chartmander.models.bar = function () {
     , base = 0
     ;
 
-  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
+  model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var i = 0, leftFix, x, y;
 
-    barWidth = Math.floor( grid.width()/chart.elementCount() );
+    barWidth = Math.floor( grid.width()/model.elementCount() );
 
-    // allow userBarWith only downscale so it won't break chart
+    // allow userBarWith only downscale so it won't break model
     if (barWidth > userBarWidth) {
       barWidth = userBarWidth;
     }
 
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       set.each(function (bar) {
         x = Math.ceil(grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + i*barWidth);
         y = -bar.value()/yAxis.scale();
-        if (chart.updated()) {
+        if (model.updated()) {
           bar.savePosition();
         } else {
           bar.savePosition(x, 0);
         }
-        bar.moveTo(x, y).saveBase(chart.base()).moveBase(chart.base());
+        bar.moveTo(x, y).saveBase(model.base()).moveBase(model.base());
       });
       i++;
     });
-    return chart;
+    return model;
   }
 
   var drawBars = function (_perc_) {
     var counter = 0
-      , ctx = chart.layer.ctx;
+      , ctx = model.layer.ctx;
 
     ctx.save();
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       ctx.fillStyle = set.color();
       // ctx.lineWidth = set.style.normal.stroke;
       // ctx.strokeStyle = set.style.normal.strokeColor;
       set.each(function (bar) {
         bar.updatePosition(_perc_)
            .updatePositionBase(_perc_)
-           .drawInto(chart, set);
+           .drawInto(model, set);
       });
       counter++;
     })
@@ -2289,39 +2299,39 @@ Chartmander.models.bar = function () {
   // Public Methods
   ///////////////////////////////
 
-  chart.recalc = recalc;
-  chart.drawModel = drawBars;
+  model.recalc = recalc;
+  model.drawModel = drawBars;
 
-  chart.stacked = function (_) {
+  model.stacked = function (_) {
     if (!arguments.length) return stacked;
     stacked = _;
-    return chart;
+    return model;
   };
 
-  chart.barWidth = function (_) {
+  model.barWidth = function (_) {
     if (!arguments.length) return barWidth; // Internal
     userBarWidth = _; // User defined
-    return chart;
+    return model;
   };
 
-  chart.datasetSpacing = function (_) {
+  model.datasetSpacing = function (_) {
     if (!arguments.length) return datasetSpacing;
     datasetSpacing = _;
-    return chart;
+    return model;
   };
 
-  chart.base = function (_) {
+  model.base = function (_) {
     if (!arguments.length) return base;
     base = _;
-    return chart;
+    return model;
   };
   
-  return chart;
+  return model;
 }
 
 Chartmander.models.line = function () {
 
-  var chart = new Chartmander.models.base();
+  var model = new Chartmander.models.baseModel();
 
   var lineWidth        = 2
     , showPoint        = true
@@ -2336,27 +2346,27 @@ Chartmander.models.line = function () {
     , startPosition    = "direct" // or direct
     ;
 
-  chart.margin({ top: 0, right: 0, bottom: 0, left: 0 });
+  model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       set.each(function (point) {
         // time axis specific
         x = Math.ceil(grid.bound().left + (point.label() - xAxis.min())/xAxis.scale());
-        y = chart.base() - point.value()/yAxis.scale();
-        if (chart.updated()) {
+        y = model.base() - point.value()/yAxis.scale();
+        if (model.updated()) {
           point.savePosition();
         } else {
           if (startPosition == "center")
-            point.savePosition(chart.margin().left + grid.width()/2, chart.base());
+            point.savePosition(model.margin().left + grid.width()/2, model.base());
           if (startPosition == "direct")
-            point.savePosition(x, chart.base());
+            point.savePosition(x, model.base());
         }
         point.moveTo(x, y);
       });
     });
-    return chart;
+    return model;
   }
 
   var updatePoints = function (set, _perc_) {
@@ -2366,23 +2376,23 @@ Chartmander.models.line = function () {
   }
 
   var drawArea = function (set) {
-    var ctx = chart.layer.ctx;
+    var ctx = model.layer.ctx;
     ctx.save();
     ctx.fillStyle = set.color();
     ctx.globalAlpha = areaOpacity;
     ctx.beginPath();
-    ctx.moveTo(set.getElement(0).x(), chart.base());
+    ctx.moveTo(set.getElement(0).x(), model.base());
     ctx.lineTo(set.getElement(0).x(), set.getElement(0).y());
     set.each(function (point) {
       ctx.lineTo(point.x(), point.y());
     });
-    ctx.lineTo(set.getElement("last").x(), chart.base());
+    ctx.lineTo(set.getElement("last").x(), model.base());
     ctx.fill();
     ctx.restore();
   }
 
   var drawLines = function (set) {
-    var ctx = chart.layer.ctx;
+    var ctx = model.layer.ctx;
     ctx.save();
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = set.color();
@@ -2395,12 +2405,12 @@ Chartmander.models.line = function () {
   }
 
   var drawPoints = function (set) {
-    var ctx = chart.layer.ctx;
+    var ctx = model.layer.ctx;
     ctx.save();
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
     set.each(function (point) {
-      point.drawInto(chart, set);
+      point.drawInto(model, set);
     });
 
     // With high-density data there can be more hovered points
@@ -2415,7 +2425,7 @@ Chartmander.models.line = function () {
       }
       closestHovered = set.getElement(closestHovered.index);
       closestHovered.animIn();
-      chart.layer.tooltip.addItem({
+      model.layer.tooltip.addItem({
         "set"  : set.title(),
         "label": closestHovered.label(),
         "value": closestHovered.value(),
@@ -2428,7 +2438,7 @@ Chartmander.models.line = function () {
   }
 
   var drawModel = function (_perc_) {
-    forEach(chart.datasets(), function (set) {
+    forEach(model.datasets(), function (set) {
       hoveredItems = [];
       updatePoints(set, _perc_);
       if (areaVisible) {
@@ -2444,81 +2454,81 @@ Chartmander.models.line = function () {
   // Public Methods
   ///////////////////////////////
 
-  chart.recalc = recalc;
-  chart.drawModel = drawModel;
+  model.recalc = recalc;
+  model.draw = drawModel;
 
-  chart.areaVisible = function (_) {
+  model.areaVisible = function (_) {
     if (!arguments.length) return areaVisible;
     areaVisible = _;
-    return chart;
+    return model;
   }
 
-  chart.areaOpacity = function (_) {
+  model.areaOpacity = function (_) {
     if (!arguments.length) return areaOpacity;
     areaOpacity = _;
-    return chart;
+    return model;
   }
 
-  chart.lineWidth = function (_) {
+  model.lineWidth = function (_) {
     if (!arguments.length) return lineWidth;
     lineWidth = _;
-    return chart;
+    return model;
   }
 
-  chart.pointRadius = function (_) {
+  model.pointRadius = function (_) {
     if (!arguments.length) return pointRadius;
     pointRadius = _;
-    return chart;
+    return model;
   }
 
-  chart.pointHoverRadius = function (_) {
+  model.pointHoverRadius = function (_) {
     if (!arguments.length) return pointHoverRadius;
     pointHoverRadius = _;
-    return chart;
+    return model;
   }
 
-  chart.pointHoverColor = function (_) {
+  model.pointHoverColor = function (_) {
     if (!arguments.length) return pointHoverColor;
     pointHoverColor = _;
-    return chart;
+    return model;
   }
 
-  chart.mergeHover = function (_) {
+  model.mergeHover = function (_) {
     if (!arguments.length) return mergeHover;
     mergeHover = _;
-    return chart;    
+    return model;    
   }
 
-  chart.hoveredItems = function (_) {
+  model.hoveredItems = function (_) {
     if (!arguments.length) return hoveredItems;
     hoveredItems = _;
-    return chart;
+    return model;
   };
 
-  chart.addHoveredItem = function (_) {
+  model.addHoveredItem = function (_) {
     hoveredItems.push(_);
-    return chart;
+    return model;
   };
 
-  chart.base = function (_) {
+  model.base = function (_) {
     if (!arguments.length) return base;
     base = _;
-    return chart;
+    return model;
   };
 
-  chart.showPoint = function (_) {
+  model.showPoint = function (_) {
     if (!arguments.length) return showPoint;
     showPoint = _;
-    return chart;
+    return model;
   };
 
-  chart.startPosition = function (_) {
+  model.startPosition = function (_) {
     if (!arguments.length) return startPosition;
     startPosition = _;
-    return chart;
+    return model;
   };
 
-  return chart;
+  return model;
 };
 
 Chartmander.charts.pie = function (canvas) {
@@ -2611,55 +2621,50 @@ Chartmander.charts.bar = function (canvas) {
         bars.draw(true);
       }
     })
-    ;
+    .drawChart(function (_perc_) {
+      grid.drawInto(bars, _perc_);
+
+      if (xAxisVisible) {
+        xAxis
+          .animIn()
+          .drawInto(bars, _perc_);
+        // if (x0 && x0.state > 0) {
+        //   ctx.save();
+        //   forEach(x0.labels, function (label) {
+
+        //   });
+        //   ctx.restore();
+        // } 
+      }
+
+      if (yAxisVisible) {
+        yAxis
+          .animIn()
+          .drawInto(bars, _perc_);
+
+        if (y0 && y0.state > 0) {
+          ctx.save();
+          ctx.textAlign = "right";
+          ctx.fillStyle = bars.fontColor();
+          ctx.font = bars.font();
+          ctx.globalAlpha = y0.state;
+          forEach(y0.labels, function (label) {
+            label.updatePosition(_perc_);
+            ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
+          });
+          ctx.restore();
+          y0.state -= .01;
+        }
+      }
+
+      bars.draw(_perc_);
+    });
 
   bars
     .width(layer.width())
     .height(layer.height())
     ;
 
-
-  bars.drawChart(function (_perc_) {
-    var ctx = layer.ctx;
-
-    grid.drawInto(bars, _perc_);
-
-    if (xAxisVisible) {
-      xAxis
-        .animIn()
-        .drawInto(bars, _perc_);
-      // if (x0 && x0.state > 0) {
-      //   ctx.save();
-      //   forEach(x0.labels, function (label) {
-
-      //   });
-      //   ctx.restore();
-      // } 
-    }
-
-    if (yAxisVisible) {
-      yAxis
-        .animIn()
-        .drawInto(bars, _perc_);
-
-      if (y0 && y0.state > 0) {
-        ctx.save();
-        ctx.textAlign = "right";
-        ctx.fillStyle = bars.fontColor();
-        ctx.font = bars.font();
-        ctx.globalAlpha = y0.state;
-        forEach(y0.labels, function (label) {
-          label.updatePosition(_perc_);
-          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
-        });
-        ctx.restore();
-        y0.state -= .01;
-      }
-    }
-
-    bars.drawModel(_perc_);
-  });
-  
   ///////////////////////////////
   // Life cycle
   ///////////////////////////////

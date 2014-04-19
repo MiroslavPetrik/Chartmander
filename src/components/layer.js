@@ -2,17 +2,23 @@ Chartmander.components.layer = function (canvasID) {
 
   var layer = this;
 
-  var id = canvasID // unique ID selector
-    , canvas = document.getElementById(canvasID)
-    , wrapper = document.createElement('div')
-    , ctx = canvas.getContext('2d')
-    , width = ctx.canvas.width
-    , height = ctx.canvas.height
-    , mouse = { x: 0, y: 0 }
-    , hovered = false
+  var id            = canvasID // unique ID selector
+    , canvas        = document.getElementById(canvasID) // DOM element
+    , wrapper       = document.createElement('div') // for canvas element (tooltip is relatively positioned to this element)
+    , ctx           = canvas.getContext('2d')
+    , width         = ctx.canvas.width
+    , height        = ctx.canvas.height
+    , mouse         = { x: 0, y: 0 }
+    , hovered       = false
     , hoverFinished = true
-    , onHover = null
-    , onLeave = null
+    , animate            = true
+    , animationSteps     = 100
+    , animationCompleted = 0
+    , easing             = "easeInQuint"
+    , updated            = false
+    , onHover       = null  // function specified by every chart (e.g. in /src/charts/pie.js)
+    , onLeave       = null  // detto
+    , drawChart     = null  // detto
     ;
 
   ///////////////////////////////////
@@ -71,6 +77,56 @@ Chartmander.components.layer = function (canvasID) {
   }
 
   ///////////////////////////////
+  // Animation loop
+  ///////////////////////////////
+
+  var draw = function (finished) {
+    var easingFunction = easings[easing]
+      , animationIncrement = 1/animationSteps
+      , _perc_
+      ;
+
+    if (!updated)
+      animationCompleted = animate ? 0 : 1;
+
+    function loop () {
+
+      if (finished) {
+        animationCompleted = 1;
+      } else if (animationCompleted < 1) {
+        animationCompleted += animationIncrement;
+      }
+
+      _perc_ = easingFunction(animationCompleted);
+
+      tooltip.clear();
+
+      layer.eraseFull()
+        // .erase(margin.left, margin.top, width+5, height+5) // introduce smudge factor variable/object
+        .hoverFinished(true)
+        ;
+
+      // Draw components and models in chart
+      drawChart(ctx, _perc_);
+      
+      if (hovered && tooltip.hasItems()) {
+        tooltip.generate();
+        tooltip.moveTo(chart.layer.mouse());
+      }
+
+      // Request self-repaint if chart or data element has not finished animating yet
+      if (animationCompleted < 1 || !chart.layer.hoverFinished()) {
+        requestAnimationFrame(loop);
+      }
+      else {
+        console.log("Animation Finished.");
+      }
+    }
+    // Ignite
+    requestAnimationFrame(loop);
+  }
+
+  ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
@@ -114,6 +170,30 @@ Chartmander.components.layer = function (canvasID) {
     return layer;
   };
 
+  layer.completed = function (_) {
+    if(!arguments.length) return animationCompleted;
+    animationCompleted = _;
+    return layer;
+  };
+
+  layer.easing = function (_) {
+    if (!arguments.length) return easing;
+    easing = _;
+    return layer;
+  };
+
+  layer.animate = function (_) {
+    if (!arguments.length) return animate;
+    animate = _;
+    return layer;
+  };
+
+  layer.updated = function (_) {
+    if (!arguments.length) return updated;
+    updated = _;
+    return layer;
+  };
+
   layer.erase = function (x, y, width, height) {
     ctx.clearRect(x, y, width, height);
     return layer;
@@ -131,6 +211,11 @@ Chartmander.components.layer = function (canvasID) {
 
   layer.onLeave = function (f) {
     onLeave = f;
+    return layer;
+  };
+
+  layer.drawChart = function (f) {
+    drawChart = f;
     return layer;
   };
 

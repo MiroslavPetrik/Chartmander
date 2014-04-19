@@ -32,55 +32,50 @@ Chartmander.charts.bar = function (canvas) {
         bars.draw(true);
       }
     })
-    ;
+    .drawChart(function (_perc_) {
+      grid.drawInto(bars, _perc_);
+
+      if (xAxisVisible) {
+        xAxis
+          .animIn()
+          .drawInto(bars, _perc_);
+        // if (x0 && x0.state > 0) {
+        //   ctx.save();
+        //   forEach(x0.labels, function (label) {
+
+        //   });
+        //   ctx.restore();
+        // } 
+      }
+
+      if (yAxisVisible) {
+        yAxis
+          .animIn()
+          .drawInto(bars, _perc_);
+
+        if (y0 && y0.state > 0) {
+          ctx.save();
+          ctx.textAlign = "right";
+          ctx.fillStyle = bars.fontColor();
+          ctx.font = bars.font();
+          ctx.globalAlpha = y0.state;
+          forEach(y0.labels, function (label) {
+            label.updatePosition(_perc_);
+            ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
+          });
+          ctx.restore();
+          y0.state -= .01;
+        }
+      }
+
+      bars.draw(_perc_);
+    });
 
   bars
     .width(layer.width())
     .height(layer.height())
     ;
 
-
-  bars.drawChart(function (_perc_) {
-    var ctx = layer.ctx;
-
-    grid.drawInto(bars, _perc_);
-
-    if (xAxisVisible) {
-      xAxis
-        .animIn()
-        .drawInto(bars, _perc_);
-      // if (x0 && x0.state > 0) {
-      //   ctx.save();
-      //   forEach(x0.labels, function (label) {
-
-      //   });
-      //   ctx.restore();
-      // } 
-    }
-
-    if (yAxisVisible) {
-      yAxis
-        .animIn()
-        .drawInto(bars, _perc_);
-
-      if (y0 && y0.state > 0) {
-        ctx.save();
-        ctx.textAlign = "right";
-        ctx.fillStyle = bars.fontColor();
-        ctx.font = bars.font();
-        ctx.globalAlpha = y0.state;
-        forEach(y0.labels, function (label) {
-          label.updatePosition(_perc_);
-          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
-        });
-        ctx.restore();
-        y0.state -= .01;
-      }
-    }
-
-    bars.drawModel(_perc_);
-  });
-  
   ///////////////////////////////
   // Life cycle
   ///////////////////////////////
