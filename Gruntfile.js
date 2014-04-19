@@ -5,16 +5,7 @@ module.exports = function (grunt) {
             js: {
                 src: [
                     'src/core.js',
-                    'src/canvasLayer.js',
-                    'src/models/base.js',
-                    'src/models/pie.js',
-                    'src/models/bar.js',
-                    'src/models/line.js',
-                    'src/charts/pie.js',
-                    'src/charts/bar.js',
-                    'src/charts/line.js',
-                    'src/charts/categoryBar.js',
-                    // 'src/charts/trigonometricCombo.js',
+                    'src/components/layer.js',
                     'src/components/animatedPart.js',
                     'src/components/dataset.js',
                     'src/components/grid.js',
@@ -31,7 +22,14 @@ module.exports = function (grunt) {
                     'src/components/label.js',
                     'src/components/crosshair.js',
                     'src/components/tip.js',
-                    'src/components/tooltip.js',
+                    'src/models/base.js',
+                    'src/models/pie.js',
+                    'src/models/bar.js',
+                    'src/models/line.js',
+                    'src/charts/pie.js',
+                    'src/charts/bar.js',
+                    'src/charts/line.js',
+                    'src/charts/categoryBar.js',
                     'src/end.js'
                 ],
                 dest: 'js/chartmander.js'

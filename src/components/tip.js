@@ -1,4 +1,4 @@
-Chartmander.components.tip = function (id) {
+Chartmander.components.tooltip = function (id) {
 
   var tooltip = this;
 

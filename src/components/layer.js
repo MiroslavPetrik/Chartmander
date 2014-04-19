@@ -1,5 +1,6 @@
 Chartmander.components.layer = function (canvasID) {
 
+
   // main component for each chart or multiple charts
 
   var layer = this;
@@ -29,7 +30,7 @@ Chartmander.components.layer = function (canvasID) {
   // Tooltip
   ///////////////////////////////////
 
-  var tooltip = new Chartmander.components.tip(id);
+  var tooltip = new Chartmander.components.tooltip(id);
   wrapper.insertBefore(tooltip.container, canvas);
 
   ///////////////////////////////////
@@ -41,7 +42,7 @@ Chartmander.components.layer = function (canvasID) {
   canvas.addEventListener("mouseleave", handleLeave, false);
 
   if (window.devicePixelRatio) {
-    ctx.canvas.style.width  =  width + "px";
+    ctx.canvas.style.width  = width  + "px";
     ctx.canvas.style.height = height + "px";
     ctx.canvas.height       = height * window.devicePixelRatio;
     ctx.canvas.width        = width  * window.devicePixelRatio;
