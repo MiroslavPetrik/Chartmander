@@ -1,98 +1,72 @@
-Chartmander.components.tooltip = function (items) {
+Chartmander.components.tooltip = function (id) {
 
-  var tooltip = new Chartmander.components.animatedPart();
+  var tooltip = this;
 
-  var items = []
-    , margin = 20
-    , padding = 10
-    , backgroundColor = "rgba(46,59,66,.9)"
-    , width = 110
-    , height = 40
-    , dateFormat = "MMMM YYYY"
-    , fontSize = 12
-    , lineHeight = 1.5
-    , iconSize = 10
-    , fontColor = "#fff"
-    , current = { // Position
-        x: 0,
-        y: 0
-      }
-    , desired = {
-        x: 0,
-        y: 0
-      }
+  var items      = []
+    , container  = document.createElement('div')
+    , header     = document.createElement('span')
+    , content    = document.createElement('ul')
+    , margin     = 30
+    , dateFormat = 'MMMM YYYY'
     ;
 
-  var drawInto = function (chart) {
-    var ctx = chart.ctx
-      , topOffset  = chart.mouse().y
-      , leftOffset = chart.mouse().x + margin
-      , lineOffset = fontSize*lineHeight
-      ;
+  // Build tooltip
+  container.id = "cm-tip-"+id;
+  container.className = "cm-tip";
+  container.appendChild(header);
+  container.appendChild(content);
 
-    // tooltip.animIn();
-
-    ctx.save();
-    // Draw Tooltip body
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(leftOffset, topOffset, width + padding*2, height + padding*2);
-
-    // Draw Tooltip items
-    ctx.fillStyle = fontColor;
-    leftOffset += padding;
-    topOffset += padding;
-    ctx.textBaseline = "top";
-    ctx.font = chart.font();
-
-    // Tooltip header
-    ctx.fillText(moment(items[0].label).format(dateFormat), leftOffset, topOffset);
-    topOffset += lineOffset;
-
-    // Items
-    forEach(items, function (item) {
-      ctx.fillText(item.set + " " + item.value, leftOffset, topOffset);
-      topOffset += lineOffset;
-    });
-    ctx.restore();
+  var moveTo = function (pos) {
+    container.style.top  = pos.y + 'px';
+    container.style.left = pos.x + margin + 'px';
+    return tooltip;
   }
 
-  var recalc = function (ctx) {
-    var lineWidth = 0;
-    height = 0;
-    height += fontSize*lineHeight;
-    width = ctx.measureText( moment(items[0].label).format(dateFormat) ).width
-
+  var generate = function () {
+    container.style.opacity = 1;
+    header.innerHTML = moment(items[0]).format(dateFormat);
     forEach(items, function (item) {
-      lineWidth = ctx.measureText(item.set).width + ctx.measureText(item.value).width;
-      if (lineWidth > width) width = lineWidth;
-      height += lineHeight;
+      content.appendChild(new TipNode(item.color, item.value, item.set));
     });
   };
+
+  var TipNode = function (color, value, setTitle) {
+    var node = document.createElement('li')
+      , val  = document.createElement('strong')
+      , icon = document.createElement('div')
+      , set  = document.createTextNode(" " + setTitle)
+      ;
+
+    val.innerHTML = value;
+    icon.style.backgroundColor = color;
+
+    node.appendChild(icon);
+    node.appendChild(val);
+    node.appendChild(set);
+    return node;
+  }
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
-  tooltip.drawInto = drawInto;
-  tooltip.recalc = recalc;
+  tooltip.container = container;
+  tooltip.moveTo = moveTo;
+  tooltip.generate = generate;
 
   tooltip.addItem = function (_) {
     items.push(_);
   };
 
-  tooltip.flush = function () {
+  tooltip.clear = function () {
     items = [];
+    container.style.opacity = 0;
+    header.innerHTML = null;
+    content.innerHTML = null;
   }
 
   tooltip.hasItems = function () {
     return items.length > 0;
-  };
-
-  tooltip.backgroundColor = function (_) {
-    if (!arguments.length) return backgroundColor;
-    backgroundColor = _;
-    return tooltip;
   };
 
   tooltip.dateFormat = function (_) {

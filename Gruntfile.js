@@ -21,7 +21,7 @@ module.exports = function (grunt) {
                     'src/components/point.js',
                     'src/components/label.js',
                     'src/components/crosshair.js',
-                    'src/components/tip.js',
+                    'src/components/tooltip.js',
                     'src/models/baseModel.js',
                     'src/models/slices.js',
                     'src/models/bars.js',
