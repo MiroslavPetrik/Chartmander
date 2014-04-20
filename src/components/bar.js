@@ -25,7 +25,7 @@ Chartmander.components.bar = function (data, title) {
       });
     }
 
-    ctx.fillRect(bar.x(), bar.base(), chart.barWidth(), bar.y());
+    ctx.fillRect(bar.x(), bar.base(), model.barWidth(), bar.y());
     ctx.restore();
     // if (style.normal.stroke > 0)
       // ctx.strokeRect(bar.x(), bar.getBase(), chart.barWidth(), bar.y());

@@ -1,6 +1,6 @@
-Chartmander.models.lines = function () {
+Chartmander.models.lines = function (chart) {
 
-  var model = new Chartmander.models.baseModel();
+  var model = new Chartmander.models.baseModel(chart);
 
   var lineWidth        = 2
     , showPoint        = true
@@ -12,10 +12,10 @@ Chartmander.models.lines = function () {
     , mergeHover       = true
     , hoveredItems     = []
     , base             = 0
-    , startPosition    = "direct" // or direct
+    , startPosition    = "direct" // or center
     ;
 
-  model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
+  // model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
@@ -45,7 +45,6 @@ Chartmander.models.lines = function () {
   }
 
   var drawArea = function (set) {
-    var ctx = model.layer.ctx;
     ctx.save();
     ctx.fillStyle = set.color();
     ctx.globalAlpha = areaOpacity;
@@ -61,7 +60,6 @@ Chartmander.models.lines = function () {
   }
 
   var drawLines = function (set) {
-    var ctx = model.layer.ctx;
     ctx.save();
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = set.color();
@@ -74,7 +72,6 @@ Chartmander.models.lines = function () {
   }
 
   var drawPoints = function (set) {
-    var ctx = model.layer.ctx;
     ctx.save();
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
@@ -94,7 +91,7 @@ Chartmander.models.lines = function () {
       }
       closestHovered = set.getElement(closestHovered.index);
       closestHovered.animIn();
-      model.layer.tooltip.addItem({
+      chart.tooltip.addItem({
         "set"  : set.title(),
         "label": closestHovered.label(),
         "value": closestHovered.value(),
@@ -106,7 +103,7 @@ Chartmander.models.lines = function () {
     ctx.restore();
   }
 
-  var drawModel = function (_perc_) {
+  var drawInto = function (ctx, _perc_) {
     forEach(model.datasets(), function (set) {
       hoveredItems = [];
       updatePoints(set, _perc_);
@@ -124,7 +121,7 @@ Chartmander.models.lines = function () {
   ///////////////////////////////
 
   model.recalc = recalc;
-  model.draw = drawModel;
+  model.drawInto = drawInto;
 
   model.areaVisible = function (_) {
     if (!arguments.length) return areaVisible;

@@ -12,6 +12,10 @@ Chartmander.charts.pie = function (canvas) {
   // Setup drawing & defaults
   ///////////////////////////////////
 
+  pie
+    .radius(chart.width()/2)
+    ;
+  
   chart
     .onHover(function () {
       if (chart.completed() >= 1)
@@ -27,9 +31,6 @@ Chartmander.charts.pie = function (canvas) {
     })
     ;
 
-  pie
-    .radius(chart.width()/2)
-    ;
 
   var render =  function (data) {
     pie.parse(data, Chartmander.components.slice);

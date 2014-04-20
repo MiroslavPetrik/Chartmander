@@ -10,7 +10,7 @@ Chartmander.components.yAxis = function () {
     ;
 
   // generate?
-  var recalc = function (chart, oldScale) {
+  var recalc = function (chart, model, oldScale) {
 
     var height = chart.grid.height()
       , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
@@ -34,14 +34,14 @@ Chartmander.components.yAxis = function () {
       else if (label.value() > 0)
         previous = axis.getLabel(i-1);
       else if (label.value() == 0) {
-        label.startAt(chart.base()).moveTo(false, chart.base());
+        label.startAt(model.base()).moveTo(false, model.base());
         continue;
       }
       // where to start animating labels
       if (!isNaN(oldScale)) {
-        label.startAt(chart.base() - label.value()/oldScale).moveTo(false, chart.base() - label.value()/axis.scale());
+        label.startAt(model.base() - label.value()/oldScale).moveTo(false, model.base() - label.value()/axis.scale());
       } else {
-        label.startAt(chart.base() - previous.value()/axis.scale()).moveTo(false, chart.base() - label.value()/axis.scale());
+        label.startAt(model.base() - previous.value()/axis.scale()).moveTo(false, model.base() - label.value()/axis.scale());
       }
     }
 
@@ -114,14 +114,13 @@ Chartmander.components.yAxis = function () {
     }
   }
 
-  var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx
-      , grid = chart.grid;
+  var drawInto = function (ctx, chart, model, _perc_) {
+    var grid = chart.grid;
 
     ctx.save();
     ctx.textAlign = "right";
-    ctx.fillStyle = chart.fontColor();
-    ctx.font = chart.font();
+    ctx.font = model.font();
+    ctx.fillStyle = model.fontColor();
     ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
       // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
@@ -157,9 +156,9 @@ Chartmander.components.yAxis = function () {
   };
 
   // oldScale FAUX 
-  axis.adapt = function (chart, range, oldScale) {
+  axis.adapt = function (chart, model, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    recalc(chart, oldScale);
+    recalc(chart, model, oldScale);
     return axis;
   };
 

@@ -53,13 +53,12 @@ Chartmander.components.xAxis = function () {
     }
   }
 
-  var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx
-      , topOffset = chart.grid.bound().bottom + 25;
+  var drawInto = function (ctx, chart, model, _perc_) {
+    var topOffset = chart.grid.bound().bottom + 25;
 
     ctx.save();
-    ctx.fillStyle = chart.fontColor();
-    ctx.font = chart.font();
+    ctx.fillStyle = model.fontColor();
+    ctx.font = model.font();
     ctx.globalAlpha = 1;
     axis.each(function (label) {
       var leftOffset = chart.grid.bound().left + (label-chart.xAxis.min())/chart.xAxis.scale();

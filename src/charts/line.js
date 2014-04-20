@@ -26,26 +26,26 @@ Chartmander.charts.line = function (canvas) {
         chart.draw(true);
       }
     })
-    .drawChart(function (_perc_) {
-      grid.drawInto(lines, _perc_);
+    .drawChart(function (ctx, _perc_) {
+      grid.drawInto(ctx, chart, lines, _perc_);
       
       // if (xAxisVisible) {
         xAxis
           .animIn()
-          .drawInto(lines, _perc_);
+          .drawInto(ctx, chart, lines, _perc_);
       // }
 
       // if (yAxisVisible) {
         yAxis
           .animIn()
-          .drawInto(lines, _perc_);
+          .drawInto(ctx, chart, lines, _perc_);
       // }
 
       if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
         crosshair.drawInto(lines);
       }
       
-      lines.drawModel(_perc_);
+      lines.drawInto(_perc_);
     });
     ;
 
@@ -78,8 +78,8 @@ Chartmander.charts.line = function (canvas) {
     // grid before axes
     grid.adapt(lines);
     // axes use grid height to calculate their scale
-    xAxis.adapt(lines, xrange);
-    yAxis.adapt(lines, yrange);
+    xAxis.adapt(chart, xrange);
+    yAxis.adapt(chart, lines, yrange);
     lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
     lines

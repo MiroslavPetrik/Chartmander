@@ -27,14 +27,12 @@ Chartmander.components.grid = function () {
     });
   }
 
-  var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx;
-
+  var drawInto = function (ctx, chart, model, _perc_) {
     ctx.save();
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = lineWidth;
     ctx.globalAlpha = _perc_;
-
+    console.log(chart)
     if (horizontalLines) {
       forEach(chart.yAxis.labels(), function (line) {
         var y = Math.ceil(line.y());
@@ -47,7 +45,7 @@ Chartmander.components.grid = function () {
 
     if (verticalLines) {
       for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
-        var xOffset = Math.ceil( chart.margin().left + margin.left + i*(width / chart.xAxis.labels().length) );
+        var xOffset = Math.ceil( model.margin().left + margin.left + i*(width / chart.xAxis.labels().length) );
         ctx.beginPath();
         ctx.moveTo(xOffset, bound.top);
         ctx.lineTo(xOffset, bound.bottom);

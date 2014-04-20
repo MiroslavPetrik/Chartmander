@@ -4,16 +4,13 @@ Chartmander.components.point = function (data, title) {
 
   point.set(title).label(data.label).value(data.value);
 
-  var drawInto = function (chart, set) {
-    var layer = chart.layer
-      , ctx = layer.ctx;
-
-    if (layer.hovered()) {
-      var hover = isHovered(layer.mouse(), chart.pointHoverRadius(), chart.mergeHover());
+  var drawInto = function (ctx, chart, model, set) {
+    if (chart.hovered()) {
+      var hover = isHovered(chart.mouse(), model.pointHoverRadius(), model.mergeHover());
     }
     // Draw circle in normal state
     ctx.beginPath();
-    ctx.arc(point.x(), point.y(), chart.pointRadius()*(1-point.getState()), 0, Math.PI*2, false);
+    ctx.arc(point.x(), point.y(), model.pointRadius()*(1-point.getState()), 0, Math.PI*2, false);
     ctx.fill();
     // Stroke circle
     // if (style.normal.stroke) {
@@ -23,10 +20,10 @@ Chartmander.components.point = function (data, title) {
     // }
 
     if (point.getState() > 0) {
-      layer.hoverFinished(false);
+      chart.hoverFinished(false);
       ctx.save();
       ctx.beginPath();
-      ctx.fillStyle = chart.pointHoverColor();
+      ctx.fillStyle = model.pointHoverColor();
       ctx.arc(point.x(), point.y(),10*point.getState(), 0, Math.PI*2, false);
       ctx.fill();
       // if (style.onHover.stroke > 0) {
@@ -37,7 +34,7 @@ Chartmander.components.point = function (data, title) {
       ctx.restore();
     }
 
-    if (layer.hovered() && hover.was) {
+    if (chart.hovered() && hover.was) {
       chart.addHoveredItem({
         "index"   : indexOf.call(set.els(), point),
         "distance": hover.distance

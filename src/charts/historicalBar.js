@@ -17,23 +17,28 @@ Chartmander.charts.historicalBar = function (canvas) {
   // Setup defaults
   ///////////////////////////////////
 
+  bars
+    .width(chart.width())
+    .height(chart.height())
+    ;
+
   chart
     .onHover(function () {
       if (chart.completed() >= 1)
-        bars.draw(true);
+        chart.draw(true);
     })
     .onLeave(function () {
       if (chart.completed()) {
-        bars.draw(true);
+        chart.draw(true);
       }
     })
     .drawChart(function (ctx, _perc_) {
-      grid.drawInto(bars, _perc_);
+      grid.drawInto(ctx, chart, bars, _perc_);
 
       // if (xAxisVisible) {
         xAxis
           .animIn()
-          .drawInto(bars, _perc_);
+          .drawInto(ctx, chart, bars, _perc_);
         // if (x0 && x0.state > 0) {
         //   ctx.save();
         //   forEach(x0.labels, function (label) {
@@ -46,7 +51,7 @@ Chartmander.charts.historicalBar = function (canvas) {
       // if (yAxisVisible) {
         yAxis
           .animIn()
-          .drawInto(bars, _perc_);
+          .drawInto(ctx, chart, bars, _perc_);
 
         if (y0 && y0.state > 0) {
           ctx.save();
@@ -63,13 +68,9 @@ Chartmander.charts.historicalBar = function (canvas) {
         }
       // }
 
-      bars.draw(_perc_);
+      bars.drawInto(ctx, _perc_);
     });
 
-  bars
-    .width(chart.width())
-    .height(chart.height())
-    ;
 
   ///////////////////////////////
   // Life cycle
@@ -100,7 +101,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     grid.adapt(bars);
     // axes use grid height to calculate their scale
     xAxis.adapt(chart, xrange);
-    yAxis.adapt(chart, yrange, oldYScale);
+    yAxis.adapt(chart, bars, yrange, oldYScale);
 
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
@@ -112,7 +113,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     }
 
     bars
-      .recalc(xAxis, yAxis, grid)
+      .recalc(xAxis, yAxis, grid);
     
     chart.completed(0)
       .draw(false);
