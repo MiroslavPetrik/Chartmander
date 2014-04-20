@@ -19,19 +19,19 @@
   Chartmander.models     = Chartmander.models     || {}; // base models
   Chartmander.charts     = Chartmander.charts     || {}; // models combined into charts
   Chartmander.components = Chartmander.components || {};
-  Chartmander.charts     = []; // Store all rendered charts
+  Chartmander.renderedCharts = [];
 
   Chartmander.addChart = function (callback) {
     var newChart = callback()
       , isUnique = true;
 
-    forEach(Chartmander.charts, function (chart) {
-      if (newChart.layer.id() === chart.layer.id())
+    forEach(Chartmander.renderedCharts, function (chart) {
+      if (newChart.id() === chart.id())
         isUnique = false;
     });
 
     if (isUnique)
-      Chartmander.charts.push(newChart);
+      Chartmander.renderedCharts.push(newChart);
 
     return Chartmander;
   };
@@ -39,14 +39,14 @@
   Chartmander.select = function (id, userChart) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].layer.id()) {
+      if (id === Chartmander.charts[i].id()) {
         // Do update...
         return Chartmander.charts[i].updated(true);
       }
     }
     // Provide new chart
     for (var chart in Chartmander.charts) {
-      if (userChart === chart) {
+      if (chart === userChart) {
         return new Chartmander.charts[userChart](id);
       }
     }
@@ -293,215 +293,6 @@
           }
       }
   };
-
-Chartmander.components.layer = function (canvasID) {
-
-  var layer = this;
-
-  var id            = canvasID // unique ID selector
-    , canvas        = document.getElementById(canvasID) // DOM element
-    , wrapper       = document.createElement('div') // for canvas element (tooltip is relatively positioned to this element)
-    , ctx           = canvas.getContext('2d')
-    , width         = ctx.canvas.width
-    , height        = ctx.canvas.height
-    , mouse         = { x: 0, y: 0 }
-    , hovered       = false
-    , hoverFinished = true
-    , animate            = true
-    , animationSteps     = 100
-    , animationCompleted = 0
-    , easing             = "easeInQuint"
-    , updated            = false
-    , onHover       = null  // function specified by every chart (e.g. in /src/charts/pie.js)
-    , onLeave       = null  // detto
-    , drawChart     = null  // detto
-    ;
-
-  ///////////////////////////////////
-  // Wrapper for layer
-  ///////////////////////////////////
-
-  wrapper.id = "chartmander-"+id;
-  wrapper.className = "cm-wrapper";
-  wrapper.wrap(canvas);
-
-  ///////////////////////////////////
-  // Tooltip
-  ///////////////////////////////////
-
-  var tooltip = new Chartmander.components.tooltip(id);
-  wrapper.insertBefore(tooltip.container, canvas);
-
-  ///////////////////////////////////
-  // Interaction Setup
-  ///////////////////////////////////
-
-  canvas.addEventListener("mouseenter", handleEnter, false);
-  canvas.addEventListener("mousemove",  handleHover, false);
-  canvas.addEventListener("mouseleave", handleLeave, false);
-
-  if (window.devicePixelRatio) {
-    ctx.canvas.style.width  = width  + "px";
-    ctx.canvas.style.height = height + "px";
-    ctx.canvas.height       = height * window.devicePixelRatio;
-    ctx.canvas.width        = width  * window.devicePixelRatio;
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  }
-
-  function handleHover (event) {
-    var rect = canvas.getBoundingClientRect();
-
-    mouse.x = event.clientX - rect.left;
-    mouse.y = event.clientY - rect.top;
-    // Allow repaint on hover only if chart and tooltip are done with self-repaint
-    // AND if also hovered item is not repainting 
-    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
-    if (hoverFinished) {
-      onHover();
-    }
-  }
-
-  function handleEnter () {
-    hovered = true;
-  }
-
-  function handleLeave () {
-    hovered = false;
-    // chart.tooltip.removeItems();
-    // if (animationCompleted >= 1)
-    onLeave();
-  }
-
-  ///////////////////////////////
-  // Animation loop
-  ///////////////////////////////
-
-  var draw = function (finished) {
-    var easingFunction = easings[easing]
-      , animationIncrement = 1/animationSteps
-      , _perc_
-      ;
-
-    if (!updated)
-      animationCompleted = animate ? 0 : 1;
-
-    function loop () {
-      if (finished) {
-        animationCompleted = 1;
-      } else if (animationCompleted < 1) {
-        animationCompleted += animationIncrement;
-      }
-
-      _perc_ = easingFunction(animationCompleted);
-
-      tooltip.clear();
-      ctx.clearRect(0, 0, width, height);
-      hoverFinished = true;
-
-      drawChart(ctx, _perc_);
-      
-      if (hovered && tooltip.hasItems()) {
-        tooltip.generate();
-        tooltip.moveTo(chart.layer.mouse());
-      }
-
-      // Request self-repaint if chart or data element has not finished animating yet
-      if (animationCompleted < 1 || !hoverFinished) {
-        requestAnimationFrame(loop);
-      }
-      else {
-        console.log("Animation Finished.");
-      }
-    }
-    requestAnimationFrame(loop);
-  }
-
-  ///////////////////////////////
-  // Public Methods & Variables
-  ///////////////////////////////
-
-  layer.draw = draw;
-  layer.ctx = ctx;
-  layer.tooltip = tooltip;
-
-  layer.id = function (_) {
-    if(!arguments.length) return id;
-    id = _;
-    return layer;
-  };
-
-  layer.width = function (_) {
-    if(!arguments.length) return width;
-    width = _;
-    return layer;
-  };
-
-  layer.height = function (_) {
-    if(!arguments.length) return height;
-    height = _;
-    return layer;
-  };
-
-  layer.mouse = function (_) {
-    if(!arguments.length) return mouse;
-    mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
-    mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
-    return layer;
-  };
-
-  layer.hovered = function (_) {
-    if (!arguments.length) return hovered;
-    hovered = _;
-    return layer;
-  };
-
-  layer.hoverFinished = function (_) {
-    if (!arguments.length) return hoverFinished;
-    hoverFinished = _;
-    return layer;
-  };
-
-  layer.completed = function (_) {
-    if(!arguments.length) return animationCompleted;
-    animationCompleted = _;
-    return layer;
-  };
-
-  layer.easing = function (_) {
-    if (!arguments.length) return easing;
-    easing = _;
-    return layer;
-  };
-
-  layer.animate = function (_) {
-    if (!arguments.length) return animate;
-    animate = _;
-    return layer;
-  };
-
-  layer.updated = function (_) {
-    if (!arguments.length) return updated;
-    updated = _;
-    return layer;
-  };
-
-  layer.onHover = function (f) {
-    onHover = f;
-    return layer;
-  };
-
-  layer.onLeave = function (f) {
-    onLeave = f;
-    return layer;
-  };
-
-  layer.drawChart = function (f) {
-    drawChart = f;
-    return layer;
-  };
-
-  return layer;
-};
 
 Chartmander.components.animatedPart = function () {
 
@@ -1541,25 +1332,23 @@ Chartmander.components.element = function () {
 
 Chartmander.components.slice = function (data, title) {
 
-  /*
-  ** IMPORTANT
-  ** Slice uses X, Y methods but they refer to Start and End values
-  */
+  // Note
+  // x & y methods refer to start and end angle values
 
   var slice = new Chartmander.components.element();
 
   slice.set(title).label(data.label).value(data.value);
 
-  var sliceIsHovered = function (pie) {
-    var x = pie.layer.mouse().x - pie.center().x
-      , y = pie.layer.mouse().y - pie.center().y
+  var sliceIsHovered = function (mouse, center, model) {
+    var x = mouse.x - center.x
+      , y = mouse.y - center.y
       , fromCenter = Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2))
       , hoverAngle
       , hovered = false
       ;
 
-    if (fromCenter <= pie.radius() && fromCenter >= pie.radius()*pie.innerRadius()) {
-      hoverAngle = Math.atan2(y, x) - pie.startAngle();
+    if (fromCenter >= model.radius()*model.innerRadius() && fromCenter <= model.radius()) {
+      hoverAngle = Math.atan2(y, x) - model.startAngle();
       if (hoverAngle < 0) {
         hoverAngle += Math.PI*2;
       }
@@ -1570,13 +1359,13 @@ Chartmander.components.slice = function (data, title) {
     return hovered;
   }
 
-  var drawInto = function (ctx, pie, set) {
+  var drawInto = function (ctx, chart, model, set) {
     ctx.beginPath();
     // Check if this slice was hovered
-    if (pie.layer.hovered()) {
-      if (sliceIsHovered(pie)) {
+    if (chart.hovered()) {
+      if ( sliceIsHovered(chart.mouse(), model.center(), model) ) {
         ctx.fillStyle = set.hoverColor();
-        pie.layer.tooltip.addItem({
+        chart.tooltip.addItem({
           "set"  : set.title(),
           "label": slice.label(),
           "value": slice.value(),
@@ -1584,8 +1373,8 @@ Chartmander.components.slice = function (data, title) {
         });
       }
     }
-    ctx.arc(pie.center().x, pie.center().y, pie.radius(), pie.startAngle()+slice.x(), pie.startAngle()+slice.y(), pie.clockWise());
-    ctx.arc(pie.center().x, pie.center().y, pie.radius()*pie.innerRadius(), pie.startAngle()+slice.y(), pie.startAngle()+slice.x(), !pie.clockWise());
+    ctx.arc(model.center().x, model.center().y, model.radius(), model.startAngle()+slice.x(), model.startAngle()+slice.y(), model.clockWise());
+    ctx.arc(model.center().x, model.center().y, model.radius()*model.innerRadius(), model.startAngle()+slice.y(), model.startAngle()+slice.x(), !model.clockWise());
     ctx.fill();
   }
 
@@ -1945,28 +1734,28 @@ Chartmander.components.tooltip = function (id) {
   return tooltip;
 }
 
-Chartmander.models.baseModel = function () {
+Chartmander.models.baseModel = function (chart) {
   
   // parent for each chartmander model
   // stores data and state
 
   var model = this;
 
-  var datasets           = []
-    , width              = null
-    , height             = null
-    , margin             = { top: 0, right: 0, bottom: 0, left: 0 }
-    , colors             = ["blue", "green", "red"]
-    , font               = "13px Arial, sans-serif"
-    , fontColor          = "#555"
-    , updated            = false
+  var datasets  = []
+    , width     = null
+    , height    = null
+    , margin    = { top: 0, right: 0, bottom: 0, left: 0 }
+    , colors    = ["blue", "green", "red"]
+    , font      = "13px Arial, sans-serif"
+    , fontColor = "#555"
+    , updated   = false
     ;
 
   ///////////////////////////////////
   // Components
   ///////////////////////////////////
 
-  model.layer = null; // each model needs a layer
+  model.chart = chart;  // Every model has access to chart 
 
   ///////////////////////////////////
   // model Update - Parse Data
@@ -2076,24 +1865,6 @@ Chartmander.models.baseModel = function () {
 
   // Animation properties
 
-  // chart.completed = function (_) {
-  //   if(!arguments.length) return animationCompleted;
-  //   animationCompleted = _;
-  //   return chart;
-  // };
-
-  // chart.easing = function (_) {
-  //   if (!arguments.length) return easing;
-  //   easing = _;
-  //   return chart;
-  // };
-
-  // chart.animate = function (_) {
-  //   if (!arguments.length) return animate;
-  //   animate = _;
-  //   return chart;
-  // };
-
   model.updated = function (_) {
     if (!arguments.length) return updated;
     updated = _;
@@ -2103,7 +1874,7 @@ Chartmander.models.baseModel = function () {
   // Interaction
 
   model.hovered = function () {
-    var mouse = model.layer.mouse()
+    var mouse = chart.mouse();
 
     return mouse.x >= model.margin().left && 
            mouse.x <= model.margin().left + model.width() &&
@@ -2114,9 +1885,9 @@ Chartmander.models.baseModel = function () {
   return model;
 };
 
-Chartmander.models.slices = function () {
+Chartmander.models.slices = function (chart) {
 
-  var model = new Chartmander.models.baseModel();
+  var model = new Chartmander.models.baseModel(chart);
 
   var center          = { x: 0, y: 0 }
     , radius          = 0
@@ -2146,15 +1917,14 @@ Chartmander.models.slices = function () {
     });
   }
   
-  var drawSlices = function (_perc_) {
-    var ctx = model.layer.ctx;
+  var drawSlices = function (ctx, _perc_) {
     ctx.save();
     forEach(model.datasets(), function (set) {
       var slice = set.getElement(0);
       ctx.fillStyle = set.color();
       slice
         .updatePosition(rotateAnimation ? _perc_ : 1)
-        .drawInto(ctx, model, set);
+        .drawInto(ctx, chart, model, set);
     });
     ctx.restore();
   }
@@ -2183,7 +1953,7 @@ Chartmander.models.slices = function () {
   ///////////////////////////////
 
   model.recalc = recalc;
-  model.draw = drawSlices;
+  model.drawInto = drawSlices;
 
   model.center = function (_) {
     if (!arguments.length) return center
@@ -2511,57 +2281,266 @@ Chartmander.models.line = function () {
   return model;
 };
 
+Chartmander.components.baseChart = function (canvasID) {
+
+  var chart = this;
+
+  var id            = canvasID // unique ID selector
+    , canvas        = document.getElementById(canvasID) // DOM element
+    , wrapper       = document.createElement('div') // for canvas element (tooltip is relatively positioned to this element)
+    , ctx           = canvas.getContext('2d')
+    , width         = ctx.canvas.width
+    , height        = ctx.canvas.height
+    , mouse         = { x: 0, y: 0 }
+    , hovered       = false
+    , hoverFinished = true
+    , animate            = true
+    , animationSteps     = 100
+    , animationCompleted = 0
+    , easing             = "easeInQuint"
+    , updated            = false
+    , onHover       = null  // function specified by every chart (e.g. in /src/charts/pie.js)
+    , onLeave       = null  // detto
+    , drawChart     = null  // detto
+    ;
+
+  ///////////////////////////////////
+  // Wrapper for chart
+  ///////////////////////////////////
+
+  wrapper.id = "chartmander-"+id;
+  wrapper.className = "cm-wrapper";
+  wrapper.wrap(canvas);
+
+  ///////////////////////////////////
+  // Tooltip
+  ///////////////////////////////////
+
+  var tooltip = new Chartmander.components.tooltip(id);
+  wrapper.insertBefore(tooltip.container, canvas);
+
+  ///////////////////////////////////
+  // Interaction Setup
+  ///////////////////////////////////
+
+  canvas.addEventListener("mouseenter", handleEnter, false);
+  canvas.addEventListener("mousemove",  handleHover, false);
+  canvas.addEventListener("mouseleave", handleLeave, false);
+
+  if (window.devicePixelRatio) {
+    ctx.canvas.style.width  = width  + "px";
+    ctx.canvas.style.height = height + "px";
+    ctx.canvas.height       = height * window.devicePixelRatio;
+    ctx.canvas.width        = width  * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+
+  function handleHover (event) {
+    var rect = canvas.getBoundingClientRect();
+
+    mouse.x = event.clientX - rect.left;
+    mouse.y = event.clientY - rect.top;
+    // Allow repaint on hover only if chart and tooltip are done with self-repaint
+    // AND if also hovered item is not repainting 
+    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
+    if (hoverFinished) {
+      onHover();
+    }
+  }
+
+  function handleEnter () {
+    hovered = true;
+  }
+
+  function handleLeave () {
+    hovered = false;
+    // chart.tooltip.removeItems();
+    // if (animationCompleted >= 1)
+    onLeave();
+  }
+
+  ///////////////////////////////
+  // Animation loop
+  ///////////////////////////////
+
+  var draw = function (finished) {
+    var easingFunction = easings[easing]
+      , animationIncrement = 1/animationSteps
+      , _perc_
+      ;
+
+    if (!updated)
+      animationCompleted = animate ? 0 : 1;
+
+    function loop () {
+      if (finished) {
+        animationCompleted = 1;
+      } else if (animationCompleted < 1) {
+        animationCompleted += animationIncrement;
+      }
+
+      _perc_ = easingFunction(animationCompleted);
+
+      tooltip.clear();
+      ctx.clearRect(0, 0, width, height);
+      hoverFinished = true;
+
+      drawChart(ctx, _perc_);
+      
+      if (hovered && tooltip.hasItems()) {
+        tooltip.generate();
+        tooltip.moveTo(mouse);
+      }
+
+      // Request self-repaint if chart or data element has not finished animating yet
+      if (animationCompleted < 1 || !hoverFinished) {
+        requestAnimationFrame(loop);
+      }
+      else {
+        console.log("Animation Finished.");
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+
+  ///////////////////////////////
+  // Public Methods & Variables
+  ///////////////////////////////
+
+  chart.draw = draw;
+  chart.ctx = ctx;
+  chart.tooltip = tooltip;
+
+  chart.id = function (_) {
+    if(!arguments.length) return id;
+    id = _;
+    return chart;
+  };
+
+  chart.width = function (_) {
+    if(!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function (_) {
+    if(!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.mouse = function (_) {
+    if(!arguments.length) return mouse;
+    mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
+    mouse.y = typeof _.y != 'undefined' ? _.y : mouse.y;
+    return chart;
+  };
+
+  chart.hovered = function (_) {
+    if (!arguments.length) return hovered;
+    hovered = _;
+    return chart;
+  };
+
+  chart.hoverFinished = function (_) {
+    if (!arguments.length) return hoverFinished;
+    hoverFinished = _;
+    return chart;
+  };
+
+  chart.completed = function (_) {
+    if(!arguments.length) return animationCompleted;
+    animationCompleted = _;
+    return chart;
+  };
+
+  chart.easing = function (_) {
+    if (!arguments.length) return easing;
+    easing = _;
+    return chart;
+  };
+
+  chart.animate = function (_) {
+    if (!arguments.length) return animate;
+    animate = _;
+    return chart;
+  };
+
+  chart.updated = function (_) {
+    if (!arguments.length) return updated;
+    updated = _;
+    return chart;
+  };
+
+  chart.onHover = function (f) {
+    onHover = f;
+    return chart;
+  };
+
+  chart.onLeave = function (f) {
+    onLeave = f;
+    return chart;
+  };
+
+  chart.drawChart = function (f) {
+    drawChart = f;
+    return chart;
+  };
+
+  return chart;
+};
+
 Chartmander.charts.pie = function (canvas) {
+
+  var chart = new Chartmander.components.baseChart(canvas);
 
   ///////////////////////////////////
   // Use Components
   ///////////////////////////////////
 
-  var layer = new Chartmander.components.layer(canvas)
-    , pie   = new Chartmander.models.slices()
-    ;
-
-  pie.layer = layer;
+  var pie = new Chartmander.models.slices(chart);
 
   ///////////////////////////////////
-  // Setup defaults
+  // Setup drawing & defaults
   ///////////////////////////////////
 
-  layer
+  chart
     .onHover(function () {
-      if (layer.completed() >= 1)
-        pie.draw(true);
+      if (chart.completed() >= 1)
+        chart.draw(true);
     })
     .onLeave(function () {
-      if (layer.completed()) {
-        pie.draw(true);
+      if (chart.completed()) {
+        chart.draw(true);
       }
     })
-    .drawChart(function (_perc_) {
-      pie.draw(_perc_);
+    .drawChart(function (ctx, _perc_) {
+      pie.drawInto(ctx, _perc_);
     })
     ;
 
   pie
-    .radius(layer.width()/2)
+    .radius(chart.width()/2)
     ;
 
   var render =  function (data) {
     pie.parse(data, Chartmander.components.slice);
     pie.recalc();
     
-    layer
+    chart
       .completed(0)
       .draw(false);
   }
 
   ///////////////////////////////
-  // Methods and Binding
+  // Binding & Methods
   ///////////////////////////////
 
-  pie.render = render;
+  chart.pie = pie;
 
-  return pie;
+  chart.render = render;
+
+  return chart;
 };
 
 Chartmander.charts.historicalBar = function (canvas) {

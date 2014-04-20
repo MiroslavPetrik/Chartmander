@@ -1,6 +1,6 @@
-Chartmander.models.slices = function () {
+Chartmander.models.slices = function (chart) {
 
-  var model = new Chartmander.models.baseModel();
+  var model = new Chartmander.models.baseModel(chart);
 
   var center          = { x: 0, y: 0 }
     , radius          = 0
@@ -30,15 +30,14 @@ Chartmander.models.slices = function () {
     });
   }
   
-  var drawSlices = function (_perc_) {
-    var ctx = model.layer.ctx;
+  var drawSlices = function (ctx, _perc_) {
     ctx.save();
     forEach(model.datasets(), function (set) {
       var slice = set.getElement(0);
       ctx.fillStyle = set.color();
       slice
         .updatePosition(rotateAnimation ? _perc_ : 1)
-        .drawInto(ctx, model, set);
+        .drawInto(ctx, chart, model, set);
     });
     ctx.restore();
   }
@@ -67,7 +66,7 @@ Chartmander.models.slices = function () {
   ///////////////////////////////
 
   model.recalc = recalc;
-  model.draw = drawSlices;
+  model.drawInto = drawSlices;
 
   model.center = function (_) {
     if (!arguments.length) return center

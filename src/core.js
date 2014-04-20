@@ -19,19 +19,19 @@
   Chartmander.models     = Chartmander.models     || {}; // base models
   Chartmander.charts     = Chartmander.charts     || {}; // models combined into charts
   Chartmander.components = Chartmander.components || {};
-  Chartmander.charts     = []; // Store all rendered charts
+  Chartmander.renderedCharts = [];
 
   Chartmander.addChart = function (callback) {
     var newChart = callback()
       , isUnique = true;
 
-    forEach(Chartmander.charts, function (chart) {
-      if (newChart.layer.id() === chart.layer.id())
+    forEach(Chartmander.renderedCharts, function (chart) {
+      if (newChart.id() === chart.id())
         isUnique = false;
     });
 
     if (isUnique)
-      Chartmander.charts.push(newChart);
+      Chartmander.renderedCharts.push(newChart);
 
     return Chartmander;
   };
@@ -39,14 +39,14 @@
   Chartmander.select = function (id, userChart) {
     // Check if chart already exists
     for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].layer.id()) {
+      if (id === Chartmander.charts[i].id()) {
         // Do update...
         return Chartmander.charts[i].updated(true);
       }
     }
     // Provide new chart
     for (var chart in Chartmander.charts) {
-      if (userChart === chart) {
+      if (chart === userChart) {
         return new Chartmander.charts[userChart](id);
       }
     }

@@ -1,52 +1,52 @@
 Chartmander.charts.pie = function (canvas) {
 
+  var chart = new Chartmander.components.baseChart(canvas);
+
   ///////////////////////////////////
   // Use Components
   ///////////////////////////////////
 
-  var layer = new Chartmander.components.layer(canvas)
-    , pie   = new Chartmander.models.slices()
-    ;
-
-  pie.layer = layer;
+  var pie = new Chartmander.models.slices(chart);
 
   ///////////////////////////////////
-  // Setup defaults
+  // Setup drawing & defaults
   ///////////////////////////////////
 
-  layer
+  chart
     .onHover(function () {
-      if (layer.completed() >= 1)
-        pie.draw(true);
+      if (chart.completed() >= 1)
+        chart.draw(true);
     })
     .onLeave(function () {
-      if (layer.completed()) {
-        pie.draw(true);
+      if (chart.completed()) {
+        chart.draw(true);
       }
     })
-    .drawChart(function (_perc_) {
-      pie.draw(_perc_);
+    .drawChart(function (ctx, _perc_) {
+      pie.drawInto(ctx, _perc_);
     })
     ;
 
   pie
-    .radius(layer.width()/2)
+    .radius(chart.width()/2)
     ;
 
   var render =  function (data) {
     pie.parse(data, Chartmander.components.slice);
     pie.recalc();
     
-    layer
+    chart
       .completed(0)
       .draw(false);
   }
 
   ///////////////////////////////
-  // Methods and Binding
+  // Binding & Methods
   ///////////////////////////////
 
-  pie.render = render;
+  chart.pie = pie;
 
-  return pie;
+  chart.render = render;
+
+  return chart;
 };

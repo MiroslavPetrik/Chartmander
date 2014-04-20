@@ -1,25 +1,25 @@
-Chartmander.models.baseModel = function () {
+Chartmander.models.baseModel = function (chart) {
   
   // parent for each chartmander model
   // stores data and state
 
   var model = this;
 
-  var datasets           = []
-    , width              = null
-    , height             = null
-    , margin             = { top: 0, right: 0, bottom: 0, left: 0 }
-    , colors             = ["blue", "green", "red"]
-    , font               = "13px Arial, sans-serif"
-    , fontColor          = "#555"
-    , updated            = false
+  var datasets  = []
+    , width     = null
+    , height    = null
+    , margin    = { top: 0, right: 0, bottom: 0, left: 0 }
+    , colors    = ["blue", "green", "red"]
+    , font      = "13px Arial, sans-serif"
+    , fontColor = "#555"
+    , updated   = false
     ;
 
   ///////////////////////////////////
   // Components
   ///////////////////////////////////
 
-  model.layer = null; // each model needs a layer
+  model.chart = chart;  // Every model has access to chart 
 
   ///////////////////////////////////
   // model Update - Parse Data
@@ -129,24 +129,6 @@ Chartmander.models.baseModel = function () {
 
   // Animation properties
 
-  // chart.completed = function (_) {
-  //   if(!arguments.length) return animationCompleted;
-  //   animationCompleted = _;
-  //   return chart;
-  // };
-
-  // chart.easing = function (_) {
-  //   if (!arguments.length) return easing;
-  //   easing = _;
-  //   return chart;
-  // };
-
-  // chart.animate = function (_) {
-  //   if (!arguments.length) return animate;
-  //   animate = _;
-  //   return chart;
-  // };
-
   model.updated = function (_) {
     if (!arguments.length) return updated;
     updated = _;
@@ -156,7 +138,7 @@ Chartmander.models.baseModel = function () {
   // Interaction
 
   model.hovered = function () {
-    var mouse = model.layer.mouse()
+    var mouse = chart.mouse();
 
     return mouse.x >= model.margin().left && 
            mouse.x <= model.margin().left + model.width() &&

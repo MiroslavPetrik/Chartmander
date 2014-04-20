@@ -5,7 +5,6 @@ module.exports = function (grunt) {
             js: {
                 src: [
                     'src/core.js',
-                    'src/components/layer.js',
                     'src/components/animatedPart.js',
                     'src/components/dataset.js',
                     'src/components/grid.js',
@@ -26,6 +25,7 @@ module.exports = function (grunt) {
                     'src/models/slices.js',
                     'src/models/bars.js',
                     'src/models/lines.js',
+                    'src/charts/baseChart.js',
                     'src/charts/pie.js',
                     'src/charts/historicalBar.js',
                     'src/charts/categoryBar.js',
