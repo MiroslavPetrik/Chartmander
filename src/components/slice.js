@@ -47,7 +47,7 @@ Chartmander.components.slice = function (data, title) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Binding & Methods
   ///////////////////////////////
 
   slice.drawInto = drawInto;

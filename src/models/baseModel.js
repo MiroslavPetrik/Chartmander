@@ -15,10 +15,6 @@ Chartmander.models.baseModel = function (chart) {
     , updated   = false
     ;
 
-  ///////////////////////////////////
-  // Components
-  ///////////////////////////////////
-
   model.chart = chart;  // Every model has access to chart 
 
   ///////////////////////////////////
@@ -49,9 +45,10 @@ Chartmander.models.baseModel = function (chart) {
   }
 
   ///////////////////////////////
-  // Methods and Binding
+  // Binding & Methods
   ///////////////////////////////
-
+  
+  model.chart = chart;  // Every model has access to chart 
   model.parse = parse;
 
   // Visual properties

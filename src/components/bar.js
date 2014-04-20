@@ -1,7 +1,8 @@
 Chartmander.components.bar = function (data, title) {
 
   var bar = new Chartmander.components.element();
-      bar.set(title).label(data.label).value(data.value);
+  
+  bar.set(title).label(data.label).value(data.value);
 
   var base = {
         from: 0,
@@ -10,16 +11,13 @@ Chartmander.components.bar = function (data, title) {
       }
     ;
 
-  var drawInto = function (chart, set) {
-    var layer = chart.layer
-      , ctx = layer.ctx;
-
+  var drawInto = function (ctx, chart, model, set) {
     ctx.save();
-    if (layer.hovered() && isHovered(chart)) {
-      layer.hoverFinished(false);
+    if (chart.hovered() && isHovered(chart.mouse(), model)) {
+      chart.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
-      layer.tooltip.addItem({
+      chart.tooltip.addItem({
         "set"  : set.title(),
         "label": bar.label(),
         "value": bar.value(),
@@ -49,14 +47,14 @@ Chartmander.components.bar = function (data, title) {
     return bar;
   }
 
-  var isHovered = function (chart) {
-    var x = chart.layer.mouse().x
-      , y = chart.layer.mouse().y
+  var isHovered = function (mouse, model) {
+    var x = mouse.x
+      , y = mouse.y
       , hovered = false
       , yRange = [bar.base(), bar.base()+bar.y()].sort(function(a,b){return a-b})
       ;
 
-    if (x >= bar.x() && x <= bar.x()+chart.barWidth() && y >= yRange[0] && y<= yRange[1]) {
+    if (x >= bar.x() && x <= bar.x() + model.barWidth() && y >= yRange[0] && y<= yRange[1]) {
       hovered = true;
     }
 
@@ -64,7 +62,7 @@ Chartmander.components.bar = function (data, title) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Binding & Methods
   ///////////////////////////////
 
   bar.drawInto = drawInto;

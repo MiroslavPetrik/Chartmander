@@ -1,44 +1,64 @@
 Chartmander.charts.line = function (canvas) {
 
+  var chart = new Chartmander.components.baseChart(canvas);
+
   ///////////////////////////////////
   // Use Components
   ///////////////////////////////////
 
-  var layer     = new Chartmander.components.layer(canvas)
-    , xAxis     = new Chartmander.components.xAxis()
+  var xAxis     = new Chartmander.components.xAxis()
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , lines     = new Chartmander.models.lines()
+    , lines     = new Chartmander.models.lines(chart)
     ;
-
-  lines.layer = layer;
 
   ///////////////////////////////////
   // Setup Defaults
   ///////////////////////////////////
 
-  layer
+  chart
     .onHover(function () {
-      lines.draw(true);
+      chart.draw(true);
     })
     .onLeave(function () {
-      if ( lines.completed() ) {
-        lines.draw(true);
+      if ( chart.completed() ) {
+        chart.draw(true);
       }
     })
+    .drawChart(function (_perc_) {
+      grid.drawInto(lines, _perc_);
+      
+      // if (xAxisVisible) {
+        xAxis
+          .animIn()
+          .drawInto(lines, _perc_);
+      // }
+
+      // if (yAxisVisible) {
+        yAxis
+          .animIn()
+          .drawInto(lines, _perc_);
+      // }
+
+      if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
+        crosshair.drawInto(lines);
+      }
+      
+      lines.drawModel(_perc_);
+    });
     ;
 
   grid.margin({left: 70, top: 20});
 
   lines
-    .width(layer.width())
-    .height(layer.height())
+    .width(chart.width())
+    .height(chart.height())
     ;
 
-  ///////////////////////////////////
-  // Setup defaults
-  ///////////////////////////////////
+  ///////////////////////////////
+  // Life cycle
+  ///////////////////////////////
 
   var x0, y0;
 
@@ -63,47 +83,24 @@ Chartmander.charts.line = function (canvas) {
     lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
     lines
-      .recalc(xAxis, yAxis, grid)
+      .recalc(xAxis, yAxis, grid);
+    
+    chart
       .completed(0)
       .draw(false);
   }
 
-  ///////////////////////////////////
-  // Extend Animation Loop(s)
-  ///////////////////////////////////
-
-  lines.drawChart(function (_perc_) {
-    grid.drawInto(lines, _perc_);
-    
-    // if (xAxisVisible) {
-      xAxis
-        .animIn()
-        .drawInto(lines, _perc_);
-    // }
-
-    // if (yAxisVisible) {
-      yAxis
-        .animIn()
-        .drawInto(lines, _perc_);
-    // }
-
-    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
-      crosshair.drawInto(lines);
-    }
-    
-    lines.drawModel(_perc_);
-  });
-
   ///////////////////////////////
-  // Methods and Binding
+  // Binding & Methods
   ///////////////////////////////
 
-  lines.xAxis     = xAxis;
-  lines.yAxis     = yAxis;
-  lines.grid      = grid;
-  lines.crosshair = crosshair;
+  chart.xAxis     = xAxis;
+  chart.yAxis     = yAxis;
+  chart.grid      = grid;
+  chart.crosshair = crosshair;
+  chart.lines     = lines;
 
-  lines.render    = render;
+  chart.render    = render;
 
-  return lines;
+  return chart;
 };

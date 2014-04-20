@@ -62,7 +62,7 @@ Chartmander.models.slices = function (chart) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Binding & Methods
   ///////////////////////////////
 
   model.recalc = recalc;

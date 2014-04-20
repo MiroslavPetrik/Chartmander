@@ -1,32 +1,29 @@
 Chartmander.charts.historicalBar = function (canvas) {
 
-  var chart = this;
+  var chart = new Chartmander.components.baseChart(canvas);
 
   ///////////////////////////////////
   // Use Components
   ///////////////////////////////////
 
-  var layer     = new Chartmander.components.layer(canvas)
-    , xAxis     = new Chartmander.components.xAxis()
+  var xAxis     = new Chartmander.components.xAxis()
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , bars      = new Chartmander.models.bars()
+    , bars      = new Chartmander.models.bars(chart)
     ;
-
-  bars.layer = layer; // !! connect layer to model
 
   ///////////////////////////////////
   // Setup defaults
   ///////////////////////////////////
 
-  layer
+  chart
     .onHover(function () {
-      if (layer.completed() >= 1)
+      if (chart.completed() >= 1)
         bars.draw(true);
     })
     .onLeave(function () {
-      if (layer.completed()) {
+      if (chart.completed()) {
         bars.draw(true);
       }
     })
@@ -70,8 +67,8 @@ Chartmander.charts.historicalBar = function (canvas) {
     });
 
   bars
-    .width(layer.width())
-    .height(layer.height())
+    .width(chart.width())
+    .height(chart.height())
     ;
 
   ///////////////////////////////
@@ -117,19 +114,20 @@ Chartmander.charts.historicalBar = function (canvas) {
     bars
       .recalc(xAxis, yAxis, grid)
     
-    layer.completed(0)
+    chart.completed(0)
       .draw(false);
   }
 
 
   ///////////////////////////////
-  // Methods and Binding
+  // Binding & Methods
   ///////////////////////////////
 
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.grid = grid;
   chart.crosshair = crosshair;
+  chart.bars = bars;
 
   chart.render = render;
 

@@ -1379,7 +1379,7 @@ Chartmander.components.slice = function (data, title) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Binding & Methods
   ///////////////////////////////
 
   slice.drawInto = drawInto;
@@ -1390,7 +1390,8 @@ Chartmander.components.slice = function (data, title) {
 Chartmander.components.bar = function (data, title) {
 
   var bar = new Chartmander.components.element();
-      bar.set(title).label(data.label).value(data.value);
+  
+  bar.set(title).label(data.label).value(data.value);
 
   var base = {
         from: 0,
@@ -1399,16 +1400,13 @@ Chartmander.components.bar = function (data, title) {
       }
     ;
 
-  var drawInto = function (chart, set) {
-    var layer = chart.layer
-      , ctx = layer.ctx;
-
+  var drawInto = function (ctx, chart, model, set) {
     ctx.save();
-    if (layer.hovered() && isHovered(chart)) {
-      layer.hoverFinished(false);
+    if (chart.hovered() && isHovered(chart.mouse(), model)) {
+      chart.hoverFinished(false);
       ctx.fillStyle = set.hoverColor();
       ctx.strokeStyle = set.color();
-      layer.tooltip.addItem({
+      chart.tooltip.addItem({
         "set"  : set.title(),
         "label": bar.label(),
         "value": bar.value(),
@@ -1438,14 +1436,14 @@ Chartmander.components.bar = function (data, title) {
     return bar;
   }
 
-  var isHovered = function (chart) {
-    var x = chart.layer.mouse().x
-      , y = chart.layer.mouse().y
+  var isHovered = function (mouse, model) {
+    var x = mouse.x
+      , y = mouse.y
       , hovered = false
       , yRange = [bar.base(), bar.base()+bar.y()].sort(function(a,b){return a-b})
       ;
 
-    if (x >= bar.x() && x <= bar.x()+chart.barWidth() && y >= yRange[0] && y<= yRange[1]) {
+    if (x >= bar.x() && x <= bar.x() + model.barWidth() && y >= yRange[0] && y<= yRange[1]) {
       hovered = true;
     }
 
@@ -1453,7 +1451,7 @@ Chartmander.components.bar = function (data, title) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Binding & Methods
   ///////////////////////////////
 
   bar.drawInto = drawInto;
@@ -1751,10 +1749,6 @@ Chartmander.models.baseModel = function (chart) {
     , updated   = false
     ;
 
-  ///////////////////////////////////
-  // Components
-  ///////////////////////////////////
-
   model.chart = chart;  // Every model has access to chart 
 
   ///////////////////////////////////
@@ -1785,9 +1779,10 @@ Chartmander.models.baseModel = function (chart) {
   }
 
   ///////////////////////////////
-  // Methods and Binding
+  // Binding & Methods
   ///////////////////////////////
-
+  
+  model.chart = chart;  // Every model has access to chart 
   model.parse = parse;
 
   // Visual properties
@@ -1949,7 +1944,7 @@ Chartmander.models.slices = function (chart) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Binding & Methods
   ///////////////////////////////
 
   model.recalc = recalc;
@@ -2079,7 +2074,7 @@ Chartmander.models.bars = function () {
   return model;
 }
 
-Chartmander.models.line = function () {
+Chartmander.models.lines = function () {
 
   var model = new Chartmander.models.baseModel();
 
@@ -2404,7 +2399,7 @@ Chartmander.components.baseChart = function (canvasID) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Binding & Methods
   ///////////////////////////////
 
   chart.draw = draw;
@@ -2545,33 +2540,30 @@ Chartmander.charts.pie = function (canvas) {
 
 Chartmander.charts.historicalBar = function (canvas) {
 
-  var chart = this;
+  var chart = new Chartmander.components.baseChart(canvas);
 
   ///////////////////////////////////
   // Use Components
   ///////////////////////////////////
 
-  var layer     = new Chartmander.components.layer(canvas)
-    , xAxis     = new Chartmander.components.xAxis()
+  var xAxis     = new Chartmander.components.xAxis()
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , bars      = new Chartmander.models.bars()
+    , bars      = new Chartmander.models.bars(chart)
     ;
-
-  bars.layer = layer; // !! connect layer to model
 
   ///////////////////////////////////
   // Setup defaults
   ///////////////////////////////////
 
-  layer
+  chart
     .onHover(function () {
-      if (layer.completed() >= 1)
+      if (chart.completed() >= 1)
         bars.draw(true);
     })
     .onLeave(function () {
-      if (layer.completed()) {
+      if (chart.completed()) {
         bars.draw(true);
       }
     })
@@ -2615,8 +2607,8 @@ Chartmander.charts.historicalBar = function (canvas) {
     });
 
   bars
-    .width(layer.width())
-    .height(layer.height())
+    .width(chart.width())
+    .height(chart.height())
     ;
 
   ///////////////////////////////
@@ -2662,19 +2654,20 @@ Chartmander.charts.historicalBar = function (canvas) {
     bars
       .recalc(xAxis, yAxis, grid)
     
-    layer.completed(0)
+    chart.completed(0)
       .draw(false);
   }
 
 
   ///////////////////////////////
-  // Methods and Binding
+  // Binding & Methods
   ///////////////////////////////
 
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.grid = grid;
   chart.crosshair = crosshair;
+  chart.bars = bars;
 
   chart.render = render;
 
@@ -2838,45 +2831,65 @@ Chartmander.charts.categoryBar = function (canvas) {
 
 Chartmander.charts.line = function (canvas) {
 
+  var chart = new Chartmander.components.baseChart(canvas);
+
   ///////////////////////////////////
   // Use Components
   ///////////////////////////////////
 
-  var layer     = new Chartmander.components.layer(canvas)
-    , xAxis     = new Chartmander.components.xAxis()
+  var xAxis     = new Chartmander.components.xAxis()
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , lines     = new Chartmander.models.lines()
+    , lines     = new Chartmander.models.lines(chart)
     ;
-
-  lines.layer = layer;
 
   ///////////////////////////////////
   // Setup Defaults
   ///////////////////////////////////
 
-  layer
+  chart
     .onHover(function () {
-      lines.draw(true);
+      chart.draw(true);
     })
     .onLeave(function () {
-      if ( lines.completed() ) {
-        lines.draw(true);
+      if ( chart.completed() ) {
+        chart.draw(true);
       }
     })
+    .drawChart(function (_perc_) {
+      grid.drawInto(lines, _perc_);
+      
+      // if (xAxisVisible) {
+        xAxis
+          .animIn()
+          .drawInto(lines, _perc_);
+      // }
+
+      // if (yAxisVisible) {
+        yAxis
+          .animIn()
+          .drawInto(lines, _perc_);
+      // }
+
+      if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
+        crosshair.drawInto(lines);
+      }
+      
+      lines.drawModel(_perc_);
+    });
     ;
 
   grid.margin({left: 70, top: 20});
 
   lines
-    .width(layer.width())
-    .height(layer.height())
+    .width(chart.width())
+    .height(chart.height())
     ;
 
-  ///////////////////////////////////
-  // Setup defaults
-  ///////////////////////////////////
+  ///////////////////////////////
+  // Life cycle
+  ///////////////////////////////
 
   var x0, y0;
 
@@ -2901,49 +2914,26 @@ Chartmander.charts.line = function (canvas) {
     lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
     lines
-      .recalc(xAxis, yAxis, grid)
+      .recalc(xAxis, yAxis, grid);
+    
+    chart
       .completed(0)
       .draw(false);
   }
 
-  ///////////////////////////////////
-  // Extend Animation Loop(s)
-  ///////////////////////////////////
-
-  lines.drawChart(function (_perc_) {
-    grid.drawInto(lines, _perc_);
-    
-    // if (xAxisVisible) {
-      xAxis
-        .animIn()
-        .drawInto(lines, _perc_);
-    // }
-
-    // if (yAxisVisible) {
-      yAxis
-        .animIn()
-        .drawInto(lines, _perc_);
-    // }
-
-    if (layer.hovered() && crosshair.visible() && grid.hovered(layer.mouse())) {
-      crosshair.drawInto(lines);
-    }
-    
-    lines.drawModel(_perc_);
-  });
-
   ///////////////////////////////
-  // Methods and Binding
+  // Binding & Methods
   ///////////////////////////////
 
-  lines.xAxis     = xAxis;
-  lines.yAxis     = yAxis;
-  lines.grid      = grid;
-  lines.crosshair = crosshair;
+  chart.xAxis     = xAxis;
+  chart.yAxis     = yAxis;
+  chart.grid      = grid;
+  chart.crosshair = crosshair;
+  chart.lines     = lines;
 
-  lines.render    = render;
+  chart.render    = render;
 
-  return lines;
+  return chart;
 };
 
 })();

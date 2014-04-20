@@ -1,4 +1,4 @@
-Chartmander.models.line = function () {
+Chartmander.models.lines = function () {
 
   var model = new Chartmander.models.baseModel();
 

@@ -121,7 +121,7 @@ Chartmander.components.baseChart = function (canvasID) {
   }
 
   ///////////////////////////////
-  // Public Methods & Variables
+  // Binding & Methods
   ///////////////////////////////
 
   chart.draw = draw;
