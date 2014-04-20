@@ -6,8 +6,8 @@ Chartmander.models.baseModel = function (chart) {
   var model = this;
 
   var datasets  = []
-    , width     = null
-    , height    = null
+    , width     = chart.width()
+    , height    = chart.height()
     , margin    = { top: 0, right: 0, bottom: 0, left: 0 }
     , colors    = ["blue", "green", "red"]
     , font      = "13px Arial, sans-serif"

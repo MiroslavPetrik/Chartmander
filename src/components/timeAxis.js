@@ -1,4 +1,4 @@
-Chartmander.components.timeAxis = function () {
+Chartmander.components.timeAxis = function (chart, model) {
 
   var axis = new Chartmander.components.axis();
 
@@ -25,7 +25,10 @@ Chartmander.components.timeAxis = function () {
     
   axis.format("MM/YYYY");
 
-  var generate = function (chart) {
+  // Shorthands
+  var ctx = chart.ctx;
+
+  var generate = function () {
     var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec
       , stepIndex = steps.length
@@ -49,16 +52,14 @@ Chartmander.components.timeAxis = function () {
     }
   }
 
-  var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx
-      , topOffset = chart.grid.bound().bottom + axis.margin();
-
+  var drawInto = function (_perc_) {
+    var topOffset = chart.grid.bound().bottom + axis.margin();
     ctx.save();
-    ctx.fillStyle = chart.fontColor();
-    ctx.font = chart.font();
+    ctx.fillStyle = model.fontColor();
+    ctx.font = model.font();
     ctx.globalAlpha = 1;
     axis.each(function (label) {
-      var leftOffset = chart.grid.bound().left + (label-chart.xAxis.min())/chart.xAxis.scale();
+      var leftOffset = chart.grid.bound().left + (label-axis.min())/axis.scale();
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
     });
     ctx.restore();
@@ -71,10 +72,11 @@ Chartmander.components.timeAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.adapt = function (chart, range) {
+  axis.adapt = function (range) {
+    console.log(model.colors());
     // Apply values required for label recalculation
     axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
-    generate(chart);
+    generate();
     return axis;
   };
 

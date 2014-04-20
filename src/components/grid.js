@@ -1,4 +1,4 @@
-Chartmander.components.grid = function () {
+Chartmander.components.grid = function (chart, model) {
 
   var grid = this;
 
@@ -16,14 +16,14 @@ Chartmander.components.grid = function () {
   // Func
   ///////////////////////
 
-  var adapt = function (chart) {
+  var adapt = function () {
     width = chart.width() - margin.left - margin.right;
     height = chart.height() - margin.top - margin.bottom;
     grid.bound({
-      top:    chart.margin().top  + margin.top,
-      right:  chart.margin().left + margin.left + width,
-      bottom: chart.margin().top  + margin.top  + height,
-      left:   chart.margin().left + margin.left
+      top:    model.margin().top  + margin.top,
+      right:  model.margin().left + margin.left + width,
+      bottom: model.margin().top  + margin.top  + height,
+      left:   model.margin().left + margin.left
     });
   }
 
@@ -32,7 +32,6 @@ Chartmander.components.grid = function () {
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = lineWidth;
     ctx.globalAlpha = _perc_;
-    console.log(chart)
     if (horizontalLines) {
       forEach(chart.yAxis.labels(), function (line) {
         var y = Math.ceil(line.y());

@@ -51,11 +51,6 @@ Chartmander.charts.line = function (canvas) {
 
   grid.margin({left: 70, top: 20});
 
-  lines
-    .width(chart.width())
-    .height(chart.height())
-    ;
-
   ///////////////////////////////
   // Life cycle
   ///////////////////////////////
@@ -82,8 +77,7 @@ Chartmander.charts.line = function (canvas) {
     yAxis.adapt(chart, lines, yrange);
     lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
-    lines
-      .recalc(xAxis, yAxis, grid);
+    lines.recalc(xAxis, yAxis, grid);
     
     chart
       .completed(0)

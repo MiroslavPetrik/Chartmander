@@ -29,6 +29,8 @@ Chartmander.components.xAxis = function () {
   // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
   // YES BUT WE HAVE NOT MUCH TIME VERY BUSY ARE WE
 
+
+  // dep: grid
   var recalc = function (chart) {
     var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec

@@ -476,7 +476,7 @@ Chartmander.components.dataset = function (data, color, element) {
   return dataset;
 }
 
-Chartmander.components.grid = function () {
+Chartmander.components.grid = function (chart, model) {
 
   var grid = this;
 
@@ -494,14 +494,14 @@ Chartmander.components.grid = function () {
   // Func
   ///////////////////////
 
-  var adapt = function (chart) {
+  var adapt = function () {
     width = chart.width() - margin.left - margin.right;
     height = chart.height() - margin.top - margin.bottom;
     grid.bound({
-      top:    chart.margin().top  + margin.top,
-      right:  chart.margin().left + margin.left + width,
-      bottom: chart.margin().top  + margin.top  + height,
-      left:   chart.margin().left + margin.left
+      top:    model.margin().top  + margin.top,
+      right:  model.margin().left + margin.left + width,
+      bottom: model.margin().top  + margin.top  + height,
+      left:   model.margin().left + margin.left
     });
   }
 
@@ -510,7 +510,6 @@ Chartmander.components.grid = function () {
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = lineWidth;
     ctx.globalAlpha = _perc_;
-    console.log(chart)
     if (horizontalLines) {
       forEach(chart.yAxis.labels(), function (line) {
         var y = Math.ceil(line.y());
@@ -845,7 +844,7 @@ Chartmander.components.numberAxis = function () {
   return axis;
 }
 
-Chartmander.components.timeAxis = function () {
+Chartmander.components.timeAxis = function (chart, model) {
 
   var axis = new Chartmander.components.axis();
 
@@ -872,7 +871,10 @@ Chartmander.components.timeAxis = function () {
     
   axis.format("MM/YYYY");
 
-  var generate = function (chart) {
+  // Shorthands
+  var ctx = chart.ctx;
+
+  var generate = function () {
     var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec
       , stepIndex = steps.length
@@ -896,16 +898,14 @@ Chartmander.components.timeAxis = function () {
     }
   }
 
-  var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx
-      , topOffset = chart.grid.bound().bottom + axis.margin();
-
+  var drawInto = function (_perc_) {
+    var topOffset = chart.grid.bound().bottom + axis.margin();
     ctx.save();
-    ctx.fillStyle = chart.fontColor();
-    ctx.font = chart.font();
+    ctx.fillStyle = model.fontColor();
+    ctx.font = model.font();
     ctx.globalAlpha = 1;
     axis.each(function (label) {
-      var leftOffset = chart.grid.bound().left + (label-chart.xAxis.min())/chart.xAxis.scale();
+      var leftOffset = chart.grid.bound().left + (label-axis.min())/axis.scale();
       ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
     });
     ctx.restore();
@@ -918,10 +918,11 @@ Chartmander.components.timeAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.adapt = function (chart, range) {
+  axis.adapt = function (range) {
+    console.log(model.colors());
     // Apply values required for label recalculation
     axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
-    generate(chart);
+    generate();
     return axis;
   };
 
@@ -959,6 +960,8 @@ Chartmander.components.xAxis = function () {
   // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
   // YES BUT WE HAVE NOT MUCH TIME VERY BUSY ARE WE
 
+
+  // dep: grid
   var recalc = function (chart) {
     var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec
@@ -1733,8 +1736,8 @@ Chartmander.models.baseModel = function (chart) {
   var model = this;
 
   var datasets  = []
-    , width     = null
-    , height    = null
+    , width     = chart.width()
+    , height    = chart.height()
     , margin    = { top: 0, right: 0, bottom: 0, left: 0 }
     , colors    = ["blue", "green", "red"]
     , font      = "13px Arial, sans-serif"
@@ -1878,13 +1881,13 @@ Chartmander.models.slices = function (chart) {
   var model = new Chartmander.models.baseModel(chart);
 
   var center          = { x: 0, y: 0 }
-    , radius          = 0
+    , radius          = chart.width()/2
     , innerRadius     = .6  // donut hole
     , rotateAnimation = true
     , startAngle      = 0
     , clockWise       = false
     ;
-
+    
   var recalc = function () {
     var slice
       , sliceStart = 0
@@ -1976,6 +1979,9 @@ Chartmander.models.slices = function (chart) {
     return model;
   };
 
+  // init
+  centerize();
+
   return model;
 };
 
@@ -1989,8 +1995,6 @@ Chartmander.models.bars = function (chart) {
     , datasetSpacing = 0
     , base = 0
     ;
-
-  // model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var i = 0, leftFix, x, y;
@@ -2082,8 +2086,6 @@ Chartmander.models.lines = function (chart) {
     , base             = 0
     , startPosition    = "direct" // or center
     ;
-
-  // model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
@@ -2487,10 +2489,9 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
   // Setup drawing & defaults
   ///////////////////////////////////
-
-  pie
-    .radius(chart.width()/2)
-    ;
+  // pie
+  //   .radius(chart.width()/2)
+  //   ;
   
   chart
     .onHover(function () {
@@ -2536,21 +2537,16 @@ Chartmander.charts.historicalBar = function (canvas) {
   // Use Components
   ///////////////////////////////////
 
-  var xAxis     = new Chartmander.components.xAxis()
+  var bars      = new Chartmander.models.bars(chart)
+    , grid      = new Chartmander.components.grid(chart, bars)
+    , xAxis     = new Chartmander.components.timeAxis(chart, bars)
     , yAxis     = new Chartmander.components.yAxis()
-    , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , bars      = new Chartmander.models.bars(chart)
     ;
 
   ///////////////////////////////////
   // Setup defaults
   ///////////////////////////////////
-
-  bars
-    .width(chart.width())
-    .height(chart.height())
-    ;
 
   chart
     .onHover(function () {
@@ -2601,7 +2597,6 @@ Chartmander.charts.historicalBar = function (canvas) {
       bars.drawInto(ctx, _perc_);
     });
 
-
   ///////////////////////////////
   // Life cycle
   ///////////////////////////////
@@ -2630,9 +2625,8 @@ Chartmander.charts.historicalBar = function (canvas) {
     // grid before axes
     grid.adapt(bars);
     // axes use grid height to calculate their scale
-    xAxis.adapt(chart, xrange);
+    // xAxis.adapt(xrange);
     yAxis.adapt(chart, bars, yrange, oldYScale);
-
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
     // recalc old labels to new position
@@ -2873,11 +2867,6 @@ Chartmander.charts.line = function (canvas) {
 
   grid.margin({left: 70, top: 20});
 
-  lines
-    .width(chart.width())
-    .height(chart.height())
-    ;
-
   ///////////////////////////////
   // Life cycle
   ///////////////////////////////
@@ -2904,8 +2893,7 @@ Chartmander.charts.line = function (canvas) {
     yAxis.adapt(chart, lines, yrange);
     lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
-    lines
-      .recalc(xAxis, yAxis, grid);
+    lines.recalc(xAxis, yAxis, grid);
     
     chart
       .completed(0)

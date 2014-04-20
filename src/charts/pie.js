@@ -11,10 +11,9 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
   // Setup drawing & defaults
   ///////////////////////////////////
-
-  pie
-    .radius(chart.width()/2)
-    ;
+  // pie
+  //   .radius(chart.width()/2)
+  //   ;
   
   chart
     .onHover(function () {

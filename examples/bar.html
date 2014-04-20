@@ -19,6 +19,7 @@
   Chartmander
     .addChart(function(){
       var chart = Chartmander.select("bar-default", "historicalBar");
+      chart.bars.colors(["red"])
       chart
         .render(dataFactory(["Petrol"], yearByMonths(1), 300))
         ;

@@ -6,21 +6,16 @@ Chartmander.charts.historicalBar = function (canvas) {
   // Use Components
   ///////////////////////////////////
 
-  var xAxis     = new Chartmander.components.xAxis()
+  var bars      = new Chartmander.models.bars(chart)
+    , grid      = new Chartmander.components.grid(chart, bars)
+    , xAxis     = new Chartmander.components.timeAxis(chart, bars)
     , yAxis     = new Chartmander.components.yAxis()
-    , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , bars      = new Chartmander.models.bars(chart)
     ;
 
   ///////////////////////////////////
   // Setup defaults
   ///////////////////////////////////
-
-  bars
-    .width(chart.width())
-    .height(chart.height())
-    ;
 
   chart
     .onHover(function () {
@@ -71,7 +66,6 @@ Chartmander.charts.historicalBar = function (canvas) {
       bars.drawInto(ctx, _perc_);
     });
 
-
   ///////////////////////////////
   // Life cycle
   ///////////////////////////////
@@ -100,9 +94,8 @@ Chartmander.charts.historicalBar = function (canvas) {
     // grid before axes
     grid.adapt(bars);
     // axes use grid height to calculate their scale
-    xAxis.adapt(chart, xrange);
+    // xAxis.adapt(xrange);
     yAxis.adapt(chart, bars, yrange, oldYScale);
-
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
     // recalc old labels to new position

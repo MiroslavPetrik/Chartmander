@@ -9,8 +9,6 @@ Chartmander.models.bars = function (chart) {
     , base = 0
     ;
 
-  // model.margin({ top: 0, right: 0, bottom: 0, left: 0 });
-
   var recalc = function (xAxis, yAxis, grid) {
     var i = 0, leftFix, x, y;
 

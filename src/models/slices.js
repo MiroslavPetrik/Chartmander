@@ -3,13 +3,13 @@ Chartmander.models.slices = function (chart) {
   var model = new Chartmander.models.baseModel(chart);
 
   var center          = { x: 0, y: 0 }
-    , radius          = 0
+    , radius          = chart.width()/2
     , innerRadius     = .6  // donut hole
     , rotateAnimation = true
     , startAngle      = 0
     , clockWise       = false
     ;
-
+    
   var recalc = function () {
     var slice
       , sliceStart = 0
@@ -100,6 +100,9 @@ Chartmander.models.slices = function (chart) {
     clockWise = _;
     return model;
   };
+
+  // init
+  centerize();
 
   return model;
 };
