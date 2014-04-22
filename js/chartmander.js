@@ -585,7 +585,8 @@ Chartmander.components.axis = function () {
     , delta       = 0 // maxVal - min value
     , format      = "" // moment.js format string
     , orientation = "horizontal" // or vertical
-    , margin      = 10 // distance from grid 
+    , margin      = 10 // distance from grid
+    , visible     = true
     ;
 
   ///////////////////////////////
@@ -645,6 +646,12 @@ Chartmander.components.axis = function () {
   axis.margin = function (_) {
     if(!arguments.length) return margin;
     margin = _;
+    return axis;
+  };
+
+  axis.visible = function (_) {
+    if(!arguments.length) return visible;
+    visible = _;
     return axis;
   };
 
@@ -2413,7 +2420,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     .drawChart(function (ctx, _perc_) {
       grid.drawInto(ctx, _perc_);
 
-      // if (xAxisVisible) {
+      if (xAxis.visible()) {
         xAxis
           .animIn()
           .drawInto(ctx, _perc_);
@@ -2424,9 +2431,9 @@ Chartmander.charts.historicalBar = function (canvas) {
         //   });
         //   ctx.restore();
         // } 
-      // }
+      }
 
-      // if (yAxisVisible) {
+      if (yAxis.visible()) {
         yAxis
           .animIn()
           .drawInto(ctx, _perc_);
@@ -2444,7 +2451,7 @@ Chartmander.charts.historicalBar = function (canvas) {
           ctx.restore();
           y0.state -= .01;
         }
-      // }
+      }
 
       bars.drawInto(ctx, _perc_);
     });
@@ -2686,17 +2693,17 @@ Chartmander.charts.line = function (canvas) {
     .drawChart(function (ctx, _perc_) {
       grid.drawInto(ctx, _perc_);
       
-      // if (xAxisVisible) {
+      if (xAxis.visible()) {
         xAxis
           .animIn()
           .drawInto(ctx, _perc_);
-      // }
+      }
 
-      // if (yAxisVisible) {
+      if (yAxis.visible()) {
         yAxis
           .animIn()
           .drawInto(ctx, _perc_);
-      // }
+      }
 
       if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
         crosshair.drawInto(ctx);

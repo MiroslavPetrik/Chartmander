@@ -12,7 +12,8 @@ Chartmander.components.axis = function () {
     , delta       = 0 // maxVal - min value
     , format      = "" // moment.js format string
     , orientation = "horizontal" // or vertical
-    , margin      = 10 // distance from grid 
+    , margin      = 10 // distance from grid
+    , visible     = true
     ;
 
   ///////////////////////////////
@@ -72,6 +73,12 @@ Chartmander.components.axis = function () {
   axis.margin = function (_) {
     if(!arguments.length) return margin;
     margin = _;
+    return axis;
+  };
+
+  axis.visible = function (_) {
+    if(!arguments.length) return visible;
+    visible = _;
     return axis;
   };
 

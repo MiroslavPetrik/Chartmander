@@ -22,17 +22,17 @@ Chartmander.charts.line = function (canvas) {
     .drawChart(function (ctx, _perc_) {
       grid.drawInto(ctx, _perc_);
       
-      // if (xAxisVisible) {
+      if (xAxis.visible()) {
         xAxis
           .animIn()
           .drawInto(ctx, _perc_);
-      // }
+      }
 
-      // if (yAxisVisible) {
+      if (yAxis.visible()) {
         yAxis
           .animIn()
           .drawInto(ctx, _perc_);
-      // }
+      }
 
       if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
         crosshair.drawInto(ctx);

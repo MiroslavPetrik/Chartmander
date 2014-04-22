@@ -21,7 +21,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     .drawChart(function (ctx, _perc_) {
       grid.drawInto(ctx, _perc_);
 
-      // if (xAxisVisible) {
+      if (xAxis.visible()) {
         xAxis
           .animIn()
           .drawInto(ctx, _perc_);
@@ -32,9 +32,9 @@ Chartmander.charts.historicalBar = function (canvas) {
         //   });
         //   ctx.restore();
         // } 
-      // }
+      }
 
-      // if (yAxisVisible) {
+      if (yAxis.visible()) {
         yAxis
           .animIn()
           .drawInto(ctx, _perc_);
@@ -52,7 +52,7 @@ Chartmander.charts.historicalBar = function (canvas) {
           ctx.restore();
           y0.state -= .01;
         }
-      // }
+      }
 
       bars.drawInto(ctx, _perc_);
     });
