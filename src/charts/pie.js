@@ -11,21 +11,21 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
   // Setup drawing & defaults
   ///////////////////////////////////
-  // pie
-  //   .radius(chart.width()/2)
-  //   ;
   
-  chart
-    .drawChart(function (ctx, _perc_) {
-      pie.drawInto(ctx, _perc_);
-    })
-    ;
+  chart.drawChart(function (ctx, _perc_) {
+    pie.drawInto(ctx, _perc_);
+  });
 
+  chart.tooltip.showHeader(false);
+
+  ///////////////////////////////////
 
   var render =  function (data) {
     pie.parse(data, Chartmander.components.slice);
     pie.recalc();
     
+    chart.tooltip.percReference(pie.dataSum());
+
     chart
       .completed(0)
       .draw(false);

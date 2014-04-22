@@ -67,6 +67,7 @@ Chartmander.models.slices = function (chart) {
 
   model.recalc = recalc;
   model.drawInto = drawSlices;
+  model.dataSum = getDataSum;
 
   model.center = function (_) {
     if (!arguments.length) return center

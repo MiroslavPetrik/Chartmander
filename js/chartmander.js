@@ -1531,6 +1531,8 @@ Chartmander.components.tooltip = function (id) {
     , content    = document.createElement('ul')
     , margin     = 30
     , dateFormat = 'MMMM YYYY'
+    , showHeader = true
+    , percReference = null
     ;
 
   // Build tooltip
@@ -1550,7 +1552,8 @@ Chartmander.components.tooltip = function (id) {
   var generate = function () {
     container.style.opacity = 1;
     // header from first item
-    header.innerHTML = moment(items[0].label).format(dateFormat);
+    if (showHeader)
+      header.innerHTML = moment(items[0].label).format(dateFormat);
     forEach(items, function (item) {
       content.appendChild(new TipNode(item.color, item.value, item.set));
     });
@@ -1561,6 +1564,7 @@ Chartmander.components.tooltip = function (id) {
       , val  = document.createElement('strong')
       , icon = document.createElement('div')
       , set  = document.createTextNode(" " + setTitle)
+      , perc = document.createTextNode(" " + (value/percReference*100).toFixed(1) + "%")
       ;
 
     val.innerHTML = value;
@@ -1569,6 +1573,8 @@ Chartmander.components.tooltip = function (id) {
     node.appendChild(icon);
     node.appendChild(val);
     node.appendChild(set);
+    if (percReference != null) 
+      node.appendChild(perc);
     return node;
   }
 
@@ -1598,6 +1604,21 @@ Chartmander.components.tooltip = function (id) {
   tooltip.dateFormat = function (_) {
     if (!arguments.length) return dateFormat;
     dateFormat = _;
+    return tooltip;
+  };
+
+  tooltip.percReference = function (_) {
+    if (!arguments.length) return percReference;
+    percReference = _;
+    return tooltip;
+  };
+
+  tooltip.showHeader = function (_) {
+    if (!arguments.length) return showHeader;
+    showHeader = _;
+    if (!_) {
+      header.style.display = "none";
+    }
     return tooltip;
   };
 
@@ -1792,6 +1813,7 @@ Chartmander.models.slices = function (chart) {
 
   model.recalc = recalc;
   model.drawInto = drawSlices;
+  model.dataSum = getDataSum;
 
   model.center = function (_) {
     if (!arguments.length) return center
@@ -2369,21 +2391,21 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
   // Setup drawing & defaults
   ///////////////////////////////////
-  // pie
-  //   .radius(chart.width()/2)
-  //   ;
   
-  chart
-    .drawChart(function (ctx, _perc_) {
-      pie.drawInto(ctx, _perc_);
-    })
-    ;
+  chart.drawChart(function (ctx, _perc_) {
+    pie.drawInto(ctx, _perc_);
+  });
 
+  chart.tooltip.showHeader(false);
+
+  ///////////////////////////////////
 
   var render =  function (data) {
     pie.parse(data, Chartmander.components.slice);
     pie.recalc();
     
+    chart.tooltip.percReference(pie.dataSum());
+
     chart
       .completed(0)
       .draw(false);
