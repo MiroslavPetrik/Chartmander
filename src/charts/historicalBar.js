@@ -10,7 +10,6 @@ Chartmander.charts.historicalBar = function (canvas) {
     , xAxis     = new Chartmander.components.timeAxis(chart, bars)
     , yAxis     = new Chartmander.components.yAxis(chart, bars)
     , grid      = new Chartmander.components.grid(chart, xAxis, yAxis)
-    , crosshair = new Chartmander.components.crosshair()
     , x0, y0
     ;
 
@@ -109,7 +108,6 @@ Chartmander.charts.historicalBar = function (canvas) {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.grid = grid;
-  chart.crosshair = crosshair;
   chart.bars = bars;
 
   chart.render = render;
