@@ -102,10 +102,11 @@ Chartmander.components.baseChart = function (canvasID) {
       frameDelta = currentFrame - lastFrame;
       lastFrame = currentFrame;
       elapsedTime += frameDelta;
-
       if (finished) {
         animationProgress = 1;
       } else {
+        if (elapsedTime > duration)
+          elapsedTime = duration;
         animationProgress = elapsedTime/duration;
       }
 
@@ -123,7 +124,7 @@ Chartmander.components.baseChart = function (canvasID) {
       }
 
       // Request self-repaint if chart or data element has not finished animating yet
-      if (elapsedTime < duration || !hoverFinished) {
+      if (animationProgress < 1 || !hoverFinished) {
         requestAnimationFrame(loop);
       }
       else {
