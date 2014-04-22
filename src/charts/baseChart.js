@@ -13,8 +13,8 @@ Chartmander.components.baseChart = function (canvasID) {
     , hovered       = false
     , hoverFinished = true
     , animate            = true
-    , animationSteps     = 100
-    , animationCompleted = 0
+    , duration           = 600 // animation duration on load
+    , animationProgress = 0
     , easing             = "easeInQuint"
     , updated            = false
     , onHover       = null  // function specified by every chart (e.g. in /src/charts/pie.js)
@@ -60,9 +60,9 @@ Chartmander.components.baseChart = function (canvasID) {
     mouse.y = event.clientY - rect.top;
     // Allow repaint on hover only if chart and tooltip are done with self-repaint
     // AND if also hovered item is not repainting 
-    // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
+    // if (animationProgress >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
     if (hoverFinished) {
-      if (animationCompleted >= 1) {
+      if (animationProgress >= 1) {
         draw(true);
         // onHover();
       }
@@ -75,8 +75,7 @@ Chartmander.components.baseChart = function (canvasID) {
 
   function handleLeave () {
     hovered = false;
-    // chart.tooltip.removeItems();
-    if (animationCompleted >= 1) {
+    if (animationProgress >= 1) {
       draw(true);
       // onLeave();
     }
@@ -88,21 +87,29 @@ Chartmander.components.baseChart = function (canvasID) {
 
   var draw = function (finished) {
     var easingFunction = easings[easing]
-      , animationIncrement = 1/animationSteps
       , _perc_
+      , elapsedTime = 0
+      , lastFrame = Date.now()
+      , currentFrame
+      , frameDelta
       ;
 
     if (!updated)
-      animationCompleted = animate ? 0 : 1;
+      animationProgress = animate ? 0 : 1;
 
     function loop () {
+      currentFrame = Date.now();
+      frameDelta = currentFrame - lastFrame;
+      lastFrame = currentFrame;
+      elapsedTime += frameDelta;
+
       if (finished) {
-        animationCompleted = 1;
-      } else if (animationCompleted < 1) {
-        animationCompleted += animationIncrement;
+        animationProgress = 1;
+      } else {
+        animationProgress = elapsedTime/duration;
       }
 
-      _perc_ = easingFunction(animationCompleted);
+      _perc_ = easingFunction(animationProgress);
 
       tooltip.clear();
       ctx.clearRect(0, 0, width, height);
@@ -116,7 +123,7 @@ Chartmander.components.baseChart = function (canvasID) {
       }
 
       // Request self-repaint if chart or data element has not finished animating yet
-      if (animationCompleted < 1 || !hoverFinished) {
+      if (elapsedTime < duration || !hoverFinished) {
         requestAnimationFrame(loop);
       }
       else {
@@ -181,14 +188,20 @@ Chartmander.components.baseChart = function (canvasID) {
   };
 
   chart.completed = function (_) {
-    if(!arguments.length) return animationCompleted;
-    animationCompleted = _;
+    if(!arguments.length) return animationProgress;
+    animationProgress = _;
     return chart;
   };
 
   chart.easing = function (_) {
     if (!arguments.length) return easing;
     easing = _;
+    return chart;
+  };
+
+  chart.duration = function (_) {
+    if (!arguments.length) return duration;
+    duration = _;
     return chart;
   };
 
