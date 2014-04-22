@@ -1,4 +1,4 @@
-Chartmander.components.crosshair = function () {
+Chartmander.components.crosshair = function (chart) {
 
   var crosshair = this;
 
@@ -10,16 +10,14 @@ Chartmander.components.crosshair = function () {
     , lineWidth = 1
     ;
 
-  var drawInto = function (chart) {
-    var ctx = chart.layer.ctx
-      , bound = chart.grid.bound();
-
+  var drawInto = function (ctx) {
+    var bound = chart.grid.bound();
 
     ctx.save();
     ctx.strokeStyle = color;
     ctx.lineWidth = lineWidth;
 
-    x = chart.layer.mouse().x;
+    x = chart.mouse().x;
 
     // if (sticky && chart.tooltip.hasItems()) {
     //   x = chart.tooltip.items()[0].x

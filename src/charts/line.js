@@ -7,10 +7,10 @@ Chartmander.charts.line = function (canvas) {
   ///////////////////////////////////
 
   var lines     = new Chartmander.models.lines(chart)
-    , xAxis     = new Chartmander.components.xAxis()
-    , yAxis     = new Chartmander.components.yAxis()
-    , grid      = new Chartmander.components.grid()
-    , crosshair = new Chartmander.components.crosshair()
+    , xAxis     = new Chartmander.components.timeAxis(chart, lines)
+    , yAxis     = new Chartmander.components.yAxis(chart, lines)
+    , grid      = new Chartmander.components.grid(chart, xAxis, yAxis)
+    , crosshair = new Chartmander.components.crosshair(chart)
     , x0, y0
     ;
 
@@ -35,7 +35,7 @@ Chartmander.charts.line = function (canvas) {
       // }
 
       if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
-        crosshair.drawInto(lines);
+        crosshair.drawInto(ctx);
       }
       
       lines.drawInto(ctx, _perc_);

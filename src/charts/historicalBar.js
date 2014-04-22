@@ -86,7 +86,9 @@ Chartmander.charts.historicalBar = function (canvas) {
     xAxis.adapt(xrange);
     yAxis.adapt(yrange, oldYScale);
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
-
+    forEach(yAxis.labels(),function(label) {
+      console.log(label.value())
+    })
     // recalc old labels to new position
     if (bars.updated()) {
       forEach(y0.labels, function (label) {

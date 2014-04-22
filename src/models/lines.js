@@ -44,7 +44,7 @@ Chartmander.models.lines = function (chart) {
     });
   }
 
-  var drawArea = function (set) {
+  var drawArea = function (ctx, set) {
     ctx.save();
     ctx.fillStyle = set.color();
     ctx.globalAlpha = areaOpacity;
@@ -59,7 +59,7 @@ Chartmander.models.lines = function (chart) {
     ctx.restore();
   }
 
-  var drawLines = function (set) {
+  var drawLines = function (ctx, set) {
     ctx.save();
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = set.color();
@@ -71,12 +71,12 @@ Chartmander.models.lines = function (chart) {
     ctx.restore();
   }
 
-  var drawPoints = function (set) {
+  var drawPoints = function (ctx, set) {
     ctx.save();
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
     set.each(function (point) {
-      point.drawInto(model, set);
+      point.drawInto(ctx, chart, model, set);
     });
 
     // With high-density data there can be more hovered points
@@ -108,11 +108,11 @@ Chartmander.models.lines = function (chart) {
       hoveredItems = [];
       updatePoints(set, _perc_);
       if (areaVisible) {
-        drawArea(set);
+        drawArea(ctx, set);
       }
-      drawLines(set);
+      drawLines(ctx, set);
       if (showPoint)
-        drawPoints(set);
+        drawPoints(ctx, set);
     });
   }
 

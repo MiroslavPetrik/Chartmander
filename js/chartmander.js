@@ -901,94 +901,6 @@ Chartmander.components.timeAxis = function (chart, model) {
   return axis;
 }
 
-Chartmander.components.xAxis = function () {
-
-  var axis = new Chartmander.components.axis();
-
-  var steps = [
-        {
-          "days": 1,
-          "label": "days"
-        },
-        {
-          "days": 7,
-          "label": "weeks"
-        },
-        {
-          "days": 30,
-          "label": "months"
-        },
-        {
-          "days": 365,
-          "label": "years"
-        }
-      ]
-    , dayMSec = 60*60*24*1000
-    ;
-    
-  axis.format("MM/YYYY");
-  // rename to timeAxis ?
-  // make another numberAxis and category
-  // implement in chart as x/y with options horizontal/vertical  aligned top, bottom or left,right
-  // YES BUT WE HAVE NOT MUCH TIME VERY BUSY ARE WE
-
-
-  // dep: grid
-  var recalc = function (chart) {
-    var startDate = moment(axis.min())
-      , daysInRange = axis.delta()/dayMSec
-      , stepIndex = steps.length
-      , labelCount = 0
-      ;
-
-    // clear labels
-    axis.labels([]);
-    // Time per pixel
-    axis.scale(axis.delta()/chart.grid.width());
-
-    while (labelCount < 1) {
-      stepIndex--;
-      labelCount = daysInRange/steps[stepIndex].days;
-    }
-
-    labelCount = Math.round(labelCount);
-    for (var i = 0; i < labelCount; i++) {
-      var label = moment(startDate).add(steps[stepIndex].label, i);
-      axis.labels().push(label.valueOf());
-    }
-  }
-
-  var drawInto = function (ctx, chart, model, _perc_) {
-    var topOffset = chart.grid.bound().bottom + 25;
-
-    ctx.save();
-    ctx.fillStyle = model.fontColor();
-    ctx.font = model.font();
-    ctx.globalAlpha = 1;
-    axis.each(function (label) {
-      var leftOffset = chart.grid.bound().left + (label-chart.xAxis.min())/chart.xAxis.scale();
-      ctx.fillText(moment(label).format(axis.format()), leftOffset, topOffset);
-    });
-    ctx.restore();
-    return axis;
-  }
-
-  ///////////////////////////////
-  // Public Methods & Variables
-  ///////////////////////////////
-
-  axis.drawInto = drawInto;
-
-  axis.adapt = function (chart, range) {
-    // Apply values required for label recalculation
-    axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
-    recalc(chart);
-    return axis;
-  };
-
-  return axis;
-}
-
 Chartmander.components.yAxis = function (chart, model) {
 
   var axis = new Chartmander.components.axis();
@@ -1547,7 +1459,7 @@ Chartmander.components.label = function (data, title) {
   return label;
 };
 
-Chartmander.components.crosshair = function () {
+Chartmander.components.crosshair = function (chart) {
 
   var crosshair = this;
 
@@ -1559,16 +1471,14 @@ Chartmander.components.crosshair = function () {
     , lineWidth = 1
     ;
 
-  var drawInto = function (chart) {
-    var ctx = chart.layer.ctx
-      , bound = chart.grid.bound();
-
+  var drawInto = function (ctx) {
+    var bound = chart.grid.bound();
 
     ctx.save();
     ctx.strokeStyle = color;
     ctx.lineWidth = lineWidth;
 
-    x = chart.layer.mouse().x;
+    x = chart.mouse().x;
 
     // if (sticky && chart.tooltip.hasItems()) {
     //   x = chart.tooltip.items()[0].x
@@ -2061,7 +1971,7 @@ Chartmander.models.lines = function (chart) {
     });
   }
 
-  var drawArea = function (set) {
+  var drawArea = function (ctx, set) {
     ctx.save();
     ctx.fillStyle = set.color();
     ctx.globalAlpha = areaOpacity;
@@ -2076,7 +1986,7 @@ Chartmander.models.lines = function (chart) {
     ctx.restore();
   }
 
-  var drawLines = function (set) {
+  var drawLines = function (ctx, set) {
     ctx.save();
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = set.color();
@@ -2088,12 +1998,12 @@ Chartmander.models.lines = function (chart) {
     ctx.restore();
   }
 
-  var drawPoints = function (set) {
+  var drawPoints = function (ctx, set) {
     ctx.save();
     ctx.strokeStyle = set.color();
     ctx.fillStyle = set.color();
     set.each(function (point) {
-      point.drawInto(model, set);
+      point.drawInto(ctx, chart, model, set);
     });
 
     // With high-density data there can be more hovered points
@@ -2125,11 +2035,11 @@ Chartmander.models.lines = function (chart) {
       hoveredItems = [];
       updatePoints(set, _perc_);
       if (areaVisible) {
-        drawArea(set);
+        drawArea(ctx, set);
       }
-      drawLines(set);
+      drawLines(ctx, set);
       if (showPoint)
-        drawPoints(set);
+        drawPoints(ctx, set);
     });
   }
 
@@ -2570,7 +2480,9 @@ Chartmander.charts.historicalBar = function (canvas) {
     xAxis.adapt(xrange);
     yAxis.adapt(yrange, oldYScale);
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
-
+    forEach(yAxis.labels(),function(label) {
+      console.log(label.value())
+    })
     // recalc old labels to new position
     if (bars.updated()) {
       forEach(y0.labels, function (label) {
@@ -2765,10 +2677,10 @@ Chartmander.charts.line = function (canvas) {
   ///////////////////////////////////
 
   var lines     = new Chartmander.models.lines(chart)
-    , xAxis     = new Chartmander.components.xAxis()
-    , yAxis     = new Chartmander.components.yAxis()
-    , grid      = new Chartmander.components.grid()
-    , crosshair = new Chartmander.components.crosshair()
+    , xAxis     = new Chartmander.components.timeAxis(chart, lines)
+    , yAxis     = new Chartmander.components.yAxis(chart, lines)
+    , grid      = new Chartmander.components.grid(chart, xAxis, yAxis)
+    , crosshair = new Chartmander.components.crosshair(chart)
     , x0, y0
     ;
 
@@ -2793,7 +2705,7 @@ Chartmander.charts.line = function (canvas) {
       // }
 
       if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
-        crosshair.drawInto(lines);
+        crosshair.drawInto(ctx);
       }
       
       lines.drawInto(ctx, _perc_);
