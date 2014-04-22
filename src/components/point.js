@@ -35,7 +35,7 @@ Chartmander.components.point = function (data, title) {
     }
 
     if (chart.hovered() && hover.was) {
-      chart.addHoveredItem({
+      model.addHoveredItem({
         "index"   : indexOf.call(set.els(), point),
         "distance": hover.distance
       });

@@ -18,29 +18,27 @@ Chartmander.charts.line = function (canvas) {
   // Setup Defaults
   ///////////////////////////////////
 
-  chart
-    .drawChart(function (ctx, _perc_) {
-      grid.drawInto(ctx, _perc_);
-      
-      if (xAxis.visible()) {
-        xAxis
-          .animIn()
-          .drawInto(ctx, _perc_);
-      }
+  chart.drawChart(function (ctx, _perc_) {
+    grid.drawInto(ctx, _perc_);
+    
+    if (xAxis.visible()) {
+      xAxis
+        .animIn()
+        .drawInto(ctx, _perc_);
+    }
 
-      if (yAxis.visible()) {
-        yAxis
-          .animIn()
-          .drawInto(ctx, _perc_);
-      }
+    if (yAxis.visible()) {
+      yAxis
+        .animIn()
+        .drawInto(ctx, _perc_);
+    }
 
-      if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
-        crosshair.drawInto(ctx);
-      }
-      
-      lines.drawInto(ctx, _perc_);
-    });
-    ;
+    if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
+      crosshair.drawInto(ctx);
+    }
+    
+    lines.drawInto(ctx, _perc_);
+  });
 
   ///////////////////////////////
   // Life cycle
@@ -61,8 +59,8 @@ Chartmander.charts.line = function (canvas) {
 
     // grid before axes
     // axes use grid height to calculate their scale
-    xAxis.adapt(chart, xrange);
-    yAxis.adapt(chart, lines, yrange);
+    xAxis.adapt(xrange);
+    yAxis.adapt(yrange);
     lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
     lines.recalc(xAxis, yAxis, grid);

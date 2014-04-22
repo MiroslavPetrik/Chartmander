@@ -498,7 +498,7 @@ Chartmander.components.grid = function (chart, xAxis,  yAxis) {
     ctx.globalAlpha = _perc_;
     if (horizontalLines) {
       forEach(chart.yAxis.labels(), function (line) {
-        var y = Math.ceil(line.y());
+        var y = Math.ceil(line.y() + bound.bottom);
         ctx.beginPath();
         ctx.moveTo(bound.left, y);
         ctx.lineTo(bound.right, y);
@@ -1395,7 +1395,7 @@ Chartmander.components.point = function (data, title) {
     }
 
     if (chart.hovered() && hover.was) {
-      chart.addHoveredItem({
+      model.addHoveredItem({
         "index"   : indexOf.call(set.els(), point),
         "distance": hover.distance
       });
@@ -1928,7 +1928,7 @@ Chartmander.models.lines = function (chart) {
     , areaVisible      = true
     , areaOpacity      = .29
     , mergeHover       = true
-    , hoveredItems     = []
+    , hoveredItems     = [] // hover buffer for all-in-mouse-range elements
     , base             = 0
     , startPosition    = "direct" // or center
     ;
@@ -2416,45 +2416,43 @@ Chartmander.charts.historicalBar = function (canvas) {
   // Setup defaults
   ///////////////////////////////////
 
-  chart
-    .drawChart(function (ctx, _perc_) {
-      grid.drawInto(ctx, _perc_);
+  chart.drawChart(function (ctx, _perc_) {
+    grid.drawInto(ctx, _perc_);
 
-      if (xAxis.visible()) {
-        xAxis
-          .animIn()
-          .drawInto(ctx, _perc_);
-        // if (x0 && x0.state > 0) {
-        //   ctx.save();
-        //   forEach(x0.labels, function (label) {
+    if (xAxis.visible()) {
+      xAxis
+        .animIn()
+        .drawInto(ctx, _perc_);
+      // if (x0 && x0.state > 0) {
+      //   ctx.save();
+      //   forEach(x0.labels, function (label) {
 
-        //   });
-        //   ctx.restore();
-        // } 
+      //   });
+      //   ctx.restore();
+      // } 
+    }
+
+    if (yAxis.visible()) {
+      yAxis
+        .animIn()
+        .drawInto(ctx, _perc_);
+
+      if (y0 && y0.state > 0) {
+        ctx.save();
+        ctx.textAlign = "right";
+        ctx.fillStyle = bars.fontColor();
+        ctx.font = bars.font();
+        ctx.globalAlpha = y0.state;
+        forEach(y0.labels, function (label) {
+          label.updatePosition(_perc_);
+          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
+        });
+        ctx.restore();
+        y0.state -= .01;
       }
-
-      if (yAxis.visible()) {
-        yAxis
-          .animIn()
-          .drawInto(ctx, _perc_);
-
-        if (y0 && y0.state > 0) {
-          ctx.save();
-          ctx.textAlign = "right";
-          ctx.fillStyle = bars.fontColor();
-          ctx.font = bars.font();
-          ctx.globalAlpha = y0.state;
-          forEach(y0.labels, function (label) {
-            label.updatePosition(_perc_);
-            ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
-          });
-          ctx.restore();
-          y0.state -= .01;
-        }
-      }
-
-      bars.drawInto(ctx, _perc_);
-    });
+    }
+    bars.drawInto(ctx, _perc_);
+  });
 
   ///////////////////////////////
   // Life cycle
@@ -2689,29 +2687,27 @@ Chartmander.charts.line = function (canvas) {
   // Setup Defaults
   ///////////////////////////////////
 
-  chart
-    .drawChart(function (ctx, _perc_) {
-      grid.drawInto(ctx, _perc_);
-      
-      if (xAxis.visible()) {
-        xAxis
-          .animIn()
-          .drawInto(ctx, _perc_);
-      }
+  chart.drawChart(function (ctx, _perc_) {
+    grid.drawInto(ctx, _perc_);
+    
+    if (xAxis.visible()) {
+      xAxis
+        .animIn()
+        .drawInto(ctx, _perc_);
+    }
 
-      if (yAxis.visible()) {
-        yAxis
-          .animIn()
-          .drawInto(ctx, _perc_);
-      }
+    if (yAxis.visible()) {
+      yAxis
+        .animIn()
+        .drawInto(ctx, _perc_);
+    }
 
-      if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
-        crosshair.drawInto(ctx);
-      }
-      
-      lines.drawInto(ctx, _perc_);
-    });
-    ;
+    if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
+      crosshair.drawInto(ctx);
+    }
+    
+    lines.drawInto(ctx, _perc_);
+  });
 
   ///////////////////////////////
   // Life cycle
@@ -2732,8 +2728,8 @@ Chartmander.charts.line = function (canvas) {
 
     // grid before axes
     // axes use grid height to calculate their scale
-    xAxis.adapt(chart, xrange);
-    yAxis.adapt(chart, lines, yrange);
+    xAxis.adapt(xrange);
+    yAxis.adapt(yrange);
     lines.base(grid.bound().bottom - yAxis.zeroLevel());
 
     lines.recalc(xAxis, yAxis, grid);

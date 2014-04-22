@@ -17,45 +17,43 @@ Chartmander.charts.historicalBar = function (canvas) {
   // Setup defaults
   ///////////////////////////////////
 
-  chart
-    .drawChart(function (ctx, _perc_) {
-      grid.drawInto(ctx, _perc_);
+  chart.drawChart(function (ctx, _perc_) {
+    grid.drawInto(ctx, _perc_);
 
-      if (xAxis.visible()) {
-        xAxis
-          .animIn()
-          .drawInto(ctx, _perc_);
-        // if (x0 && x0.state > 0) {
-        //   ctx.save();
-        //   forEach(x0.labels, function (label) {
+    if (xAxis.visible()) {
+      xAxis
+        .animIn()
+        .drawInto(ctx, _perc_);
+      // if (x0 && x0.state > 0) {
+      //   ctx.save();
+      //   forEach(x0.labels, function (label) {
 
-        //   });
-        //   ctx.restore();
-        // } 
+      //   });
+      //   ctx.restore();
+      // } 
+    }
+
+    if (yAxis.visible()) {
+      yAxis
+        .animIn()
+        .drawInto(ctx, _perc_);
+
+      if (y0 && y0.state > 0) {
+        ctx.save();
+        ctx.textAlign = "right";
+        ctx.fillStyle = bars.fontColor();
+        ctx.font = bars.font();
+        ctx.globalAlpha = y0.state;
+        forEach(y0.labels, function (label) {
+          label.updatePosition(_perc_);
+          ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
+        });
+        ctx.restore();
+        y0.state -= .01;
       }
-
-      if (yAxis.visible()) {
-        yAxis
-          .animIn()
-          .drawInto(ctx, _perc_);
-
-        if (y0 && y0.state > 0) {
-          ctx.save();
-          ctx.textAlign = "right";
-          ctx.fillStyle = bars.fontColor();
-          ctx.font = bars.font();
-          ctx.globalAlpha = y0.state;
-          forEach(y0.labels, function (label) {
-            label.updatePosition(_perc_);
-            ctx.fillText(label.label().toString() + " " + yAxis.unit(), grid.bound().left - yAxis.margin(), label.y());
-          });
-          ctx.restore();
-          y0.state -= .01;
-        }
-      }
-
-      bars.drawInto(ctx, _perc_);
-    });
+    }
+    bars.drawInto(ctx, _perc_);
+  });
 
   ///////////////////////////////
   // Life cycle

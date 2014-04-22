@@ -10,7 +10,7 @@ Chartmander.models.lines = function (chart) {
     , areaVisible      = true
     , areaOpacity      = .29
     , mergeHover       = true
-    , hoveredItems     = []
+    , hoveredItems     = [] // hover buffer for all-in-mouse-range elements
     , base             = 0
     , startPosition    = "direct" // or center
     ;

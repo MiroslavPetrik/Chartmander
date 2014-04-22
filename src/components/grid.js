@@ -20,7 +20,7 @@ Chartmander.components.grid = function (chart, xAxis,  yAxis) {
     ctx.globalAlpha = _perc_;
     if (horizontalLines) {
       forEach(chart.yAxis.labels(), function (line) {
-        var y = Math.ceil(line.y());
+        var y = Math.ceil(line.y() + bound.bottom);
         ctx.beginPath();
         ctx.moveTo(bound.left, y);
         ctx.lineTo(bound.right, y);
