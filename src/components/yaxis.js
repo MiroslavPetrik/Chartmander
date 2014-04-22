@@ -1,4 +1,4 @@
-Chartmander.components.yAxis = function () {
+Chartmander.components.yAxis = function (chart, model) {
 
   var axis = new Chartmander.components.axis();
 
@@ -10,7 +10,7 @@ Chartmander.components.yAxis = function () {
     ;
 
   // generate?
-  var recalc = function (chart, model, oldScale) {
+  var recalc = function (oldScale) {
 
     var height = chart.grid.height()
       , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
@@ -114,7 +114,7 @@ Chartmander.components.yAxis = function () {
     }
   }
 
-  var drawInto = function (ctx, chart, model, _perc_) {
+  var drawInto = function (ctx, _perc_) {
     var grid = chart.grid;
 
     ctx.save();
@@ -156,9 +156,9 @@ Chartmander.components.yAxis = function () {
   };
 
   // oldScale FAUX 
-  axis.adapt = function (chart, model, range, oldScale) {
+  axis.adapt = function (range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    recalc(chart, model, oldScale);
+    recalc(oldScale);
     return axis;
   };
 

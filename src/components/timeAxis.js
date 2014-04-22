@@ -25,9 +25,6 @@ Chartmander.components.timeAxis = function (chart, model) {
     
   axis.format("MM/YYYY");
 
-  // Shorthands
-  var ctx = chart.ctx;
-
   var generate = function () {
     var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec
@@ -52,7 +49,7 @@ Chartmander.components.timeAxis = function (chart, model) {
     }
   }
 
-  var drawInto = function (_perc_) {
+  var drawInto = function (ctx, _perc_) {
     var topOffset = chart.grid.bound().bottom + axis.margin();
     ctx.save();
     ctx.fillStyle = model.fontColor();
@@ -73,7 +70,6 @@ Chartmander.components.timeAxis = function (chart, model) {
   axis.drawInto = drawInto;
 
   axis.adapt = function (range) {
-    console.log(model.colors());
     // Apply values required for label recalculation
     axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
     generate();

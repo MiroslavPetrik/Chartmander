@@ -7,10 +7,11 @@ Chartmander.charts.historicalBar = function (canvas) {
   ///////////////////////////////////
 
   var bars      = new Chartmander.models.bars(chart)
-    , grid      = new Chartmander.components.grid(chart, bars)
     , xAxis     = new Chartmander.components.timeAxis(chart, bars)
-    , yAxis     = new Chartmander.components.yAxis()
+    , yAxis     = new Chartmander.components.yAxis(chart, bars)
+    , grid      = new Chartmander.components.grid(chart, xAxis, yAxis)
     , crosshair = new Chartmander.components.crosshair()
+    , x0, y0
     ;
 
   ///////////////////////////////////
@@ -19,12 +20,12 @@ Chartmander.charts.historicalBar = function (canvas) {
 
   chart
     .drawChart(function (ctx, _perc_) {
-      grid.drawInto(ctx, chart, bars, _perc_);
+      grid.drawInto(ctx, _perc_);
 
       // if (xAxisVisible) {
         xAxis
           .animIn()
-          .drawInto(ctx, chart, bars, _perc_);
+          .drawInto(ctx, _perc_);
         // if (x0 && x0.state > 0) {
         //   ctx.save();
         //   forEach(x0.labels, function (label) {
@@ -37,7 +38,7 @@ Chartmander.charts.historicalBar = function (canvas) {
       // if (yAxisVisible) {
         yAxis
           .animIn()
-          .drawInto(ctx, chart, bars, _perc_);
+          .drawInto(ctx, _perc_);
 
         if (y0 && y0.state > 0) {
           ctx.save();
@@ -61,8 +62,6 @@ Chartmander.charts.historicalBar = function (canvas) {
   // Life cycle
   ///////////////////////////////
 
-  var x0, y0;
-
   var render =  function (data) {
     bars.parse(data, Chartmander.components.bar);
     var oldYScale; //undefined
@@ -82,11 +81,10 @@ Chartmander.charts.historicalBar = function (canvas) {
 
       oldYScale = y0.scale;
     }
-    // grid before axes
-    grid.adapt(bars);
+
     // axes use grid height to calculate their scale
-    // xAxis.adapt(xrange);
-    yAxis.adapt(chart, bars, yrange, oldYScale);
+    xAxis.adapt(xrange);
+    yAxis.adapt(yrange, oldYScale);
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
     // recalc old labels to new position

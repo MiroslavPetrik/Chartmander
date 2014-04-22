@@ -15,6 +15,8 @@ Chartmander.models.lines = function (chart) {
     , startPosition    = "direct" // or center
     ;
 
+  chart.margin({top: 10, right: 10, bottom: 50, left: 50});
+
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
     forEach(model.datasets(), function (set) {

@@ -6,11 +6,12 @@ Chartmander.charts.line = function (canvas) {
   // Use Components
   ///////////////////////////////////
 
-  var xAxis     = new Chartmander.components.xAxis()
+  var lines     = new Chartmander.models.lines(chart)
+    , xAxis     = new Chartmander.components.xAxis()
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , lines     = new Chartmander.models.lines(chart)
+    , x0, y0
     ;
 
   ///////////////////////////////////
@@ -19,35 +20,31 @@ Chartmander.charts.line = function (canvas) {
 
   chart
     .drawChart(function (ctx, _perc_) {
-      grid.drawInto(ctx, chart, lines, _perc_);
+      grid.drawInto(ctx, _perc_);
       
       // if (xAxisVisible) {
         xAxis
           .animIn()
-          .drawInto(ctx, chart, lines, _perc_);
+          .drawInto(ctx, _perc_);
       // }
 
       // if (yAxisVisible) {
         yAxis
           .animIn()
-          .drawInto(ctx, chart, lines, _perc_);
+          .drawInto(ctx, _perc_);
       // }
 
       if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
         crosshair.drawInto(lines);
       }
       
-      lines.drawInto(_perc_);
+      lines.drawInto(ctx, _perc_);
     });
     ;
-
-  grid.margin({left: 70, top: 20});
 
   ///////////////////////////////
   // Life cycle
   ///////////////////////////////
-
-  var x0, y0;
 
   var render =  function (data) {
     lines.parse(data, Chartmander.components.point);
@@ -63,7 +60,6 @@ Chartmander.charts.line = function (canvas) {
     }());
 
     // grid before axes
-    grid.adapt(lines);
     // axes use grid height to calculate their scale
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, lines, yrange);

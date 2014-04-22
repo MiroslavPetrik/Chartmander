@@ -8,6 +8,7 @@ Chartmander.components.baseChart = function (canvasID) {
     , ctx           = canvas.getContext('2d')
     , width         = ctx.canvas.width
     , height        = ctx.canvas.height
+    , margin    = { top: 0, right: 0, bottom: 0, left: 0 }
     , mouse         = { x: 0, y: 0 }
     , hovered       = false
     , hoverFinished = true
@@ -148,6 +149,15 @@ Chartmander.components.baseChart = function (canvasID) {
   chart.height = function (_) {
     if(!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.margin = function (_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     return chart;
   };
 

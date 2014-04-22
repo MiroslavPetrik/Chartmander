@@ -476,7 +476,7 @@ Chartmander.components.dataset = function (data, color, element) {
   return dataset;
 }
 
-Chartmander.components.grid = function (chart, model) {
+Chartmander.components.grid = function (chart, xAxis,  yAxis) {
 
   var grid = this;
 
@@ -484,28 +484,14 @@ Chartmander.components.grid = function (chart, model) {
     , verticalLines = true
     , lineColor = "#ddd"
     , lineWidth = 1
-    , width  = null
-    , height = null
-    , margin = { top: 0, right: 20, bottom: 40, left: 50 } // default margin for axes
-    , bound = { top: 0, right: 0, bottom: 0, left: 0 } // pixels relative to layer
     ;
 
   ///////////////////////
   // Func
   ///////////////////////
 
-  var adapt = function () {
-    width = chart.width() - margin.left - margin.right;
-    height = chart.height() - margin.top - margin.bottom;
-    grid.bound({
-      top:    model.margin().top  + margin.top,
-      right:  model.margin().left + margin.left + width,
-      bottom: model.margin().top  + margin.top  + height,
-      left:   model.margin().left + margin.left
-    });
-  }
-
-  var drawInto = function (ctx, chart, model, _perc_) {
+  var drawInto = function (ctx, _perc_) {
+    var bound = grid.bound();
     ctx.save();
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = lineWidth;
@@ -521,8 +507,8 @@ Chartmander.components.grid = function (chart, model) {
     }
 
     if (verticalLines) {
-      for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
-        var xOffset = Math.ceil( model.margin().left + margin.left + i*(width / chart.xAxis.labels().length) );
+      for (var i = 0; i < xAxis.labels().length+1; i++) {
+        var xOffset = Math.ceil( chart.margin().left + i*(grid.width() / xAxis.labels().length) );
         ctx.beginPath();
         ctx.moveTo(xOffset, bound.top);
         ctx.lineTo(xOffset, bound.bottom);
@@ -533,45 +519,35 @@ Chartmander.components.grid = function (chart, model) {
   }
 
   var hovered = function (mouse) {
-     return mouse.x >= bound.left && mouse.x <= bound.right && mouse.y >= bound.top && mouse.y <= bound.bottom;
+    var bound = grid.bound();
+    return mouse.x >= bound.left && mouse.x <= bound.right && mouse.y >= bound.top && mouse.y <= bound.bottom;
   }
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
-  grid.adapt = adapt;
   grid.hovered = hovered;
   grid.drawInto = drawInto;
 
   grid.width = function (_) {
-    if (!arguments.length) return width;
-    width = _;
-    return grid;
+    var bound = grid.bound();
+    return bound.right - bound.left;
   };
 
   grid.height = function (_) {
-    if (!arguments.length) return height;
-    height = _;
-    return grid;
-  };
-
-  grid.margin = function (_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return grid;
+    var bound = grid.bound();
+    return bound.bottom - bound.top;
   };
 
   grid.bound = function (_) {
-    if (!arguments.length) return bound;
-    bound.top    = typeof _.top    != 'undefined' ? _.top    : bound.top;
-    bound.right  = typeof _.right  != 'undefined' ? _.right  : bound.right;
-    bound.bottom = typeof _.bottom != 'undefined' ? _.bottom : bound.bottom;
-    bound.left   = typeof _.left   != 'undefined' ? _.left   : bound.left;
-    return grid;
+    var margin = chart.margin();
+    return {
+      top: margin.top,
+      right: chart.width() - margin.right,
+      bottom: chart.height() - margin.bottom,
+      left: margin.left
+    }
   };
 
   grid.lineColor = function (_) {
@@ -871,9 +847,6 @@ Chartmander.components.timeAxis = function (chart, model) {
     
   axis.format("MM/YYYY");
 
-  // Shorthands
-  var ctx = chart.ctx;
-
   var generate = function () {
     var startDate = moment(axis.min())
       , daysInRange = axis.delta()/dayMSec
@@ -898,7 +871,7 @@ Chartmander.components.timeAxis = function (chart, model) {
     }
   }
 
-  var drawInto = function (_perc_) {
+  var drawInto = function (ctx, _perc_) {
     var topOffset = chart.grid.bound().bottom + axis.margin();
     ctx.save();
     ctx.fillStyle = model.fontColor();
@@ -919,7 +892,6 @@ Chartmander.components.timeAxis = function (chart, model) {
   axis.drawInto = drawInto;
 
   axis.adapt = function (range) {
-    console.log(model.colors());
     // Apply values required for label recalculation
     axis.min(range.min).max(range.max).delta(axis.max() - axis.min());
     generate();
@@ -1017,7 +989,7 @@ Chartmander.components.xAxis = function () {
   return axis;
 }
 
-Chartmander.components.yAxis = function () {
+Chartmander.components.yAxis = function (chart, model) {
 
   var axis = new Chartmander.components.axis();
 
@@ -1029,7 +1001,7 @@ Chartmander.components.yAxis = function () {
     ;
 
   // generate?
-  var recalc = function (chart, model, oldScale) {
+  var recalc = function (oldScale) {
 
     var height = chart.grid.height()
       , maxLabelCount = Math.floor(height / 25) // 25px is minimum space between 2 labels
@@ -1133,7 +1105,7 @@ Chartmander.components.yAxis = function () {
     }
   }
 
-  var drawInto = function (ctx, chart, model, _perc_) {
+  var drawInto = function (ctx, _perc_) {
     var grid = chart.grid;
 
     ctx.save();
@@ -1175,9 +1147,9 @@ Chartmander.components.yAxis = function () {
   };
 
   // oldScale FAUX 
-  axis.adapt = function (chart, model, range, oldScale) {
+  axis.adapt = function (range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    recalc(chart, model, oldScale);
+    recalc(oldScale);
     return axis;
   };
 
@@ -1736,9 +1708,6 @@ Chartmander.models.baseModel = function (chart) {
   var model = this;
 
   var datasets  = []
-    , width     = chart.width()
-    , height    = chart.height()
-    , margin    = { top: 0, right: 0, bottom: 0, left: 0 }
     , colors    = ["blue", "green", "red"]
     , font      = "13px Arial, sans-serif"
     , fontColor = "#555"
@@ -1751,7 +1720,7 @@ Chartmander.models.baseModel = function (chart) {
 
   var parse = function (data, element) {
     if (data === undefined) {
-      throw new Error("No data specified for model (canvas#id) - " + model.layer.id());
+      throw new Error("No data specified for model (canvas#id) - " + chart.id());
     }
     // First render, create new datasets
     if (model.setsCount() === 0) {
@@ -1776,31 +1745,7 @@ Chartmander.models.baseModel = function (chart) {
   // Binding & Methods
   ///////////////////////////////
   
-  model.chart = chart;  // Every model has access to chart 
   model.parse = parse;
-
-  // Visual properties
-
-  model.width = function (_) {
-    if(!arguments.length) return width;
-    width = _;
-    return model;
-  };
-
-  model.height = function (_) {
-    if(!arguments.length) return height;
-    height = _;
-    return model;
-  };
-
-  model.margin = function (_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return model;
-  };
 
   model.colors = function (_) {
     if(!arguments.length) return colors;
@@ -1896,7 +1841,7 @@ Chartmander.models.slices = function (chart) {
       // There is always one element inside of dataset in pie model
       slice = set.getElement(0);
       sliceEnd = sliceStart + getAngleOf(slice.value());
-      if (model.updated()) {
+      if (chart.updated()) {
         slice.savePosition();
       } else {
         slice.savePosition(0, 0);
@@ -1933,8 +1878,8 @@ Chartmander.models.slices = function (chart) {
   }
 
   var centerize = function () {
-    center.x = model.margin().left + radius;
-    center.y = model.margin().top  + radius;
+    center.x = chart.margin().left + radius;
+    center.y = chart.margin().top  + radius;
   }
 
   ///////////////////////////////
@@ -1993,6 +1938,8 @@ Chartmander.models.bars = function (chart) {
     , datasetSpacing = 0
     , base = 0
     ;
+
+  chart.margin({top: 10, right: 10, bottom: 50, left: 50});
 
   var recalc = function (xAxis, yAxis, grid) {
     var i = 0, leftFix, x, y;
@@ -2084,6 +2031,8 @@ Chartmander.models.lines = function (chart) {
     , base             = 0
     , startPosition    = "direct" // or center
     ;
+
+  chart.margin({top: 10, right: 10, bottom: 50, left: 50});
 
   var recalc = function (xAxis, yAxis, grid) {
     var x, y;
@@ -2275,6 +2224,7 @@ Chartmander.components.baseChart = function (canvasID) {
     , ctx           = canvas.getContext('2d')
     , width         = ctx.canvas.width
     , height        = ctx.canvas.height
+    , margin    = { top: 0, right: 0, bottom: 0, left: 0 }
     , mouse         = { x: 0, y: 0 }
     , hovered       = false
     , hoverFinished = true
@@ -2418,6 +2368,15 @@ Chartmander.components.baseChart = function (canvasID) {
     return chart;
   };
 
+  chart.margin = function (_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return chart;
+  };
+
   chart.mouse = function (_) {
     if(!arguments.length) return mouse;
     mouse.x = typeof _.x != 'undefined' ? _.x : mouse.x;
@@ -2532,10 +2491,11 @@ Chartmander.charts.historicalBar = function (canvas) {
   ///////////////////////////////////
 
   var bars      = new Chartmander.models.bars(chart)
-    , grid      = new Chartmander.components.grid(chart, bars)
     , xAxis     = new Chartmander.components.timeAxis(chart, bars)
-    , yAxis     = new Chartmander.components.yAxis()
+    , yAxis     = new Chartmander.components.yAxis(chart, bars)
+    , grid      = new Chartmander.components.grid(chart, xAxis, yAxis)
     , crosshair = new Chartmander.components.crosshair()
+    , x0, y0
     ;
 
   ///////////////////////////////////
@@ -2544,12 +2504,12 @@ Chartmander.charts.historicalBar = function (canvas) {
 
   chart
     .drawChart(function (ctx, _perc_) {
-      grid.drawInto(ctx, chart, bars, _perc_);
+      grid.drawInto(ctx, _perc_);
 
       // if (xAxisVisible) {
         xAxis
           .animIn()
-          .drawInto(ctx, chart, bars, _perc_);
+          .drawInto(ctx, _perc_);
         // if (x0 && x0.state > 0) {
         //   ctx.save();
         //   forEach(x0.labels, function (label) {
@@ -2562,7 +2522,7 @@ Chartmander.charts.historicalBar = function (canvas) {
       // if (yAxisVisible) {
         yAxis
           .animIn()
-          .drawInto(ctx, chart, bars, _perc_);
+          .drawInto(ctx, _perc_);
 
         if (y0 && y0.state > 0) {
           ctx.save();
@@ -2586,8 +2546,6 @@ Chartmander.charts.historicalBar = function (canvas) {
   // Life cycle
   ///////////////////////////////
 
-  var x0, y0;
-
   var render =  function (data) {
     bars.parse(data, Chartmander.components.bar);
     var oldYScale; //undefined
@@ -2607,11 +2565,10 @@ Chartmander.charts.historicalBar = function (canvas) {
 
       oldYScale = y0.scale;
     }
-    // grid before axes
-    grid.adapt(bars);
+
     // axes use grid height to calculate their scale
-    // xAxis.adapt(xrange);
-    yAxis.adapt(chart, bars, yrange, oldYScale);
+    xAxis.adapt(xrange);
+    yAxis.adapt(yrange, oldYScale);
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
     // recalc old labels to new position
@@ -2807,11 +2764,12 @@ Chartmander.charts.line = function (canvas) {
   // Use Components
   ///////////////////////////////////
 
-  var xAxis     = new Chartmander.components.xAxis()
+  var lines     = new Chartmander.models.lines(chart)
+    , xAxis     = new Chartmander.components.xAxis()
     , yAxis     = new Chartmander.components.yAxis()
     , grid      = new Chartmander.components.grid()
     , crosshair = new Chartmander.components.crosshair()
-    , lines     = new Chartmander.models.lines(chart)
+    , x0, y0
     ;
 
   ///////////////////////////////////
@@ -2820,35 +2778,31 @@ Chartmander.charts.line = function (canvas) {
 
   chart
     .drawChart(function (ctx, _perc_) {
-      grid.drawInto(ctx, chart, lines, _perc_);
+      grid.drawInto(ctx, _perc_);
       
       // if (xAxisVisible) {
         xAxis
           .animIn()
-          .drawInto(ctx, chart, lines, _perc_);
+          .drawInto(ctx, _perc_);
       // }
 
       // if (yAxisVisible) {
         yAxis
           .animIn()
-          .drawInto(ctx, chart, lines, _perc_);
+          .drawInto(ctx, _perc_);
       // }
 
       if (chart.hovered() && crosshair.visible() && grid.hovered(chart.mouse())) {
         crosshair.drawInto(lines);
       }
       
-      lines.drawInto(_perc_);
+      lines.drawInto(ctx, _perc_);
     });
     ;
-
-  grid.margin({left: 70, top: 20});
 
   ///////////////////////////////
   // Life cycle
   ///////////////////////////////
-
-  var x0, y0;
 
   var render =  function (data) {
     lines.parse(data, Chartmander.components.point);
@@ -2864,7 +2818,6 @@ Chartmander.charts.line = function (canvas) {
     }());
 
     // grid before axes
-    grid.adapt(lines);
     // axes use grid height to calculate their scale
     xAxis.adapt(chart, xrange);
     yAxis.adapt(chart, lines, yrange);

@@ -1,4 +1,4 @@
-Chartmander.components.grid = function (chart, model) {
+Chartmander.components.grid = function (chart, xAxis,  yAxis) {
 
   var grid = this;
 
@@ -6,28 +6,14 @@ Chartmander.components.grid = function (chart, model) {
     , verticalLines = true
     , lineColor = "#ddd"
     , lineWidth = 1
-    , width  = null
-    , height = null
-    , margin = { top: 0, right: 20, bottom: 40, left: 50 } // default margin for axes
-    , bound = { top: 0, right: 0, bottom: 0, left: 0 } // pixels relative to layer
     ;
 
   ///////////////////////
   // Func
   ///////////////////////
 
-  var adapt = function () {
-    width = chart.width() - margin.left - margin.right;
-    height = chart.height() - margin.top - margin.bottom;
-    grid.bound({
-      top:    model.margin().top  + margin.top,
-      right:  model.margin().left + margin.left + width,
-      bottom: model.margin().top  + margin.top  + height,
-      left:   model.margin().left + margin.left
-    });
-  }
-
-  var drawInto = function (ctx, chart, model, _perc_) {
+  var drawInto = function (ctx, _perc_) {
+    var bound = grid.bound();
     ctx.save();
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = lineWidth;
@@ -43,8 +29,8 @@ Chartmander.components.grid = function (chart, model) {
     }
 
     if (verticalLines) {
-      for (var i = 0; i < chart.xAxis.labels().length+1; i++) {
-        var xOffset = Math.ceil( model.margin().left + margin.left + i*(width / chart.xAxis.labels().length) );
+      for (var i = 0; i < xAxis.labels().length+1; i++) {
+        var xOffset = Math.ceil( chart.margin().left + i*(grid.width() / xAxis.labels().length) );
         ctx.beginPath();
         ctx.moveTo(xOffset, bound.top);
         ctx.lineTo(xOffset, bound.bottom);
@@ -55,45 +41,35 @@ Chartmander.components.grid = function (chart, model) {
   }
 
   var hovered = function (mouse) {
-     return mouse.x >= bound.left && mouse.x <= bound.right && mouse.y >= bound.top && mouse.y <= bound.bottom;
+    var bound = grid.bound();
+    return mouse.x >= bound.left && mouse.x <= bound.right && mouse.y >= bound.top && mouse.y <= bound.bottom;
   }
 
   ///////////////////////////////
   // Public Methods & Variables
   ///////////////////////////////
 
-  grid.adapt = adapt;
   grid.hovered = hovered;
   grid.drawInto = drawInto;
 
   grid.width = function (_) {
-    if (!arguments.length) return width;
-    width = _;
-    return grid;
+    var bound = grid.bound();
+    return bound.right - bound.left;
   };
 
   grid.height = function (_) {
-    if (!arguments.length) return height;
-    height = _;
-    return grid;
-  };
-
-  grid.margin = function (_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return grid;
+    var bound = grid.bound();
+    return bound.bottom - bound.top;
   };
 
   grid.bound = function (_) {
-    if (!arguments.length) return bound;
-    bound.top    = typeof _.top    != 'undefined' ? _.top    : bound.top;
-    bound.right  = typeof _.right  != 'undefined' ? _.right  : bound.right;
-    bound.bottom = typeof _.bottom != 'undefined' ? _.bottom : bound.bottom;
-    bound.left   = typeof _.left   != 'undefined' ? _.left   : bound.left;
-    return grid;
+    var margin = chart.margin();
+    return {
+      top: margin.top,
+      right: chart.width() - margin.right,
+      bottom: chart.height() - margin.bottom,
+      left: margin.left
+    }
   };
 
   grid.lineColor = function (_) {

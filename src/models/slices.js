@@ -20,7 +20,7 @@ Chartmander.models.slices = function (chart) {
       // There is always one element inside of dataset in pie model
       slice = set.getElement(0);
       sliceEnd = sliceStart + getAngleOf(slice.value());
-      if (model.updated()) {
+      if (chart.updated()) {
         slice.savePosition();
       } else {
         slice.savePosition(0, 0);
@@ -57,8 +57,8 @@ Chartmander.models.slices = function (chart) {
   }
 
   var centerize = function () {
-    center.x = model.margin().left + radius;
-    center.y = model.margin().top  + radius;
+    center.x = chart.margin().left + radius;
+    center.y = chart.margin().top  + radius;
   }
 
   ///////////////////////////////
