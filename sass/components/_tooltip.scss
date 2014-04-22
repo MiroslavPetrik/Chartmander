@@ -1,4 +1,4 @@
-$background: rgba(0,0,0,.7);
+$background: rgba(0,0,0,.89);
 
 .cm-tip {
 	position: absolute;
@@ -6,9 +6,12 @@ $background: rgba(0,0,0,.7);
 	background: $background;
 	padding: 10px;
 	border-radius: 3px;
+	white-space: nowrap;
 	
 	span {
+		display: inline-block;
 		color: rgba(255,255,255,.5);
+		margin-bottom: 5px;
 	}
 
 	ul {

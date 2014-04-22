@@ -16,6 +16,8 @@ Chartmander.components.tooltip = function (id) {
   container.appendChild(header);
   container.appendChild(content);
 
+  header.className = "cm-tip--header";
+
   var moveTo = function (pos) {
     container.style.top  = pos.y + 'px';
     container.style.left = pos.x + margin + 'px';
