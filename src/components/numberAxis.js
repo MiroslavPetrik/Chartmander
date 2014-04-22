@@ -2,8 +2,7 @@ Chartmander.components.numberAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
-  var margin = 10 // Offset from grid
-    , labelSteps = [1, 2, 5]
+  var labelSteps = [1, 2, 5]
     , spacing = 25 // minimum space between 2 labels
     ;
 
@@ -130,7 +129,7 @@ Chartmander.components.numberAxis = function () {
     ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " ", chart.grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " ", chart.grid.bound().left - axis.margin(), label.y());
     });
     ctx.restore();
     return axis;
@@ -142,13 +141,6 @@ Chartmander.components.numberAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.margin = function (_) {
-    if(!arguments.length) return margin;
-    margin = _;
-    return axis;
-  };
-
-  // oldScale FAUX 
   axis.adapt = function (chart, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
     generate(chart, oldScale);

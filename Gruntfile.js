@@ -11,7 +11,6 @@ module.exports = function (grunt) {
                     'src/components/axis.js',
                     'src/components/numberAxis.js',
                     'src/components/timeAxis.js',
-                    'src/components/xaxis.js',
                     'src/components/yaxis.js',
                     'src/components/categoryAxis.js',
                     'src/components/element.js',

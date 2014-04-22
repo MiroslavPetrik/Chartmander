@@ -23,7 +23,7 @@ Chartmander.components.timeAxis = function (chart, model) {
     , dayMSec = 60*60*24*1000
     ;
     
-  axis.format("MM/YYYY");
+  axis.format("MM/YYYY").margin(20);
 
   var generate = function () {
     var startDate = moment(axis.min())

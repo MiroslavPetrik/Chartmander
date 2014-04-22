@@ -664,8 +664,7 @@ Chartmander.components.numberAxis = function () {
 
   var axis = new Chartmander.components.axis();
 
-  var margin = 10 // Offset from grid
-    , labelSteps = [1, 2, 5]
+  var labelSteps = [1, 2, 5]
     , spacing = 25 // minimum space between 2 labels
     ;
 
@@ -792,7 +791,7 @@ Chartmander.components.numberAxis = function () {
     ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " ", chart.grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " ", chart.grid.bound().left - axis.margin(), label.y());
     });
     ctx.restore();
     return axis;
@@ -804,13 +803,6 @@ Chartmander.components.numberAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.margin = function (_) {
-    if(!arguments.length) return margin;
-    margin = _;
-    return axis;
-  };
-
-  // oldScale FAUX 
   axis.adapt = function (chart, range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
     generate(chart, oldScale);
@@ -845,7 +837,7 @@ Chartmander.components.timeAxis = function (chart, model) {
     , dayMSec = 60*60*24*1000
     ;
     
-  axis.format("MM/YYYY");
+  axis.format("MM/YYYY").margin(20);
 
   var generate = function () {
     var startDate = moment(axis.min())
@@ -907,7 +899,6 @@ Chartmander.components.yAxis = function (chart, model) {
 
   var unit = ""
     , abbr = false
-    , margin = 10 // Offset from grid
     , zeroLevel = 0
     , labelSteps = [1, 2, 5]
     ;
@@ -1018,17 +1009,16 @@ Chartmander.components.yAxis = function (chart, model) {
   }
 
   var drawInto = function (ctx, _perc_) {
-    var grid = chart.grid;
-
+    var leftOffset = chart.grid.bound().left - axis.margin()
+      , bottom = chart.grid.bound().bottom;
     ctx.save();
     ctx.textAlign = "right";
     ctx.font = model.font();
     ctx.fillStyle = model.fontColor();
     ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
-      // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " " + unit, grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " " + unit, leftOffset, bottom + label.y());
     });
     ctx.restore();
     return axis;
@@ -1049,12 +1039,6 @@ Chartmander.components.yAxis = function (chart, model) {
   axis.zeroLevel = function (_) {
     if(!arguments.length) return zeroLevel;
     zeroLevel = _;
-    return axis;
-  };
-
-  axis.margin = function (_) {
-    if(!arguments.length) return margin;
-    margin = _;
     return axis;
   };
 
@@ -2480,9 +2464,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     xAxis.adapt(xrange);
     yAxis.adapt(yrange, oldYScale);
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
-    forEach(yAxis.labels(),function(label) {
-      console.log(label.value())
-    })
+
     // recalc old labels to new position
     if (bars.updated()) {
       forEach(y0.labels, function (label) {
@@ -2490,10 +2472,10 @@ Chartmander.charts.historicalBar = function (canvas) {
       });
     }
 
-    bars
-      .recalc(xAxis, yAxis, grid);
+    bars.recalc(xAxis, yAxis, grid);
     
-    chart.completed(0)
+    chart
+      .completed(0)
       .draw(false);
   }
 

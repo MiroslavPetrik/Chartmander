@@ -4,7 +4,6 @@ Chartmander.components.yAxis = function (chart, model) {
 
   var unit = ""
     , abbr = false
-    , margin = 10 // Offset from grid
     , zeroLevel = 0
     , labelSteps = [1, 2, 5]
     ;
@@ -115,17 +114,16 @@ Chartmander.components.yAxis = function (chart, model) {
   }
 
   var drawInto = function (ctx, _perc_) {
-    var grid = chart.grid;
-
+    var leftOffset = chart.grid.bound().left - axis.margin()
+      , bottom = chart.grid.bound().bottom;
     ctx.save();
     ctx.textAlign = "right";
     ctx.font = model.font();
     ctx.fillStyle = model.fontColor();
     ctx.globalAlpha = _perc_;
     forEach(axis.labels(), function (label) {
-      // var labelValue = abbr ? (label.label()/1000).toString() : label.label().toString();
       label.updatePosition(_perc_);
-      ctx.fillText(label.label().toString() + " " + unit, grid.bound().left - margin, label.y());
+      ctx.fillText(label.label().toString() + " " + unit, leftOffset, bottom + label.y());
     });
     ctx.restore();
     return axis;
@@ -146,12 +144,6 @@ Chartmander.components.yAxis = function (chart, model) {
   axis.zeroLevel = function (_) {
     if(!arguments.length) return zeroLevel;
     zeroLevel = _;
-    return axis;
-  };
-
-  axis.margin = function (_) {
-    if(!arguments.length) return margin;
-    margin = _;
     return axis;
   };
 
