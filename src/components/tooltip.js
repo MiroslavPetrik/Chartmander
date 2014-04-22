@@ -24,7 +24,8 @@ Chartmander.components.tooltip = function (id) {
 
   var generate = function () {
     container.style.opacity = 1;
-    header.innerHTML = moment(items[0]).format(dateFormat);
+    // header from first item
+    header.innerHTML = moment(items[0].label).format(dateFormat);
     forEach(items, function (item) {
       content.appendChild(new TipNode(item.color, item.value, item.set));
     });

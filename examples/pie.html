@@ -16,14 +16,11 @@
   </ul>
   <canvas id="pie-default" width="300" height="300"></canvas>
 <script>
-  Chartmander
-    .addChart(function(){
-      var chart = Chartmander.select("pie-default", "pie");
-      chart
-        .render(dataFactory(["Eat", "Sleep", "Rave", "Repeat"], ["Day in a fast Life"], 20))
-        ;
-      return chart;
-    })
+  Chartmander.addChart(function(){
+    var chart = Chartmander.select("pie-default", "pie");
+    chart.render(dataFactory(["One", "Two", "Three", "Four"], ["Random data"], 20));
+    return chart;
+  })
     // .addChart(function(){
     //   var chart = Chartmander.select("pie2", "pie");
     //   chart
