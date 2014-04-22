@@ -16,15 +16,6 @@ Chartmander.charts.pie = function (canvas) {
   //   ;
   
   chart
-    .onHover(function () {
-      if (chart.completed() >= 1)
-        chart.draw(true);
-    })
-    .onLeave(function () {
-      if (chart.completed()) {
-        chart.draw(true);
-      }
-    })
     .drawChart(function (ctx, _perc_) {
       pie.drawInto(ctx, _perc_);
     })

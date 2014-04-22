@@ -1745,8 +1745,6 @@ Chartmander.models.baseModel = function (chart) {
     , updated   = false
     ;
 
-  model.chart = chart;  // Every model has access to chart 
-
   ///////////////////////////////////
   // model Update - Parse Data
   ///////////////////////////////////
@@ -2330,7 +2328,10 @@ Chartmander.components.baseChart = function (canvasID) {
     // AND if also hovered item is not repainting 
     // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
     if (hoverFinished) {
-      onHover();
+      if (animationCompleted >= 1) {
+        draw(true);
+        // onHover();
+      }
     }
   }
 
@@ -2341,8 +2342,10 @@ Chartmander.components.baseChart = function (canvasID) {
   function handleLeave () {
     hovered = false;
     // chart.tooltip.removeItems();
-    // if (animationCompleted >= 1)
-    onLeave();
+    if (animationCompleted >= 1) {
+      draw(true);
+      // onLeave();
+    }
   }
 
   ///////////////////////////////
@@ -2494,15 +2497,6 @@ Chartmander.charts.pie = function (canvas) {
   //   ;
   
   chart
-    .onHover(function () {
-      if (chart.completed() >= 1)
-        chart.draw(true);
-    })
-    .onLeave(function () {
-      if (chart.completed()) {
-        chart.draw(true);
-      }
-    })
     .drawChart(function (ctx, _perc_) {
       pie.drawInto(ctx, _perc_);
     })
@@ -2549,15 +2543,6 @@ Chartmander.charts.historicalBar = function (canvas) {
   ///////////////////////////////////
 
   chart
-    .onHover(function () {
-      if (chart.completed() >= 1)
-        chart.draw(true);
-    })
-    .onLeave(function () {
-      if (chart.completed()) {
-        chart.draw(true);
-      }
-    })
     .drawChart(function (ctx, _perc_) {
       grid.drawInto(ctx, chart, bars, _perc_);
 
@@ -2834,14 +2819,6 @@ Chartmander.charts.line = function (canvas) {
   ///////////////////////////////////
 
   chart
-    .onHover(function () {
-      chart.draw(true);
-    })
-    .onLeave(function () {
-      if ( chart.completed() ) {
-        chart.draw(true);
-      }
-    })
     .drawChart(function (ctx, _perc_) {
       grid.drawInto(ctx, chart, lines, _perc_);
       

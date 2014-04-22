@@ -18,14 +18,6 @@ Chartmander.charts.line = function (canvas) {
   ///////////////////////////////////
 
   chart
-    .onHover(function () {
-      chart.draw(true);
-    })
-    .onLeave(function () {
-      if ( chart.completed() ) {
-        chart.draw(true);
-      }
-    })
     .drawChart(function (ctx, _perc_) {
       grid.drawInto(ctx, chart, lines, _perc_);
       

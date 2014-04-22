@@ -61,7 +61,10 @@ Chartmander.components.baseChart = function (canvasID) {
     // AND if also hovered item is not repainting 
     // if (animationCompleted >= 1 && !tooltip.isAnimated() && !config.hoverFinished ) {
     if (hoverFinished) {
-      onHover();
+      if (animationCompleted >= 1) {
+        draw(true);
+        // onHover();
+      }
     }
   }
 
@@ -72,8 +75,10 @@ Chartmander.components.baseChart = function (canvasID) {
   function handleLeave () {
     hovered = false;
     // chart.tooltip.removeItems();
-    // if (animationCompleted >= 1)
-    onLeave();
+    if (animationCompleted >= 1) {
+      draw(true);
+      // onLeave();
+    }
   }
 
   ///////////////////////////////

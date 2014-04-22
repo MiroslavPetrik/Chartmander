@@ -15,8 +15,6 @@ Chartmander.models.baseModel = function (chart) {
     , updated   = false
     ;
 
-  model.chart = chart;  // Every model has access to chart 
-
   ///////////////////////////////////
   // model Update - Parse Data
   ///////////////////////////////////
