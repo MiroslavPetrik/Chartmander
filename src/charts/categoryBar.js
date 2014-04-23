@@ -14,7 +14,6 @@ Chartmander.charts.categoryBar = function (canvas) {
     ;
 
   chart.drawChart(function (ctx, _perc_) {
-
     grid.drawInto(bars, _perc_);
 
     if (xAxis.visible()) {
@@ -101,7 +100,6 @@ Chartmander.charts.categoryBar = function (canvas) {
   bars.xAxis = xAxis;
   bars.yAxis = yAxis;
   bars.grid = grid;
-  bars.crosshair = crosshair;
 
   bars.render = render;
 

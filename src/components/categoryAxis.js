@@ -1,25 +1,24 @@
-Chartmander.components.categoryAxis = function () {
+Chartmander.components.categoryAxis = function (chart, model) {
 
   var axis = new Chartmander.components.axis();
 
   var labelSpace = 10
     ;
 
-  var recalc = function (chart) {
+  var recalc = function () {
     labelSpace = chart.grid.width()/axis.labels().length;
     return axis;
   }
 
-  axis.drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx
-      , topOffset = chart.grid.bound().bottom + axis.margin()
+  axis.drawInto = function (ctx, _perc_) {
+    var topOffset = chart.grid.bound().bottom + axis.margin()
       , i = 0
       ;
 
     ctx.save();
-    ctx.fillStyle = chart.fontColor();
+    ctx.fillStyle = model.fontColor();
     ctx.globalAlpha = 1;
-    ctx.font = chart.font();
+    ctx.font = model.font();
     axis.each(function (label) {
       var leftOffset = chart.grid.bound().left + i*labelSpace + labelSpace/2 - ctx.measureText(label).width/2;
       ctx.fillText(label, leftOffset, topOffset);
@@ -32,8 +31,10 @@ Chartmander.components.categoryAxis = function () {
   // Public Methods & Variables
   ///////////////////////////////
 
-  axis.adapt = function (chart) {
-    recalc(chart);
+  axis.adapt = function (labels) {
+    console.log(labels)
+    axis.labels(labels);
+    recalc();
     return axis;
   }
 
