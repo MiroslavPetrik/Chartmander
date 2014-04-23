@@ -20,8 +20,9 @@ Chartmander.addChart(function(){
 	// first parameter is ID of your canvas element and the second one is model of chart
 	var chart = Chartmander.select("line-example", "line");
 
-	// style your chart
-	chart.innerRadius(.8);
+	// style your model
+	chart.lines.
+		innerRadius(.8);
 	
 	// pass your data
 	chart.render(data);

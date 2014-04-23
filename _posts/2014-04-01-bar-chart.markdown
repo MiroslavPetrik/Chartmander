@@ -18,10 +18,11 @@ categories: chartmander piechart
 Chartmander.addChart(function(){
 	// Select your bar model with select method
 	// first parameter is ID of your canvas element and the second one is model of chart
-	var chart = Chartmander.select("bar-example", "bar");
+	var chart = Chartmander.select("bar-example", "historicalBar");
 
-	// style your chart
-	chart.maxBarWidth(20);
+	// style your model
+	chart.bars
+		.maxBarWidth(20);
 
 	// pass your data
 	chart.render(data);
