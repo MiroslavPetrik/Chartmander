@@ -38,10 +38,10 @@
 
   Chartmander.select = function (id, userChart) {
     // Check if chart already exists
-    for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].id()) {
+    for (var i = 0, len = Chartmander.renderedCharts.length; i < len; i++) {
+      if (id === Chartmander.renderedCharts[i].id()) {
         // Do update...
-        return Chartmander.charts[i].updated(true);
+        return Chartmander.renderedCharts[i].updated(true);
       }
     }
     // Provide new chart
@@ -300,7 +300,7 @@ Chartmander.components.animatedPart = function () {
 
   var isAnimated = false
     , animationCompleted = 0 // normal => 0, hover => 1
-    , speed = .01
+    , speed = .05
     ;
 
   ///////////////////////////////
@@ -1636,7 +1636,6 @@ Chartmander.models.baseModel = function (chart) {
     , colors    = ["blue", "green", "red"]
     , font      = "13px Arial, sans-serif"
     , fontColor = "#555"
-    , updated   = false
     ;
 
   ///////////////////////////////////
@@ -1720,14 +1719,6 @@ Chartmander.models.baseModel = function (chart) {
       total += set.elementCount();
     });
     return total;
-  };
-
-  // Animation properties
-
-  model.updated = function (_) {
-    if (!arguments.length) return updated;
-    updated = _;
-    return model;
   };
 
   // Interaction
@@ -1881,7 +1872,7 @@ Chartmander.models.bars = function (chart) {
       set.each(function (bar) {
         x = Math.ceil(grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + i*barWidth);
         y = -bar.value()/yAxis.scale();
-        if (model.updated()) {
+        if (chart.updated()) {
           bar.savePosition();
         } else {
           bar.savePosition(x, 0);
@@ -1967,7 +1958,7 @@ Chartmander.models.lines = function (chart) {
         // time axis specific
         x = Math.ceil(grid.bound().left + (point.label() - xAxis.min())/xAxis.scale());
         y = model.base() - point.value()/yAxis.scale();
-        if (model.updated()) {
+        if (chart.updated()) {
           point.savePosition();
         } else {
           if (startPosition == "center")
@@ -2247,8 +2238,9 @@ Chartmander.components.baseChart = function (canvasID) {
       if (finished) {
         animationProgress = 1;
       } else {
-        if (elapsedTime > duration)
+        if (elapsedTime > duration) {
           elapsedTime = duration;
+        }
         animationProgress = elapsedTime/duration;
       }
 
@@ -2401,6 +2393,7 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
 
   var render =  function (data) {
+    console.log(chart.updated())
     pie.parse(data, Chartmander.components.slice);
     pie.recalc();
     
@@ -2496,7 +2489,7 @@ Chartmander.charts.historicalBar = function (canvas) {
       return values;
     }());
 
-    if (bars.updated()) {
+    if (chart.updated()) {
       x0 = xAxis.copy();
       y0 = yAxis.copy();
 
@@ -2509,7 +2502,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
     // recalc old labels to new position
-    if (bars.updated()) {
+    if (chart.updated()) {
       forEach(y0.labels, function (label) {
         label.savePosition().moveTo(false, bars.base() - label.value()/yAxis.scale());
       });

@@ -72,7 +72,7 @@ Chartmander.charts.historicalBar = function (canvas) {
       return values;
     }());
 
-    if (bars.updated()) {
+    if (chart.updated()) {
       x0 = xAxis.copy();
       y0 = yAxis.copy();
 
@@ -85,7 +85,7 @@ Chartmander.charts.historicalBar = function (canvas) {
     bars.base(grid.bound().bottom - yAxis.zeroLevel());
 
     // recalc old labels to new position
-    if (bars.updated()) {
+    if (chart.updated()) {
       forEach(y0.labels, function (label) {
         label.savePosition().moveTo(false, bars.base() - label.value()/yAxis.scale());
       });

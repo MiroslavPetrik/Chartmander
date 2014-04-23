@@ -38,10 +38,10 @@
 
   Chartmander.select = function (id, userChart) {
     // Check if chart already exists
-    for (var i=0, l=Chartmander.charts.length; i<l; i++) {
-      if (id === Chartmander.charts[i].id()) {
+    for (var i = 0, len = Chartmander.renderedCharts.length; i < len; i++) {
+      if (id === Chartmander.renderedCharts[i].id()) {
         // Do update...
-        return Chartmander.charts[i].updated(true);
+        return Chartmander.renderedCharts[i].updated(true);
       }
     }
     // Provide new chart

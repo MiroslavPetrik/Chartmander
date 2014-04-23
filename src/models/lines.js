@@ -24,7 +24,7 @@ Chartmander.models.lines = function (chart) {
         // time axis specific
         x = Math.ceil(grid.bound().left + (point.label() - xAxis.min())/xAxis.scale());
         y = model.base() - point.value()/yAxis.scale();
-        if (model.updated()) {
+        if (chart.updated()) {
           point.savePosition();
         } else {
           if (startPosition == "center")

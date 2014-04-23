@@ -4,7 +4,7 @@ Chartmander.components.animatedPart = function () {
 
   var isAnimated = false
     , animationCompleted = 0 // normal => 0, hover => 1
-    , speed = .01
+    , speed = .05
     ;
 
   ///////////////////////////////

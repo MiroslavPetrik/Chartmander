@@ -25,7 +25,7 @@ Chartmander.models.bars = function (chart) {
       set.each(function (bar) {
         x = Math.ceil(grid.bound().left + (bar.label() - xAxis.min())/xAxis.scale() + i*barWidth);
         y = -bar.value()/yAxis.scale();
-        if (model.updated()) {
+        if (chart.updated()) {
           bar.savePosition();
         } else {
           bar.savePosition(x, 0);

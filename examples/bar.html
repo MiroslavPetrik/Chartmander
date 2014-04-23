@@ -13,14 +13,19 @@
   <h1>Bar Chart</h1>
   <ul>
     <li><a href="index.html">All examples</a>
+    <li><button onclick="chart();">Random update</button>
   </ul>
   <canvas id="bar-default" width="800" height="300"></canvas>
   <script>
-  Chartmander.addChart(function(){
-    var chart = Chartmander.select("bar-default", "historicalBar");
-    chart.render(dataFactory(["One", "Two"], yearByMonths(1), 300));
-    return chart;
-  })
+  function chart () {
+    Chartmander.addChart(function(){
+      var chart = Chartmander.select("bar-default", "historicalBar");
+      chart.render(dataFactory(["One", "Two"], yearByMonths(1), 300));
+      return chart;
+    });
+  }
+
+  chart();
   </script>
 </body>
 </html>

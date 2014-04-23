@@ -105,8 +105,9 @@ Chartmander.components.baseChart = function (canvasID) {
       if (finished) {
         animationProgress = 1;
       } else {
-        if (elapsedTime > duration)
+        if (elapsedTime > duration) {
           elapsedTime = duration;
+        }
         animationProgress = elapsedTime/duration;
       }
 

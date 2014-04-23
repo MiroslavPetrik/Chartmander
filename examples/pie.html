@@ -13,34 +13,17 @@
   <h1>Pie Chart</h1>
   <ul>
     <li><a href="index.html">All examples</a>
+    <li><button onclick="chart();">Update</button>
   </ul>
   <canvas id="pie-default" width="300" height="300"></canvas>
 <script>
-  Chartmander.addChart(function(){
-    var chart = Chartmander.select("pie-default", "pie");
-    chart.render(dataFactory(["One", "Two", "Three", "Four"], ["Random data"], 20));
-    return chart;
-  })
-    // .addChart(function(){
-    //   var chart = Chartmander.select("pie2", "pie");
-    //   chart
-    //     .innerRadius(0)
-    //     .colors(["#f15a25", "#fbb03b", "#fdee21"])
-    //     .render(dataFactory(["Eat","Sleep","Rave"], ["Day in a Life"], 200))
-    //     ;
-
-    //   return chart;
-    // })
-    // .addChart(function(){
-    //   var chart = Chartmander.select("pie3", "pie");
-    //   chart
-    //     .innerRadius(.8)
-    //     .colors(["#8cc63e", "#009345"])
-    //     .render(dataFactory(["Used","Ready"], ["Ram Usage"], 200))
-    //     ;
-
-    //   return chart;
-    // });
+  function chart () {
+    Chartmander.addChart(function(){
+      var chart = Chartmander.select("pie-default", "pie");
+      chart.render(dataFactory(["One", "Two", "Three", "Four"], ["Random data"], 20));
+      return chart;
+    });
+  }
   </script>
 </body>
 </html>

@@ -9,7 +9,6 @@ Chartmander.models.baseModel = function (chart) {
     , colors    = ["blue", "green", "red"]
     , font      = "13px Arial, sans-serif"
     , fontColor = "#555"
-    , updated   = false
     ;
 
   ///////////////////////////////////
@@ -93,14 +92,6 @@ Chartmander.models.baseModel = function (chart) {
       total += set.elementCount();
     });
     return total;
-  };
-
-  // Animation properties
-
-  model.updated = function (_) {
-    if (!arguments.length) return updated;
-    updated = _;
-    return model;
   };
 
   // Interaction
