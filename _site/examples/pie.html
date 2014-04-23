@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chartmander.js - Pie Chart</title>
+  <link rel="stylesheet" href="../css/chartmander.css">
+  <script src="../lib/tinycolor.js"></script>
+  <script src="../lib/moment.min.js"></script>
+  <script src="../js/chartmander.js"></script>
+  <script src="../js/dataFactory.js"></script>
+</head>
+<body>
+  <h1>Pie Chart</h1>
+  <ul>
+    <li><a href="index.html">All examples</a>
+    <li><button onclick="chart();">Update</button>
+  </ul>
+  <canvas id="pie-default" width="300" height="300"></canvas>
+<script>
+  function chart () {
+    Chartmander.addChart(function(){
+      var chart = Chartmander.select("pie-default", "pie");
+      chart.render(dataFactory(["One", "Two", "Three", "Four"], ["Random data"], 20));
+      return chart;
+    });
+  }
+  </script>
+</body>
+</html>
+

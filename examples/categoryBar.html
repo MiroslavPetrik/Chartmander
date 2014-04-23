@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Category Bar Chart</title>
+  <link rel="stylesheet" href="../css/chartmander.css">
+  <script src="../lib/tinycolor.js"></script>
+  <script src="../lib/moment.min.js"></script>
+  <script src="../js/chartmander.js"></script>
+  <script src="../js/dataFactory.js"></script>
+</head>
+<body>
+  <h1>Category Bar Chart</h1>
+  <ul>
+    <li><a href="index.html">All examples</a>
+    <li><button onclick="chart();">Random update</button>
+  </ul>
+  <canvas id="categoryBar-default" width="800" height="300"></canvas>
+  <script>
+  function chart () {
+    Chartmander.addChart(function(){
+      var chart = Chartmander.select("categoryBar-default", "categoryBar");
+      chart.render(dataFactory(["One", "Two"], yearByMonths(1), 300));
+      return chart;
+    });
+  }
+
+  chart();
+  </script>
+</body>
+</html>
