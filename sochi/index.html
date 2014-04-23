@@ -14,7 +14,6 @@ title: Sochi 2014 visualization with Chartmander.js
         <li><a href="{{site.sochi}}athletes.html"><i class="ion-ios7-people"></i>Athletes</a></li>
       </ul>
       <section class="page">
-        <!-- <a href="#" class="update">update</a> -->
         <div class="panel panel-sochi">
           <div class="panel-heading">
             <div class="js-range btn-group pull-right">
@@ -40,20 +39,16 @@ title: Sochi 2014 visualization with Chartmander.js
 </div>
 
 <script>
-
 getMedalsByCountries(0, function (chartData) {
   Chartmander.addChart(function(){
     var chart = Chartmander.select("top-countries", "categoryBar");
     var medals = parseMedals(chartData);
-      chart
+      chart.bars
         .fontColor("#fff")
         .margin({left: 30})
-        .colors(["#c35f00", "#e3e3e3", "#ffbf00"])
-        ;
-
+        .colors(["#c35f00", "#e3e3e3", "#ffbf00"]);
       chart.grid.lineColor("rgba(0,0,0,.3)");
 
-      console.log(medals)
       chart.render(medals);
       return chart;
   });
@@ -63,17 +58,14 @@ getMedalsByAthletes(0, function (chartData) {
   Chartmander.addChart(function(){
     var chart = Chartmander.select("top-athletes", "categoryBar");
     var medals = parseMedals(chartData);
-      chart
+      chart.bars
         .fontColor("#fff")
         .margin({left: 30})
-        .colors(["#c35f00", "#e3e3e3", "#ffbf00"])
-        ;
-
+        .colors(["#c35f00", "#e3e3e3", "#ffbf00"]);
       chart.grid.lineColor("rgba(0,0,0,.3)");
-      console.log(medals)
+
       chart.render(medals);
       return chart;
   });
 });
-
 </script>

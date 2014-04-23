@@ -56,7 +56,6 @@ title: Sochi 2014 Country statistics
 
 <script>
 $(function(){
-
   var $description = $('.js-description')
     , $flag = $('.js-flag')
     , $name = $('.js-name')
@@ -73,10 +72,9 @@ $(function(){
       $description.text(data.description);
       Chartmander.addChart(function(){
         var chart = Chartmander.select("pieMedals", "pie");
-
-        chart
-          .colors(["#c35f00", "#e3e3e3", "#ffbf00"])
-          .render(parsePieMedals(data.name, data.medals));
+        chart.pie
+          .colors(["#c35f00", "#e3e3e3", "#ffbf00"]);
+        chart.render(parsePieMedals(data.name, data.medals));
         return chart;
       });
     });
@@ -84,5 +82,4 @@ $(function(){
 
   $('#tada').click();
 });
-
 </script>
