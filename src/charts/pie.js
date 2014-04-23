@@ -21,7 +21,6 @@ Chartmander.charts.pie = function (canvas) {
   ///////////////////////////////////
 
   var render =  function (data) {
-    console.log(chart.updated())
     pie.parse(data, Chartmander.components.slice);
     pie.recalc();
     
