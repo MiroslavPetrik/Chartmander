@@ -48,7 +48,7 @@ getMedalsByCountries(0, function (chartData) {
         .margin({left: 30})
         .colors(["#c35f00", "#e3e3e3", "#ffbf00"]);
       chart.grid.lineColor("rgba(0,0,0,.3)");
-
+      console.log(medals)
       chart.render(medals);
       return chart;
   });
@@ -63,7 +63,7 @@ getMedalsByAthletes(0, function (chartData) {
         .margin({left: 30})
         .colors(["#c35f00", "#e3e3e3", "#ffbf00"]);
       chart.grid.lineColor("rgba(0,0,0,.3)");
-
+      console.log(medals)
       chart.render(medals);
       return chart;
   });
