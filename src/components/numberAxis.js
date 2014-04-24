@@ -1,4 +1,4 @@
-Chartmander.components.numberAxis = function () {
+Chartmander.components.numberAxis = function (chart, model) {
 
   var axis = new Chartmander.components.axis();
 
@@ -6,7 +6,7 @@ Chartmander.components.numberAxis = function () {
     , spacing = 25 // minimum space between 2 labels
     ;
 
-  var generate = function (chart, oldScale) {
+  var generate = function (oldScale) {
 
     var height = axis.orientation() == "vertical" ? chart.grid.height() : chart.grid.width()
       , maxLabelCount = Math.floor(height / spacing)
@@ -119,9 +119,7 @@ Chartmander.components.numberAxis = function () {
     }
   }
 
-  var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx;
-
+  var drawInto = function (ctx, _perc_) {
     ctx.save();
     ctx.textAlign = "right";
     ctx.fillStyle = chart.fontColor();
@@ -141,9 +139,9 @@ Chartmander.components.numberAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.adapt = function (chart, range, oldScale) {
+  axis.adapt = function (range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    generate(chart, oldScale);
+    generate(oldScale);
     return axis;
   };
 
