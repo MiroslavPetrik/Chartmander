@@ -2545,7 +2545,7 @@ Chartmander.charts.categoryBar = function (canvas) {
 
 
   chart.drawChart(function (ctx, _perc_) {
-    grid.drawInto(bars, _perc_);
+    grid.drawInto(ctx, _perc_);
 
     if (xAxis.visible()) {
       xAxis
