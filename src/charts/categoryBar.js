@@ -8,7 +8,7 @@ Chartmander.charts.categoryBar = function (canvas) {
 
   var bars      = new Chartmander.models.bars(chart)
     , xAxis     = new Chartmander.components.categoryAxis(chart, bars)
-    , yAxis     = new Chartmander.components.numberAxis(chart, bars)
+    , yAxis     = new Chartmander.components.yAxis(chart, bars)
     , grid      = new Chartmander.components.grid(chart, xAxis, yAxis)
     , y0
     ;
