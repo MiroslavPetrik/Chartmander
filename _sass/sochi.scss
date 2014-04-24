@@ -99,18 +99,19 @@ header {
 
 .flag-wrapper {
 	display: inline-block;
+	position: absolute;
+	@include rem(top, 4.5);	
+	left: 50%;
 	margin: 0;
+	@include rem(margin-left, -8);
 	border-radius: 50%;
 	width: 16rem;
 	height: 16rem;
 	background: transparent;
 	overflow: hidden;
-	margin-left: 4rem;
-	margin-top: 5rem;
 	opacity: 0;
 }
 
-#pieMedals {
-	position: absolute;
-	z-index: 40;
+#chartmander-pieMedals {
+	z-index: 10;
 }
