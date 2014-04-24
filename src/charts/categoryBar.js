@@ -97,15 +97,12 @@ Chartmander.charts.categoryBar = function (canvas) {
   // Public Methods & Variables
   ///////////////////////////////
 
-  bars.xAxis = xAxis;
-  bars.yAxis = yAxis;
-  bars.grid = grid;
+  chart.bars = bars;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+  chart.grid = grid;
 
-  bars.render = render;
+  chart.render = render;
 
-  bars.base = function (_) {
-    return grid.bound().bottom;
-  };
-
-  return bars;
+  return chart;
 }
