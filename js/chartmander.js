@@ -2629,14 +2629,17 @@ Chartmander.charts.categoryBar = function (canvas) {
   // Public Methods & Variables
   ///////////////////////////////
 
-  chart.bars = bars;
-  chart.xAxis = xAxis;
-  chart.yAxis = yAxis;
-  chart.grid = grid;
+  bars.xAxis = xAxis;
+  bars.yAxis = yAxis;
+  bars.grid = grid;
 
-  chart.render = render;
+  bars.render = render;
 
-  return chart;
+  bars.base = function (_) {
+    return grid.bound().bottom;
+  };
+
+  return bars;
 }
 
 Chartmander.charts.line = function (canvas) {
