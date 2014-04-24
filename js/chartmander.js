@@ -667,7 +667,7 @@ Chartmander.components.axis = function () {
   return axis;
 }
 
-Chartmander.components.numberAxis = function () {
+Chartmander.components.numberAxis = function (chart, model) {
 
   var axis = new Chartmander.components.axis();
 
@@ -675,7 +675,7 @@ Chartmander.components.numberAxis = function () {
     , spacing = 25 // minimum space between 2 labels
     ;
 
-  var generate = function (chart, oldScale) {
+  var generate = function (oldScale) {
 
     var height = axis.orientation() == "vertical" ? chart.grid.height() : chart.grid.width()
       , maxLabelCount = Math.floor(height / spacing)
@@ -788,9 +788,7 @@ Chartmander.components.numberAxis = function () {
     }
   }
 
-  var drawInto = function (chart, _perc_) {
-    var ctx = chart.layer.ctx;
-
+  var drawInto = function (ctx, _perc_) {
     ctx.save();
     ctx.textAlign = "right";
     ctx.fillStyle = chart.fontColor();
@@ -810,9 +808,9 @@ Chartmander.components.numberAxis = function () {
 
   axis.drawInto = drawInto;
 
-  axis.adapt = function (chart, range, oldScale) {
+  axis.adapt = function (range, oldScale) {
     axis.min(range.min).max(range.max).delta(axis.max() - (axis.min() > 0 ? 0 : axis.min()));
-    generate(chart, oldScale);
+    generate(oldScale);
     return axis;
   };
 
@@ -2540,10 +2538,11 @@ Chartmander.charts.categoryBar = function (canvas) {
 
   var bars      = new Chartmander.models.bars(chart)
     , xAxis     = new Chartmander.components.categoryAxis(chart, bars)
-    , yAxis     = new Chartmander.components.numberAxis(chart, bars)
+    , yAxis     = new Chartmander.components.yAxis(chart, bars)
     , grid      = new Chartmander.components.grid(chart, xAxis, yAxis)
     , y0
     ;
+
 
   chart.drawChart(function (ctx, _perc_) {
     grid.drawInto(bars, _perc_);
@@ -2629,17 +2628,14 @@ Chartmander.charts.categoryBar = function (canvas) {
   // Public Methods & Variables
   ///////////////////////////////
 
-  bars.xAxis = xAxis;
-  bars.yAxis = yAxis;
-  bars.grid = grid;
+  chart.bars = bars;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+  chart.grid = grid;
 
-  bars.render = render;
+  chart.render = render;
 
-  bars.base = function (_) {
-    return grid.bound().bottom;
-  };
-
-  return bars;
+  return chart;
 }
 
 Chartmander.charts.line = function (canvas) {
