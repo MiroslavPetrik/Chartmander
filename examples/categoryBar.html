@@ -17,10 +17,13 @@
   </ul>
   <canvas id="categoryBar-default" width="800" height="300"></canvas>
   <script>
+  // console.log(genCategories(["RUS", "USA", "DE"], ["gold", "bronze", "silver"]));
+  var myData = dataFactory(["One", "Two"], yearByMonths(1), 300);
+  console.log(myData);
   function chart () {
     Chartmander.addChart(function(){
       var chart = Chartmander.select("categoryBar-default", "categoryBar");
-      chart.render(dataFactory(["One", "Two"], yearByMonths(1), 300));
+      chart.render(myData);
       return chart;
     });
   }

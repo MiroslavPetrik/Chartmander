@@ -31,6 +31,12 @@ function stream (cats, dir, range) {
   return result;
 }
 
+// function genCategories (categories, streams) {
+//   categories.forEach(function(cat){
+//     console.log(i,e);
+//   })
+// }
+
 function sine (points) {
   var result = []
     , incrementAngle = (Math.PI*2)/points
