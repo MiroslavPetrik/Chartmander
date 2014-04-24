@@ -43,9 +43,9 @@ getMedalsByCountries(0, function (chartData) {
   Chartmander.addChart(function(){
     var chart = Chartmander.select("top-countries", "categoryBar");
     var medals = parseMedals(chartData);
+    chart.margin({left: 30});
       chart.bars
         .fontColor("#fff")
-        .margin({left: 30})
         .colors(["#c35f00", "#e3e3e3", "#ffbf00"]);
       chart.grid.lineColor("rgba(0,0,0,.3)");
       console.log(medals)
@@ -58,9 +58,9 @@ getMedalsByAthletes(0, function (chartData) {
   Chartmander.addChart(function(){
     var chart = Chartmander.select("top-athletes", "categoryBar");
     var medals = parseMedals(chartData);
+      chart.margin({left: 30});
       chart.bars
         .fontColor("#fff")
-        .margin({left: 30})
         .colors(["#c35f00", "#e3e3e3", "#ffbf00"]);
       chart.grid.lineColor("rgba(0,0,0,.3)");
       console.log(medals)
