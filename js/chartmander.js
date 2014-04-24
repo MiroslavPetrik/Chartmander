@@ -2543,7 +2543,6 @@ Chartmander.charts.categoryBar = function (canvas) {
     , y0
     ;
 
-
   chart.drawChart(function (ctx, _perc_) {
     grid.drawInto(ctx, _perc_);
 
