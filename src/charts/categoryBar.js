@@ -13,6 +13,7 @@ Chartmander.charts.categoryBar = function (canvas) {
     , y0
     ;
 
+
   chart.drawChart(function (ctx, _perc_) {
     grid.drawInto(bars, _perc_);
 
